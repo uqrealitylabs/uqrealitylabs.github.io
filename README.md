@@ -20,32 +20,26 @@ To test ("deploy") locally, run
 
 Follow the terminal commands or go to `localhost:4000` for more info.
 
-## Learn More
+## Merging to Develop & Main
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Merge all except hotfixes to develop before merging to main. In order to merge, it must automatically pass the testing pipeline set up. This pipeline also has a preview website. You should examine this website before accepting the merge request.
 
+## Directory Listing
+
+- build (not in source code, built when deployed): the built website files
+- extensions: firebase extensions
+- functions: firebase functions in NodeJS
+- node_modules: the modules required for the React App
+- public: the public portions of the react app. Note that this is not the same as firebase public
+- src: the dynamic portions of the react app.
+- .firebaserc: contains the deploy site
+- .firebase.json: contains configuration information for firebase
+- firestore.indexes.json: contains the indexes for firestore
+- firestore.rule: contains the firestore rules
+- remoteconfig.template.json: contains remote configuration templates
+- storage.rules: contains security rules for storage
+
+## Help
 To learn React, check out the [React documentation](https://reactjs.org/).
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+For firebase, check out the [Documentation](https://firebase.google.com/docs).
