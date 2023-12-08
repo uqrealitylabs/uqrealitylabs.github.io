@@ -12,6 +12,14 @@
 2. Login using `firebase login` with your own google account - @benjamin.tran will add you
 3. Run `firebase projects:list` to verify you have access to `uqrl-website` 
 
+## Testing & Deploying Locally
+DO NOT EVER MANUALLY DEPLOY! ONLY DEPLOY THROUGH GITHUB.
+
+To test ("deploy") locally, run
+```firebase emulators:start```
+
+Follow the terminal commands or go to `localhost:4000` for more info.
+
 ## Learn More
 
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
