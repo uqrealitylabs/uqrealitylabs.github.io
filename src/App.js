@@ -10,7 +10,7 @@ const firebaseConfig = {
 
 };
 
-const fbApp = initializeApp(firebaseConfig);
+/* const fbApp = */ initializeApp(firebaseConfig);
 
 function App() {
   return (
