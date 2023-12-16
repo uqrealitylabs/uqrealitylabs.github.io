@@ -23,17 +23,16 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
-  width: 100%;
+  /* width: 100%; */
 }
 
 .nav-tabs {
   padding: 1.5vmin 5vmin 1.5vmin 3vmin;
   text-decoration: none;
   color: #a7a9b1;
-  font-size: 5vmin;
+  font-size: 4vmin;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
-
 
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
