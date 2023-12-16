@@ -7,6 +7,34 @@
   pointer-events: none;
 }
 
+.nav-brand {
+  height: 10vmin;
+  padding: 1.5vmin 3vmin 1.5vmin 3vmin;
+}
+
+.main-nav {
+  background-color: #16171a;
+  display: flex;  
+  align-items: center;
+  justify-content: left;
+}
+
+.nav-links {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+}
+
+.nav-tabs {
+  padding: 1.5vmin 5vmin 1.5vmin 3vmin;
+  text-decoration: none;
+  color: #a7a9b1;
+  font-size: 5vmin;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
