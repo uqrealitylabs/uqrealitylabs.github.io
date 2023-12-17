@@ -8,6 +8,7 @@ import { } from "firebase/functions";
 
 import Navbar from 'react-bootstrap/Navbar';
 import { Nav } from 'react-bootstrap';
+import CubeComponent from './CubeComponent'
 
 const firebaseConfig = {
 
@@ -19,15 +20,15 @@ function App() {
   return (
     <>
       <Navigation/>
-      <div className="App">
+      <CubeComponent/>
+      {/* <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <p>
             UQ Reality Labs
           </p>
-
         </header>
-      </div>
+      </div> */}
     </>
   );
 }
