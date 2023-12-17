@@ -1,11 +1,14 @@
 // Cube.js
 import React, { useEffect } from 'react';
 import * as THREE from 'three';
+import { Canvas, useThree } from 'react-three-fiber';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 
-const Cube = () => {
+
+export default function Cube() {
   useEffect(() => {
     // Set up Three.js scene
     const scene = new THREE.Scene();
@@ -16,6 +19,7 @@ const Cube = () => {
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
+    
 
     // Create a cube with adjusted size (twice as big)
     const geometry = new THREE.BoxGeometry();
@@ -30,13 +34,14 @@ const Cube = () => {
 
     // Create faces with individual colors and 20% opacity
     const facesMaterial = [
-      new THREE.MeshBasicMaterial({ color: 0x800080, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // Purple color, translucent (Face 0)
-      new THREE.MeshBasicMaterial({ color: 0x800080, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // Purple color, translucent (Face 1)
-      new THREE.MeshBasicMaterial({ color: 0x800080, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // Purple color, translucent (Face 2)
-      new THREE.MeshBasicMaterial({ color: 0x800080, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // Purple color, translucent (Face 3)
-      new THREE.MeshBasicMaterial({ color: 0x800080, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // Purple color, translucent (Face 4)
-      new THREE.MeshBasicMaterial({ color: 0x800080, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // Purple color, translucent (Face 5)
-    ];
+        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // White color, translucent (Face 0)
+        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // White color, translucent (Face 1)
+        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // White color, translucent (Face 2)
+        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // White color, translucent (Face 3)
+        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // White color, translucent (Face 4)
+        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // White color, translucent (Face 5)
+      ];
+
     const facesCube = new THREE.Mesh(geometry, facesMaterial);
     scene.add(facesCube);
 
@@ -75,11 +80,11 @@ const Cube = () => {
 
         // Reset the color of all faces to the original color
         facesMaterial.forEach((material, index) => {
-          material.color.copy(originalColors[index]);
+            facesMaterial[index].opacity = 0.2;
         });
 
         // Change the color of the clicked face
-        facesMaterial[clickedIndex].color.set(0xff0000); // Red color
+        facesMaterial[clickedIndex].opacity = 0.7;
       }
     };
 
@@ -126,5 +131,3 @@ const Cube = () => {
 
   return null; // No need to render anything in the React component
 };
-
-export default Cube;
