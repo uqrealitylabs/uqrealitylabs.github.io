@@ -6,13 +6,15 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { TextureLoader } from 'three';
+import logo from './logo-solid.png';
 
 
 export default function Cube() {
   useEffect(() => {
     // Set up Three.js scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x888888); // Set gray background
+    scene.background = new THREE.Color(0x444444); // Set gray background
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer();
@@ -27,26 +29,39 @@ export default function Cube() {
 
     // Create edges with a brighter purple color and five times thicker linewidth
     const edges = new THREE.EdgesGeometry(geometry);
-    const edgesMaterial = new THREE.LineBasicMaterial({ color: new THREE.Color(0xb72fb7) }); // Brighter purple color
+    const edgesMaterial = new THREE.LineBasicMaterial({ color: new THREE.Color(0x666666) }); // Brighter purple color
     const edgesCube = new THREE.LineSegments(edges, edgesMaterial);
     edgesCube.material.linewidth = 10; // Adjust the linewidth to be five times thicker
     scene.add(edgesCube);
 
-    // Create faces with individual colors and 20% opacity
-    const facesMaterial = [
-        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // White color, translucent (Face 0)
-        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // White color, translucent (Face 1)
-        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // White color, translucent (Face 2)
-        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // White color, translucent (Face 3)
-        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // White color, translucent (Face 4)
-        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, side: THREE.DoubleSide }), // White color, translucent (Face 5)
-      ];
+    // Create faces with textures
+    const facesMaterial = Array.from({ length: 6 }, (_, index) => {
+      if (index === 4) {
+        // Use image texture for the first face, and keep others with solid colors
+        const texture = new THREE.TextureLoader().load(logo);
+        const textureMaterial = new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 0.2,
+          side: THREE.DoubleSide,
+        });
 
-    const facesCube = new THREE.Mesh(geometry, facesMaterial);
+        return textureMaterial;
+      } else {
+        // Use white color for other faces
+        const backgroundMaterial = new THREE.MeshBasicMaterial({
+          color: 0x000000,
+          transparent: true,
+          opacity: 0.2,
+          side: THREE.DoubleSide,
+        });
+
+        return backgroundMaterial;
+      }
+    });
+
+    const facesCube = new THREE.Mesh(geometry, facesMaterial.flat());
     scene.add(facesCube);
-
-    // Store the original color of each face
-    const originalColors = facesMaterial.map((material) => material.color.clone());
 
     // Assign numbers to each face
     const faceNumbers = [0, 1, 2, 3, 4, 5];
@@ -80,16 +95,20 @@ export default function Cube() {
 
         // Reset the color of all faces to the original color
         facesMaterial.forEach((material, index) => {
-            facesMaterial[index].opacity = 0.2;
+            material.opacity = 0.2;
         });
 
         // Change the color of the clicked face
         facesMaterial[clickedIndex].opacity = 0.7;
+      } else {
+        facesMaterial.forEach((material, index) => {
+          material.opacity = 0.2;
+      });
       }
     };
 
     // Add click event listener
-    window.addEventListener('click', handleFaceClick);
+    window.addEventListener('mousemove', handleFaceClick);
 
     // Set up outline pass
     const composer = new EffectComposer(renderer);
