@@ -8,7 +8,8 @@ import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { TextureLoader } from 'three';
 import logo from './logo-solid.png';
-
+import { click } from '@testing-library/user-event/dist/click';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
 export default function Cube() {
   useEffect(() => {
@@ -48,7 +49,6 @@ export default function Cube() {
 
         return textureMaterial;
       } else {
-        // Use white color for other faces
         const backgroundMaterial = new THREE.MeshBasicMaterial({
           color: 0x000000,
           transparent: true,
@@ -70,7 +70,7 @@ export default function Cube() {
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
-    const handleFaceClick = (event) => {
+    const handleFaceMouseover = (event) => {
         // Calculate mouse position in normalized device coordinates
         const canvasBounds = renderer.domElement.getBoundingClientRect();
         const fixedPosition = {
@@ -90,9 +90,6 @@ export default function Cube() {
         const clickedFace = intersects[0].face; // Get the face that was clicked
         const clickedIndex = clickedFace.materialIndex; // Get the material index of the clicked face
 
-        // Log a message with the face number when a face is clicked
-        console.log(`Face ${faceNumbers[clickedIndex]} clicked!`);
-
         // Reset the color of all faces to the original color
         facesMaterial.forEach((material, index) => {
             material.opacity = 0.2;
@@ -100,15 +97,58 @@ export default function Cube() {
 
         // Change the color of the clicked face
         facesMaterial[clickedIndex].opacity = 0.7;
+        document.body.style.cursor = 'pointer';
       } else {
         facesMaterial.forEach((material, index) => {
           material.opacity = 0.2;
+          document.body.style.cursor = 'default';
       });
       }
     };
 
+    const handleFaceClick = (event) => {
+      // Calculate mouse position in normalized device coordinates
+      const canvasBounds = renderer.domElement.getBoundingClientRect();
+      const fixedPosition = {
+      left: 0, // Set the left offset based on your fixed position
+      top: 0, // Set the top offset based on your fixed position
+      };
+
+      mouse.x = ((event.clientX - canvasBounds.left - fixedPosition.left) / canvasBounds.width) * 2 - 1;
+      mouse.y = -((event.clientY - canvasBounds.top - fixedPosition.top) / canvasBounds.height) * 2 + 1;
+
+      // Raycast from the camera to the faces
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(facesCube);
+
+      if (intersects.length > 0) {
+        const clickedFace = intersects[0].face; // Get the face that was clicked
+        console.log('Clicked on ', clickedFace.materialIndex);
+        switch(clickedFace.materialIndex) {
+          case 4:
+            break;
+          case 0:
+            window.location.pathname = '/about';
+            break;
+          case 1:
+            window.location.pathname = '/events';
+            break;
+          case 2:
+            window.location.pathname = '/news';
+            break;
+          case 3:
+            window.location.pathname = '/resources';
+            break;
+          case 5:
+            window.location.pathname = '/join';
+            break;
+        }
+      }
+    }
+
     // Add click event listener
-    window.addEventListener('mousemove', handleFaceClick);
+    window.addEventListener('mousemove', handleFaceMouseover);
+    window.addEventListener('click', handleFaceClick);
 
     // Set up outline pass
     const composer = new EffectComposer(renderer);
