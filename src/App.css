@@ -1,0 +1,86 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.nav-brand {
+  height: 5vmin;
+  padding: 1.5vmin 3vmin 1.5vmin 3vmin;
+}
+
+.main-nav {
+  background-color: #16171a;
+  display: flex;  
+  align-items: center;
+  justify-content: left;
+}
+
+.nav-links {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  /* width: 100%; */
+}
+
+.nav-tabs {
+  padding: 1.5vmin 5vmin 1.5vmin 3vmin;
+  text-decoration: none;
+  color: #a7a9b1;
+  font-size: 3em;
+  font-family: 'Big Shoulders Display', 'Montserrat', sans-serif;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+.page-title {
+  text-align: center;
+  font-family: 'Big Shoulders Display', 'Montserrat', sans-serif;
+  font-size: 4em;
+}
+
+.page {
+  width: 70%;
+  background-color: rgb(39, 39, 39);
+  height: 100%;
+  margin: 0 auto;
+  padding: 1% 1%;
+  color: #a7a9b1;
+  border-radius: 0 0 2.5em 2.5em;
+}
+
+html {
+  background-color: rgb(68, 68, 68);
+  display: flex;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
