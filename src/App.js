@@ -8,8 +8,7 @@ import { } from "firebase/functions";
 
 import Navbar from 'react-bootstrap/Navbar';
 import { Nav } from 'react-bootstrap';
-import CubeComponent from './CubeComponent'
-import Cube from './Cube';
+import CubeComponent from './CubeComponent';
 
 const firebaseConfig = {
 

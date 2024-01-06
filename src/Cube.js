@@ -1,15 +1,15 @@
 // Cube.js
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import * as THREE from 'three';
-import { Canvas, useThree } from 'react-three-fiber';
+// import { Canvas, useThree } from 'react-three-fiber';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
-import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-import { TextureLoader } from 'three';
+// import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+// import { TextureLoader } from 'three';
 import logo from './logo-solid.png';
-import { click } from '@testing-library/user-event/dist/click';
-import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+// import { click } from '@testing-library/user-event/dist/click';
+// import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
 export default function Cube() {
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function Cube() {
     scene.add(facesCube);
 
     // Assign numbers to each face
-    const faceNumbers = [0, 1, 2, 3, 4, 5];
+    // const faceNumbers = [0, 1, 2, 3, 4, 5];
 
     // Handle face click event
     const raycaster = new THREE.Raycaster();
@@ -141,6 +141,8 @@ export default function Cube() {
             break;
           case 5:
             window.location.pathname = '/join';
+            break;
+          default:
             break;
         }
       }
