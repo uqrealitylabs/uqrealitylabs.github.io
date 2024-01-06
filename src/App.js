@@ -20,15 +20,7 @@ function App() {
   return (
     <>
       <Navigation/>
-      <CubeComponent/>
-      {/* <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            UQ Reality Labs
-          </p>
-        </header>
-      </div> */}
+      <Page/>
     </>
   );
 }
@@ -37,15 +29,15 @@ function Navigation() {
   return (
       <Navbar fixed="top" expand="lg" className="bg-body-tertiary main-nav d-flex align-items" variant="underline">
           <Navbar.Brand href="#home">
-            <img src={logo} alt="uqrl logo" className='nav-brand'/>
+            <img src={logo} alt="uqrl logo" className='nav-brand' onClick={() => {window.location.pathname = "/"}}/>
           </Navbar.Brand>
           {/* <Navbar.Toggle aria-controls="responsive-navbar-nav" /> */}
             <Nav className="nav-links me-auto">
-              <Nav.Link className="nav-tabs">About</Nav.Link>
-              <Nav.Link className="nav-tabs">Events</Nav.Link>
-              <Nav.Link className="nav-tabs">News</Nav.Link>
-              <Nav.Link className="nav-tabs">Resources</Nav.Link>
-              <Nav.Link className="nav-tabs">Join</Nav.Link>
+              <Nav.Link className="nav-tabs" onClick={() => {window.location.pathname = "/about"}}>About</Nav.Link>
+              <Nav.Link className="nav-tabs" onClick={() => {window.location.pathname = "/events"}}>Events</Nav.Link>
+              <Nav.Link className="nav-tabs" onClick={() => {window.location.pathname = "/news"}}>News</Nav.Link>
+              <Nav.Link className="nav-tabs" onClick={() => {window.location.pathname = "/resources"}}>Resources</Nav.Link>
+              <Nav.Link className="nav-tabs" onClick={() => {window.location.pathname = "/join"}}>Join</Nav.Link>
             </Nav>  
 
       </Navbar>
@@ -53,5 +45,21 @@ function Navigation() {
   );
 }
 
+function AboutPage() {
+  return (
+    <>
+      <p></p>
+    </>
+  );
+}
+
+function Page() {
+  switch(window.location.pathname) {
+    case "/about":
+      return <AboutPage/>
+    default:
+      return <CubeComponent/>;
+  }
+}
 
 export default App;
