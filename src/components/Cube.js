@@ -15,7 +15,7 @@ export default function Cube() {
   useEffect(() => {
     // Set up Three.js scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x444444); // Set gray background
+    scene.background = null;
 
     const camera = new THREE.PerspectiveCamera(
       75,
@@ -23,7 +23,7 @@ export default function Cube() {
       0.1,
       1000
     );
-    const renderer = new THREE.WebGLRenderer();
+    const renderer = new THREE.WebGLRenderer({alpha: true});
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
