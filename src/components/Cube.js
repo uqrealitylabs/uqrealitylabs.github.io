@@ -26,7 +26,12 @@ export default function Cube() {
     const renderer = new THREE.WebGLRenderer({alpha: true});
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+    
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.top = '0';
+    document.body.appendChild(container);
+    container.appendChild(renderer.domElement);
 
     // Create a cube with adjusted size (twice as big)
     const geometry = new THREE.BoxGeometry();
@@ -215,7 +220,8 @@ export default function Cube() {
     // Clean up on component unmount
     return () => {
       window.removeEventListener("click", handleFaceClick);
-      document.body.removeChild(renderer.domElement);
+      container.removeChild(renderer.domElement);
+      document.body.removeChild(container);
     };
   }, []); // Empty dependency array ensures the effect runs only once
 
