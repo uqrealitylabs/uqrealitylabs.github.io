@@ -29,7 +29,7 @@ export default function Cube() {
     
     const container = document.createElement('div');
     container.style.position = 'fixed';
-    container.style.top = '0';
+    container.style.top = '10%';
     document.body.appendChild(container);
     container.appendChild(renderer.domElement);
 
