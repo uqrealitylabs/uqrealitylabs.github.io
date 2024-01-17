@@ -18,10 +18,10 @@ export default function Cube() {
     scene.background = null;
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({alpha: true});
+    const renderer = new THREE.WebGLRenderer({ alpha: true });
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    
+
     // create DOM elements
     const container = document.createElement('div');
     container.style.position = 'fixed';
@@ -183,31 +183,31 @@ function identifyFace(renderer, event, camera, facesCube) {
   const mouse = new THREE.Vector2();
 
   const canvasBounds = renderer.domElement.getBoundingClientRect();
-      const fixedPosition = {
-        left: 0, // Set the left offset based on your fixed position
-        top: 0, // Set the top offset based on your fixed position
-      };
+  const fixedPosition = {
+    left: 0, // Set the left offset based on your fixed position
+    top: 0, // Set the top offset based on your fixed position
+  };
 
-      mouse.x =
-        ((event.clientX - canvasBounds.left - fixedPosition.left) /
-          canvasBounds.width) *
-          2 -
-        1;
-      mouse.y =
-        -(
-          (event.clientY - canvasBounds.top - fixedPosition.top) /
-          canvasBounds.height
-        ) *
-          2 +
-        1;
+  mouse.x =
+    ((event.clientX - canvasBounds.left - fixedPosition.left) /
+      canvasBounds.width) *
+    2 -
+    1;
+  mouse.y =
+    -(
+      (event.clientY - canvasBounds.top - fixedPosition.top) /
+      canvasBounds.height
+    ) *
+    2 +
+    1;
 
-      // Raycast from the camera to the faces
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObject(facesCube);
-      if (intersects.length > 0) {
-        const clickedFace = intersects[0].face; // Get the face that was clicked
-        console.log("Clicked on ", clickedFace.materialIndex);
-        return clickedFace.materialIndex;
-      }
-      return null;
+  // Raycast from the camera to the faces
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObject(facesCube);
+  if (intersects.length > 0) {
+    const clickedFace = intersects[0].face; // Get the face that was clicked
+    console.log("Clicked on ", clickedFace.materialIndex);
+    return clickedFace.materialIndex;
+  }
+  return null;
 }
