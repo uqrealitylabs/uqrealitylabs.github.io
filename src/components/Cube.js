@@ -17,16 +17,12 @@ export default function Cube() {
     const scene = new THREE.Scene();
     scene.background = null;
 
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({alpha: true});
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     
+    // create DOM elements
     const container = document.createElement('div');
     container.style.position = 'fixed';
     container.style.top = '10%';
@@ -37,144 +33,56 @@ export default function Cube() {
     const geometry = new THREE.BoxGeometry();
     geometry.scale(2, 2, 2); // Scale the geometry
 
-    // Create edges with a brighter purple color and five times thicker linewidth
-    const edges = new THREE.EdgesGeometry(geometry);
-    const edgesMaterial = new THREE.LineBasicMaterial({
-      color: new THREE.Color(0x666666),
-    }); // Brighter purple color
-    const edgesCube = new THREE.LineSegments(edges, edgesMaterial);
-    edgesCube.material.linewidth = 10; // Adjust the linewidth to be five times thicker
+    const edgesCube = textureEdges(geometry);
     scene.add(edgesCube);
 
-    // Create faces with textures
-    const facesMaterial = Array.from({ length: 6 }, (_, index) => {
-      if (index === 4) {
-        // Use image texture for the first face, and keep others with solid colors
-        const texture = new THREE.TextureLoader().load(logo);
-        const textureMaterial = new THREE.MeshBasicMaterial({
-          map: texture,
-          transparent: true,
-          opacity: 0.2,
-          side: THREE.DoubleSide,
-        });
-
-        return textureMaterial;
-      } else {
-        const backgroundMaterial = new THREE.MeshBasicMaterial({
-          color: 0x000000,
-          transparent: true,
-          opacity: 0.2,
-          side: THREE.DoubleSide,
-        });
-
-        return backgroundMaterial;
-      }
-    });
-
+    const facesMaterial = textureFaces();
     const facesCube = new THREE.Mesh(geometry, facesMaterial.flat());
     scene.add(facesCube);
 
-    // Assign numbers to each face
-    // const faceNumbers = [0, 1, 2, 3, 4, 5];
-
-    // Handle face click event
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
+    var rotate = true;
 
     const handleFaceMouseover = (event) => {
-      // Calculate mouse position in normalized device coordinates
-      const canvasBounds = renderer.domElement.getBoundingClientRect();
-      const fixedPosition = {
-        left: 0, // Set the left offset based on your fixed position
-        top: 0, // Set the top offset based on your fixed position
-      };
+      const face = identifyFace(renderer, event, camera, facesCube);
 
-      mouse.x =
-        ((event.clientX - canvasBounds.left - fixedPosition.left) /
-          canvasBounds.width) *
-          2 -
-        1;
-      mouse.y =
-        -(
-          (event.clientY - canvasBounds.top - fixedPosition.top) /
-          canvasBounds.height
-        ) *
-          2 +
-        1;
+      // Reset the color of all faces to the original color
+      facesMaterial.forEach((material, index) => {
+        material.opacity = 0.2;
+      });
 
-      // Raycast from the camera to the faces
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObject(facesCube);
-
-      if (intersects.length > 0) {
-        const clickedFace = intersects[0].face; // Get the face that was clicked
-        const clickedIndex = clickedFace.materialIndex; // Get the material index of the clicked face
-
-        // Reset the color of all faces to the original color
-        facesMaterial.forEach((material, index) => {
-          material.opacity = 0.2;
-        });
-
-        // Change the color of the clicked face
-        facesMaterial[clickedIndex].opacity = 0.7;
+      // Change the color of the clicked face
+      if (face != null) {
+        rotate = false;
+        facesMaterial[face].opacity = 0.7;
         document.body.style.cursor = "pointer";
       } else {
-        facesMaterial.forEach((material, index) => {
-          material.opacity = 0.2;
-          document.body.style.cursor = "default";
-        });
+        rotate = true;
+        document.body.style.cursor = "default";
       }
     };
 
     const handleFaceClick = (event) => {
-      // Calculate mouse position in normalized device coordinates
-      const canvasBounds = renderer.domElement.getBoundingClientRect();
-      const fixedPosition = {
-        left: 0, // Set the left offset based on your fixed position
-        top: 0, // Set the top offset based on your fixed position
-      };
-
-      mouse.x =
-        ((event.clientX - canvasBounds.left - fixedPosition.left) /
-          canvasBounds.width) *
-          2 -
-        1;
-      mouse.y =
-        -(
-          (event.clientY - canvasBounds.top - fixedPosition.top) /
-          canvasBounds.height
-        ) *
-          2 +
-        1;
-
-      // Raycast from the camera to the faces
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObject(facesCube);
-
-      if (intersects.length > 0) {
-        const clickedFace = intersects[0].face; // Get the face that was clicked
-        console.log("Clicked on ", clickedFace.materialIndex);
-        switch (clickedFace.materialIndex) {
-          case 4:
-            break;
-          case 0:
-            window.location.pathname = "/about";
-            break;
-          case 1:
-            window.location.pathname = "/events";
-            break;
-          case 2:
-            window.location.pathname = "/news";
-            break;
-          case 3:
-            window.location.pathname = "/resources";
-            break;
-          case 5:
-            window.location.pathname = "/join";
-            break;
-          default:
-            break;
-        }
+      const face = identifyFace(renderer, event, camera, facesCube)
+      switch (face) {
+        case 4:
+          break;
+        case 0:
+          window.location.pathname = "/about";
+          break;
+        case 1:
+          window.location.pathname = "/events";
+          break;
+        case 2:
+          window.location.pathname = "/news";
+          break;
+        case 3:
+          window.location.pathname = "/resources";
+          break;
+        case 5:
+          window.location.pathname = "/join";
+          break;
+        default:
+          break;
       }
     };
 
@@ -203,10 +111,13 @@ export default function Cube() {
       requestAnimationFrame(animate);
 
       // Rotate the cube
-      edgesCube.rotation.x += 0.01;
-      edgesCube.rotation.y += 0.01;
-      facesCube.rotation.x += 0.01;
-      facesCube.rotation.y += 0.01;
+      if (rotate) {
+        edgesCube.rotation.x += 0.01;
+        edgesCube.rotation.y += 0.01;
+        facesCube.rotation.x += 0.01;
+        facesCube.rotation.y += 0.01;
+      }
+
 
       // Update the outline pass
       composer.render();
@@ -226,4 +137,77 @@ export default function Cube() {
   }, []); // Empty dependency array ensures the effect runs only once
 
   return null; // No need to render anything in the React component
+}
+
+function textureFaces() {
+  const facesMaterial = Array.from({ length: 6 }, (_, index) => {
+    if (index === 4) {
+      // Use image texture for the first face, and keep others with solid colors
+      const texture = new THREE.TextureLoader().load(logo);
+      const textureMaterial = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 0.2,
+        side: THREE.DoubleSide,
+      });
+
+      return textureMaterial;
+    } else {
+      const backgroundMaterial = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        transparent: true,
+        opacity: 0.2,
+        side: THREE.DoubleSide,
+      });
+
+      return backgroundMaterial;
+    }
+  });
+  return facesMaterial;
+}
+
+function textureEdges(geometry) {
+  // Create edges with a brighter purple color and five times thicker linewidth
+  const edges = new THREE.EdgesGeometry(geometry);
+  const edgesMaterial = new THREE.LineBasicMaterial({
+    color: new THREE.Color(0x666666),
+  }); // Brighter purple color
+  const edgesCube = new THREE.LineSegments(edges, edgesMaterial);
+  edgesCube.material.linewidth = 10; // Adjust the linewidth to be five times thicker
+  return edgesCube;
+}
+
+function identifyFace(renderer, event, camera, facesCube) {
+  // Handle face click event
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+
+  const canvasBounds = renderer.domElement.getBoundingClientRect();
+      const fixedPosition = {
+        left: 0, // Set the left offset based on your fixed position
+        top: 0, // Set the top offset based on your fixed position
+      };
+
+      mouse.x =
+        ((event.clientX - canvasBounds.left - fixedPosition.left) /
+          canvasBounds.width) *
+          2 -
+        1;
+      mouse.y =
+        -(
+          (event.clientY - canvasBounds.top - fixedPosition.top) /
+          canvasBounds.height
+        ) *
+          2 +
+        1;
+
+      // Raycast from the camera to the faces
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(facesCube);
+      if (intersects.length > 0) {
+        const clickedFace = intersects[0].face; // Get the face that was clicked
+        console.log("Clicked on ", clickedFace.materialIndex);
+        return clickedFace.materialIndex;
+      }
+      return null;
 }
