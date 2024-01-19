@@ -1,15 +1,11 @@
 // Cube.js
 import { useEffect } from "react";
 import * as THREE from "three";
-// import { Canvas, useThree } from 'react-three-fiber';
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass";
-// import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-// import { TextureLoader } from 'three';
 import logo from "../images/logo-solid.png";
 // import { click } from '@testing-library/user-event/dist/click';
-// import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
 export default function Cube() {
   useEffect(() => {
