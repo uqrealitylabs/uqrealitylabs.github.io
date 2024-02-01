@@ -2,57 +2,49 @@ import React from "react";
 
 function Join() {
   return (
-    <div className="page">
-      <h1 className="page-title">Join</h1>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas vitae
-        cursus felis. Quisque facilisis augue eget neque scelerisque, in rhoncus
-        eros consectetur. Vivamus eu dolor iaculis, suscipit nisi a, tristique
-        sapien. Etiam pharetra condimentum venenatis. Nulla ultrices turpis
-        luctus, egestas quam rhoncus, dapibus eros. Suspendisse fringilla augue
-        id arcu placerat, ut maximus sapien mollis. Phasellus vel lorem
-        eleifend, varius diam et, varius dolor. Duis ut mauris eget tortor
-        finibus consequat ut ac arcu. Duis sit amet nisi id est molestie aliquet
-        vitae vitae nunc. Etiam tellus est, hendrerit a eros non, condimentum
-        vulputate quam. Donec consectetur mauris velit, sed molestie augue
-        euismod ut. Suspendisse facilisis dolor eget massa lobortis efficitur.
-        Mauris eu molestie tortor. Integer quis sagittis est. Sed lacinia dui
-        sed gravida feugiat. Aliquam eu neque risus. Fusce vitae ipsum congue,
-        ullamcorper nisi a, iaculis massa. Etiam tempus nulla at fermentum
-        gravida. Nam molestie eros ut urna tristique, id interdum ipsum
-        vestibulum. Fusce pellentesque leo non nisi tristique, pretium pharetra
-        purus congue. Nam eu varius libero, eu tincidunt lorem. Aenean eget leo
-        nibh. Pellentesque congue est maximus justo placerat maximus.
-        Pellentesque elit dui, sollicitudin ac elit in, venenatis suscipit
-        tortor. Aenean posuere, ante a sagittis aliquam, tellus ex vehicula
-        ligula, eget ullamcorper nunc lectus sit amet leo. Vivamus sit amet
-        cursus dui. Vivamus at sem justo. Vivamus vulputate cursus bibendum. Sed
-        mollis ligula ipsum, id accumsan nulla pulvinar vel. Nullam rhoncus quis
-        purus id bibendum. Pellentesque vulputate a velit nec scelerisque.
-        Mauris metus magna, hendrerit efficitur porta quis, elementum egestas
-        augue. Etiam eu risus id sem molestie rhoncus. Morbi ex nunc, aliquet at
-        lorem eget, aliquet eleifend orci. Suspendisse a lorem id lectus
-        ullamcorper feugiat a a dolor. Nullam vulputate commodo convallis.
-        Vivamus ut ultrices orci. Phasellus ac blandit sem. Pellentesque turpis
-        odio, placerat ac turpis sed, tempor auctor lectus. In venenatis tortor
-        massa, vitae euismod arcu finibus sit amet. Donec eget venenatis urna.
-        Nullam erat libero, euismod ut nisl eget, pharetra molestie erat. Cras
-        tellus leo, suscipit eget dapibus sit amet, suscipit mollis libero.
-        Curabitur viverra lectus neque, sit amet blandit erat blandit eget.
-        Praesent ut suscipit nisi, id lobortis purus. In consequat ipsum ligula,
-        id imperdiet ante mattis at. Etiam semper nulla eros. Ut venenatis lorem
-        ut elit sodales, sit amet malesuada magna dapibus. Proin dapibus
-        sagittis ipsum, mollis accumsan est commodo eget. Pellentesque semper
-        enim convallis tortor vestibulum, sed eleifend libero feugiat. Etiam a
-        interdum magna, eu rhoncus enim. Vivamus tortor ipsum, dictum vitae
-        iaculis consectetur, scelerisque non mauris. Suspendisse commodo varius
-        nisl, vitae gravida leo tristique sed. Sed vel diam dapibus, efficitur
-        massa sit amet, faucibus quam. Fusce ligula velit, lobortis at
-        ullamcorper nec, fringilla sit amet metus. Aliquam efficitur aliquet
-        dolor, vel mattis tellus tincidunt eu. In non ornare ipsum, eget
-        consectetur turpis. Vestibulum nec imperdiet nisi. Curabitur consequat
-        tincidunt pellentesque.
-      </p>
+    <div class="container">
+        <article id="main" class="special">
+            <header>
+                <h2><a href="#">Join Us!</a></h2>
+            </header>
+            <a href="#" class="image featured"><img src="images/pic06.jpg" alt="" /></a>
+            <p>
+                Commodo id natoque malesuada sollicitudin elit suscipit. Curae suspendisse mauris posuere accumsan massa
+                posuere lacus convallis tellus interdum. Amet nullam fringilla nibh nulla convallis ut venenatis purus
+                lobortis. Auctor etiam porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum
+                consequat integer interdum integer purus sapien. Nibh eleifend nulla nascetur pharetra commodo mi augue
+                interdum tellus. Ornare cursus augue feugiat sodales velit lorem. Semper elementum ullamcorper lacinia
+                natoque aenean scelerisque vel lacinia mollis quam sodales congue.
+            </p>
+            <section>
+                <header>
+                    <h3>Ultrices tempor sagittis nisl</h3>
+                </header>
+                <p>
+                    Nascetur volutpat nibh ullamcorper vivamus at purus. Cursus ultrices porttitor sollicitudin imperdiet
+                    at pretium tellus in euismod a integer sodales neque. Nibh quis dui quis mattis eget imperdiet venenatis
+                    feugiat. Neque primis ligula cum erat aenean tristique luctus risus ipsum praesent iaculis. Fermentum elit
+                    fringilla consequat dis arcu. Pellentesque mus tempor vitae pretium sodales porttitor lacus. Phasellus
+                    egestas odio nisl duis sociis purus faucibus morbi. Eget massa mus etiam sociis pharetra magna.
+                </p>
+                <p>
+                    Eleifend auctor turpis magnis sed porta nisl pretium. Aenean suspendisse nulla eget sed etiam parturient
+                    orci cursus nibh. Quisque eu nec neque felis laoreet diam morbi egestas. Dignissim cras rutrum consectetur
+                    ut penatibus fermentum nibh erat malesuada varius.
+                </p>
+            </section>
+            <section>
+                <header>
+                    <h3>Meet the Team</h3>
+                </header>
+                <p>
+                    Pretium tellus in euismod a integer sodales neque. Nibh quis dui quis mattis eget imperdiet venenatis
+                    feugiat. Neque primis ligula cum erat aenean tristique luctus risus ipsum praesent iaculis. Fermentum elit
+                    ut nunc urna volutpat donec cubilia commodo risus morbi. Lobortis vestibulum velit malesuada ante
+                    egestas odio nisl duis sociis purus faucibus morbi. Eget massa mus etiam sociis pharetra magna.
+                </p>
+            </section>
+        </article>
     </div>
   );
 }

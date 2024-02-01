@@ -30,13 +30,11 @@ const firebaseConfig = {};
 function App() {
   return (
     <>
-    <Page/>
     <div id="header">
       <NavBarHTML />
-      <HomepageHTML/>
+      <Welcome />
     </div>
-    <Wrapper2/>
-    <Wrapper1/>
+    <Page/>
     <Footer/>
     </>
   );
@@ -83,6 +81,25 @@ function Navigation() {
   );
 }
 
+function Welcome() {
+  switch (window.location.pathname) {
+    case "/about":
+      return;
+    case "/events":
+      return;
+    case "/news":
+      return;
+    case "/resources":
+      return;
+    case "/join":
+      return;
+    case "/":
+      return <HomepageHTML/>;
+    default:
+      return <HomepageHTML/>;
+  }
+}
+
 function Page() {
   switch (window.location.pathname) {
     case "/about":
@@ -96,9 +113,21 @@ function Page() {
     case "/join":
       return <Join />;
     case "/":
-      return <CubeComponent/>;
+      return (
+      <> 
+        <CubeComponent/>
+        <Wrapper1/>
+        <Wrapper2/>
+      </>
+      );
     default:
-      return <CubeComponent/>;
+      return (
+        <> 
+          <CubeComponent/>
+          <Wrapper1/>
+          <Wrapper2/>
+        </>
+        );
   }
 }
 

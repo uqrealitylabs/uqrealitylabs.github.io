@@ -1,11 +1,13 @@
-import React from "react";
+export default function NoSidebar() {
+    return <div class="wrapper style1">
 
-function About() {
-  return (
     <div class="container">
         <article id="main" class="special">
             <header>
-                <h2><a href="#">About Us</a></h2>
+                <h2><a href="#">No Sidebar</a></h2>
+                <p>
+                    Morbi convallis lectus malesuada sed fermentum dolore amet
+                </p>
             </header>
             <a href="#" class="image featured"><img src="images/pic06.jpg" alt="" /></a>
             <p>
@@ -35,7 +37,7 @@ function About() {
             </section>
             <section>
                 <header>
-                    <h3>Meet the Team</h3>
+                    <h3>Augue euismod feugiat tempus</h3>
                 </header>
                 <p>
                     Pretium tellus in euismod a integer sodales neque. Nibh quis dui quis mattis eget imperdiet venenatis
@@ -78,42 +80,7 @@ function About() {
                 </p>
             </article>
         </div>
-        <hr />
-        <div class="row">
-            <article class="col-4 col-12-mobile special">
-                <a href="#" class="image featured"><img src="images/pic07.jpg" alt="" /></a>
-                <header>
-                    <h3><a href="#">Gravida aliquam penatibus</a></h3>
-                </header>
-                <p>
-                    Amet nullam fringilla nibh nulla convallis tique ante proin sociis accumsan lobortis. Auctor etiam
-                    porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
-                </p>
-            </article>
-            <article class="col-4 col-12-mobile special">
-                <a href="#" class="image featured"><img src="images/pic08.jpg" alt="" /></a>
-                <header>
-                    <h3><a href="#">Sed quis rhoncus placerat</a></h3>
-                </header>
-                <p>
-                    Amet nullam fringilla nibh nulla convallis tique ante proin sociis accumsan lobortis. Auctor etiam
-                    porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
-                </p>
-            </article>
-            <article class="col-4 col-12-mobile special">
-                <a href="#" class="image featured"><img src="images/pic09.jpg" alt="" /></a>
-                <header>
-                    <h3><a href="#">Magna laoreet et aliquam</a></h3>
-                </header>
-                <p>
-                    Amet nullam fringilla nibh nulla convallis tique ante proin sociis accumsan lobortis. Auctor etiam
-                    porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
-                </p>
-            </article>
-        </div>
-        <hr/>
     </div>
-  );
-}
 
-export default About;
+</div>
+}
