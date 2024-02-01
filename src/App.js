@@ -16,6 +16,13 @@ import News from "./pages/News.js";
 import Events from "./pages/Events.js";
 import Join from "./pages/Join.js";
 
+import NavBarHTML from './components/NavBar.js';
+import HomepageHTML from './components/HomePage.js';
+import LeftSideBar from './components/LeftSidebar.js';
+import Footer from './components/Footer.js';
+import Wrapper1 from './components/Wrapper1.js';
+import Wrapper2 from './components/Wrapper2.js';
+
 const firebaseConfig = {};
 
 /* const fbApp = */ initializeApp(firebaseConfig);
@@ -23,63 +30,45 @@ const firebaseConfig = {};
 function App() {
   return (
     <>
-      <Navigation />
-      <Page />
+    <Page/>
+    <div id="header">
+      <NavBarHTML />
+      <HomepageHTML/>
+    </div>
+    <Wrapper2/>
+    <Wrapper1/>
+    <Footer/>
     </>
   );
 }
 
 function Navigation() {
   return (
-    <Navbar
-      fixed="top"
-      expand="lg"
-      className="bg-body-tertiary main-nav d-flex align-items"
-      variant="underline"
-    >
+    <Navbar fixed="top" expand="lg" className="bg-body-tertiary main-nav d-flex align-items" variant="underline">
       <Navbar.Brand href="#home">
-        <img
-          src={logo}
-          alt="uqrl logo"
-          className="nav-brand"
-          onClick={() => {
-            window.location.pathname = "/";
-          }}
-        />
+        <img src={logo} alt="uqrl logo" className="nav-brand" onClick={() => {window.location.pathname = "/";}}/>
       </Navbar.Brand>
       {/* <Navbar.Toggle aria-controls="responsive-navbar-nav" /> */}
       <Nav className="nav-links me-auto">
-        <Nav.Link
-          className="nav-tabs"
-          onClick={() => {
-            window.location.pathname = "/about";
-          }}
-        >
+        <Nav.Link className="nav-tabs" onClick={() => {window.location.pathname = "/about";}}>
           About
         </Nav.Link>
-        <Nav.Link
-          className="nav-tabs"
-          onClick={() => {
-            window.location.pathname = "/events";
-          }}
-        >
+        <Nav.Link className="nav-tabs" onClick={() => {window.location.pathname = "/events";}}>
           Events
         </Nav.Link>
-        <Nav.Link
-          className="nav-tabs"
-          onClick={() => {
-            window.location.pathname = "/news";
-          }}
-        >
+        <Nav.Link className="nav-tabs" onClick={() => {window.location.pathname = "/news";}}>
           News
+        </Nav.Link>
+        <Nav.Link className="nav-tabs" onClick={() => {window.location.pathname = "/resources";}}>
+          Resources
         </Nav.Link>
         <Nav.Link
           className="nav-tabs"
           onClick={() => {
-            window.location.pathname = "/resources";
+            window.location.pathname = "/contact";
           }}
         >
-          Resources
+          Contact
         </Nav.Link>
         <Nav.Link
           className="nav-tabs"
@@ -107,9 +96,9 @@ function Page() {
     case "/join":
       return <Join />;
     case "/":
-      return <CubeComponent />;
+      return <CubeComponent/>;
     default:
-      return <CubeComponent />;
+      return <CubeComponent/>;
   }
 }
 

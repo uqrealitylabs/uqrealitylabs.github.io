@@ -1,10 +1,11 @@
 // CubeComponent.js
 import React from "react";
 import Cube from "./Cube"; // Import your Cube component
+import HomePage from "./HomePage";
 
 const CubeComponent = () => {
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, width: "100%" }}>
+    <div id="cube-wrapper">
       <Cube />
     </div>
   );
