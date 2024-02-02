@@ -99,3 +99,7 @@ canvas {
 #nav {
   z-index: 10 !important;
 }
+
+.centre {
+  text-align: center;
+}

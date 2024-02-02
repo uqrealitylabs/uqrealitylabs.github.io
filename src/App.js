@@ -1,11 +1,6 @@
 import logo from "./images/logo.png";
 import "./App.css";
 
-import { initializeApp } from "firebase/app";
-import {} from "firebase/analytics";
-import {} from "firebase/firestore";
-import {} from "firebase/functions";
-
 import Navbar from "react-bootstrap/Navbar";
 import { Nav } from "react-bootstrap";
 import CubeComponent from "./components/CubeComponent.js";
@@ -22,10 +17,6 @@ import LeftSideBar from './components/LeftSidebar.js';
 import Footer from './components/Footer.js';
 import Wrapper1 from './components/Wrapper1.js';
 import Wrapper2 from './components/Wrapper2.js';
-
-const firebaseConfig = {};
-
-/* const fbApp = */ initializeApp(firebaseConfig);
 
 function App() {
   return (
@@ -82,18 +73,18 @@ function Navigation() {
 }
 
 function Welcome() {
-  switch (window.location.pathname) {
-    case "/about":
+  switch (window.location.pathname.split("/")[1]) {
+    case "about":
       return;
-    case "/events":
+    case "events":
       return;
-    case "/news":
+    case "news":
       return;
-    case "/resources":
+    case "resources":
       return;
-    case "/join":
+    case "join":
       return;
-    case "/":
+    case "":
       return <HomepageHTML/>;
     default:
       return <HomepageHTML/>;
@@ -101,18 +92,18 @@ function Welcome() {
 }
 
 function Page() {
-  switch (window.location.pathname) {
-    case "/about":
+  switch (window.location.pathname.split("/")[1]) {
+    case "about":
       return <About />;
-    case "/events":
+    case "events":
       return <Events />;
-    case "/news":
+    case "news":
       return <News />;
-    case "/resources":
+    case "resources":
       return <Resources />;
-    case "/join":
+    case "join":
       return <Join />;
-    case "/":
+    case "":
       return (
       <> 
         <CubeComponent/>

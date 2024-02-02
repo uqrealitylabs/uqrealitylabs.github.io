@@ -33,48 +33,36 @@ function About() {
                     ut penatibus fermentum nibh erat malesuada varius.
                 </p>
             </section>
-            <section>
-                <header>
-                    <h3>Meet the Team</h3>
-                </header>
-                <p>
-                    Pretium tellus in euismod a integer sodales neque. Nibh quis dui quis mattis eget imperdiet venenatis
-                    feugiat. Neque primis ligula cum erat aenean tristique luctus risus ipsum praesent iaculis. Fermentum elit
-                    ut nunc urna volutpat donec cubilia commodo risus morbi. Lobortis vestibulum velit malesuada ante
-                    egestas odio nisl duis sociis purus faucibus morbi. Eget massa mus etiam sociis pharetra magna.
-                </p>
-            </section>
         </article>
+        <hr />
+        <h2 style={{"text-align": "center"}}>Meet the Team</h2>
         <hr />
         <div class="row">
             <article class="col-4 col-12-mobile special">
                 <a href="#" class="image featured"><img src="images/pic07.jpg" alt="" /></a>
                 <header>
-                    <h3><a href="#">Gravida aliquam penatibus</a></h3>
+                    <h3><a href="#">Masham Siddiqui</a></h3>
                 </header>
-                <p>
-                    Amet nullam fringilla nibh nulla convallis tique ante proin sociis accumsan lobortis. Auctor etiam
-                    porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
+                <p class="centre">
+                    2024 President
                 </p>
             </article>
             <article class="col-4 col-12-mobile special">
                 <a href="#" class="image featured"><img src="images/pic08.jpg" alt="" /></a>
                 <header>
-                    <h3><a href="#">Sed quis rhoncus placerat</a></h3>
+                    <h3><a href="#">Vince Lapore</a></h3>
                 </header>
-                <p>
-                    Amet nullam fringilla nibh nulla convallis tique ante proin sociis accumsan lobortis. Auctor etiam
-                    porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
+                <p class="centre">
+                    2024 Secretary
                 </p>
             </article>
             <article class="col-4 col-12-mobile special">
                 <a href="#" class="image featured"><img src="images/pic09.jpg" alt="" /></a>
                 <header>
-                    <h3><a href="#">Magna laoreet et aliquam</a></h3>
+                    <h3><a href="#">Harrison Wills</a></h3>
                 </header>
-                <p>
-                    Amet nullam fringilla nibh nulla convallis tique ante proin sociis accumsan lobortis. Auctor etiam
-                    porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
+                <p class="centre">
+                    2024 Treasurer
                 </p>
             </article>
         </div>
@@ -83,31 +71,58 @@ function About() {
             <article class="col-4 col-12-mobile special">
                 <a href="#" class="image featured"><img src="images/pic07.jpg" alt="" /></a>
                 <header>
-                    <h3><a href="#">Gravida aliquam penatibus</a></h3>
+                    <h3><a href="#">Srikrishna Bhat</a></h3>
                 </header>
-                <p>
-                    Amet nullam fringilla nibh nulla convallis tique ante proin sociis accumsan lobortis. Auctor etiam
-                    porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
+                <p class="centre">
+                    Workshop Director
                 </p>
             </article>
             <article class="col-4 col-12-mobile special">
                 <a href="#" class="image featured"><img src="images/pic08.jpg" alt="" /></a>
                 <header>
-                    <h3><a href="#">Sed quis rhoncus placerat</a></h3>
+                    <h3><a href="#">Karthikeyan Venkatesan</a></h3>
                 </header>
-                <p>
-                    Amet nullam fringilla nibh nulla convallis tique ante proin sociis accumsan lobortis. Auctor etiam
-                    porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
+                <p class="centre">
+                    Growth & Engagement Director
                 </p>
             </article>
             <article class="col-4 col-12-mobile special">
                 <a href="#" class="image featured"><img src="images/pic09.jpg" alt="" /></a>
                 <header>
-                    <h3><a href="#">Magna laoreet et aliquam</a></h3>
+                    <h3><a href="#">Jason Qu</a></h3>
                 </header>
-                <p>
-                    Amet nullam fringilla nibh nulla convallis tique ante proin sociis accumsan lobortis. Auctor etiam
-                    porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
+                <p class="centre">
+                    Growth & Engagement Director
+                </p>
+            </article>
+        </div>
+        <hr/>
+        <div class="row">
+            <article class="col-4 col-12-mobile special">
+                <a href="#" class="image featured"><img src="images/pic07.jpg" alt="" /></a>
+                <header>
+                    <h3><a href="#">Shuvodeep Saha</a></h3>
+                </header>
+                <p class="centre">
+                    Industry Director
+                </p>
+            </article>
+            <article class="col-4 col-12-mobile special">
+                <a href="#" class="image featured"><img src="images/pic08.jpg" alt="" /></a>
+                <header>
+                    <h3><a href="#">Swaraj Randhir</a></h3>
+                </header>
+                <p class="centre">
+                    Media Director
+                </p>
+            </article>
+            <article class="col-4 col-12-mobile special">
+                <a href="#" class="image featured"><img src="images/pic09.jpg" alt="" /></a>
+                <header>
+                    <h3><a href="#">Benjamin Tran</a></h3>
+                </header>
+                <p class="centre">
+                    General Director
                 </p>
             </article>
         </div>

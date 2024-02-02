@@ -1,132 +1,136 @@
 import React from "react";
 
+import NewsError from "./NewsPages/NewsError";
+
+import { initializeApp } from "firebase/app";
+import { } from "firebase/analytics";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
+import { } from "firebase/functions";
+
+import * as NewsPages from './NewsPages';
+
+import defaultImage from '../images/logo.png';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB1GUickwEMArTz9cgakuPzNRgK-38rDp0",
+  authDomain: "uqrl-website.firebaseapp.com",
+  projectId: "uqrl-website",
+  storageBucket: "uqrl-website.appspot.com",
+  messagingSenderId: "206129493891",
+  appId: "1:206129493891:web:2fc1052e277820561c68b6",
+  measurementId: "G-5N14928QGL"
+};
+
+const app = initializeApp(firebaseConfig);
+global.db = getFirestore(app);
+
+const querySnapshot = await getDocs(collection(global.db, "NewsPages"));
+var all_news = {};
+var all_obj = []
+global.all_obj = all_obj;
+
+querySnapshot.forEach(doc => {
+  if (doc.data().visible) {
+    all_news[doc.data().pathname] = doc.data().modulename;
+    global.all_obj.push(doc.data())
+  }
+})
+
+console.log("All News: ", all_news)
+
 export default function News() {
-  return (<div class="container">
-  <div class="row gtr-200">
-      <div class="col-4 col-12-mobile" id="sidebar">
-          <hr class="first" />
-          <section>
-              <header>
-                  <h3><a href="#">News</a></h3>
-              </header>
-              <p>
-                  Dolor sed fringilla nibh nulla convallis tique ante proin sociis accumsan lobortis. Auctor etiam
-                  porttitor phasellus tempus cubilia ultrices tempor sagittis  tellus ante diam nec penatibus dolor cras
-                  magna tempus feugiat veroeros.
-              </p>
-              <footer>
-                  <a href="#" class="button">Learn More</a>
-              </footer>
-          </section>
-          <hr />
-          <section>
-              <header>
-                  <h3><a href="#">Sed lorem etiam consequat</a></h3>
-              </header>
-              <p>
-                  Tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
-              </p>
-              <div class="row gtr-50">
-                  <div class="col-4">
-                      <a href="#" class="image fit"><img src="images/pic10.jpg" alt="" /></a>
-                  </div>
-                  <div class="col-8">
-                      <h4>Nibh sed cubilia</h4>
-                      <p>
-                          Amet nullam fringilla nibh nulla convallis tique ante proin.
-                      </p>
-                  </div>
-                  <div class="col-4">
-                      <a href="#" class="image fit"><img src="images/pic11.jpg" alt="" /></a>
-                  </div>
-                  <div class="col-8">
-                      <h4>Proin sed adipiscing</h4>
-                      <p>
-                          Amet nullam fringilla nibh nulla convallis tique ante proin.
-                      </p>
-                  </div>
-                  <div class="col-4">
-                      <a href="#" class="image fit"><img src="images/pic12.jpg" alt="" /></a>
-                  </div>
-                  <div class="col-8">
-                      <h4>Lorem feugiat magna</h4>
-                      <p>
-                          Amet nullam fringilla nibh nulla convallis tique ante proin.
-                      </p>
-                  </div>
-                  <div class="col-4">
-                      <a href="#" class="image fit"><img src="images/pic13.jpg" alt="" /></a>
-                  </div>
-                  <div class="col-8">
-                      <h4>Sed tempus fringilla</h4>
-                      <p>
-                          Amet nullam fringilla nibh nulla convallis tique ante proin.
-                      </p>
-                  </div>
-                  <div class="col-4">
-                      <a href="#" class="image fit"><img src="images/pic14.jpg" alt="" /></a>
-                  </div>
-                  <div class="col-8">
-                      <h4>Malesuada fermentum</h4>
-                      <p>
-                          Amet nullam fringilla nibh nulla convallis tique ante proin.
-                      </p>
-                  </div>
-              </div>
-              <footer>
-                  <a href="#" class="button">Magna Adipiscing</a>
-              </footer>
-          </section>
-      </div>
-      <div class="col-8 col-12-mobile imp-mobile" id="content">
-          <article id="main">
-              <header>
-                  <h2><a href="#">Newsletters</a></h2>
-                  <p>
-                      Morbi convallis lectus malesuada sed fermentum dolore amet
-                  </p>
-              </header>
-              <a href="#" class="image featured"><img src="images/pic06.jpg" alt="" /></a>
-              <p>
-                  Commodo id natoque malesuada sollicitudin elit suscipit. Curae suspendisse mauris posuere accumsan massa
-                  posuere lacus convallis tellus interdum. Amet nullam fringilla nibh nulla convallis ut venenatis purus
-                  lobortis. Auctor etiam porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum
-                  consequat integer interdum integer purus sapien. Nibh eleifend nulla nascetur pharetra commodo mi augue
-                  interdum tellus. Ornare cursus augue feugiat sodales velit lorem. Semper elementum ullamcorper lacinia
-                  natoque aenean scelerisque vel lacinia mollis quam sodales congue.
-              </p>
-              <section>
-                  <header>
-                      <h3>Ultrices tempor sagittis nisl</h3>
-                  </header>
-                  <p>
-                      Nascetur volutpat nibh ullamcorper vivamus at purus. Cursus ultrices porttitor sollicitudin imperdiet
-                      at pretium tellus in euismod a integer sodales neque. Nibh quis dui quis mattis eget imperdiet venenatis
-                      feugiat. Neque primis ligula cum erat aenean tristique luctus risus ipsum praesent iaculis. Fermentum elit
-                      fringilla consequat dis arcu. Pellentesque mus tempor vitae pretium sodales porttitor lacus. Phasellus
-                      egestas odio nisl duis sociis purus faucibus morbi. Eget massa mus etiam sociis pharetra magna.
-                  </p>
-                  <p>
-                      Eleifend auctor turpis magnis sed porta nisl pretium. Aenean suspendisse nulla eget sed etiam parturient
-                      orci cursus nibh. Quisque eu nec neque felis laoreet diam morbi egestas. Dignissim cras rutrum consectetur
-                      ut penatibus fermentum nibh erat malesuada varius.
-                  </p>
-              </section>
-              <section>
-                  <header>
-                      <h3>Augue euismod feugiat tempus</h3>
-                  </header>
-                  <p>
-                      Pretium tellus in euismod a integer sodales neque. Nibh quis dui quis mattis eget imperdiet venenatis
-                      feugiat. Neque primis ligula cum erat aenean tristique luctus risus ipsum praesent iaculis. Fermentum elit
-                      ut nunc urna volutpat donec cubilia commodo risus morbi. Lobortis vestibulum velit malesuada ante
-                      egestas odio nisl duis sociis purus faucibus morbi. Eget massa mus etiam sociis pharetra magna.
-                  </p>
-              </section>
-          </article>
-      </div>
+  return (<div className="container">
+    <div className="row gtr-200">
+      <SideBarPart />
+      <ThisNews />
+    </div>
+    <hr />
   </div>
-<hr/>
-</div>
   );
+}
+
+function ThisNews() {
+  let path = window.location.pathname.split('/');
+  path = path.slice(2);
+  path = path.join("/");
+
+  if (path == "") {
+    return <DefaultNews />;
+  } else if (!Object.keys(all_news).includes(path)) {
+    return <NewsError />;
+  } else {
+    try {
+      let Component = NewsPages[all_news[path]];
+      return <Component />;
+    } catch {
+
+    }
+
+  }
+}
+
+function DefaultNews() {
+    return (<div class="col-8 col-12-mobile imp-mobile" id="content">
+              <article id="main">
+                  <header>
+                      <h2>All News</h2>
+                  </header>
+
+                    {
+            all_obj.map((item, ind) => (
+              <section key={ind}>
+                <a href={"/news/" + item.pathname}>
+                <header>
+                  <h3>{item.title}</h3>
+                </header>
+                <p>
+                  {item.summary}
+                </p>
+                
+                </a>
+
+              </section>
+            ))
+          }
+              </article>
+          </div>)
+    }
+
+function SideBarPart() {
+  return (
+    <div className="col-4 col-12-mobile" id="sidebar">
+      <hr className="first" />
+
+      <hr />
+      <section>
+        <header>
+          <h3>Recommended</h3>
+        </header>
+      </section>
+      <section>
+
+        <div className="row gtr-50">
+          {
+            all_obj.map((item, ind) => (
+              <>
+                <div key={ind} className="col-4">
+                  <a href="#" className="image fit"><img src="../images/pic04.jpg" alt="" /></a>
+                </div>
+                <div className="col-8">
+                  <a href={"/news/" + item.pathname}>
+                    <h4>{item.title}</h4>
+                    <p>{item.summary}</p>
+                  </a>
+                </div>
+              </>
+            ))
+        }
+        </div>
+
+        <footer>
+          <a href="/news" className="button">All News</a>
+        </footer>
+      </section>
+    </div>
+    )
 }
