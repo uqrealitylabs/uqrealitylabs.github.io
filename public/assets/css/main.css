@@ -23,7 +23,13 @@ section, summary, time, mark, audio, video {
 	border: 0;
 	font-size: 100%;
 	font: inherit;
-	vertical-align: baseline;}
+	vertical-align: baseline;
+	font-family: 'Montserrat';
+}
+
+#logo {
+	font-family: 'Big Shoulders Display';
+}
 
 article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
@@ -2249,7 +2255,7 @@ input, select, textarea {
 	body.homepage #header {
 		height: 100vh;
 		min-height: 40em;
-		background-image: url("../../images/header.jpg");
+		background-image: url("../../images/header_desaturated.png");
 		background-size: cover;
 		background-position: center center;
 		background-attachment: fixed;
@@ -2261,7 +2267,7 @@ input, select, textarea {
 
 		body.homepage #header:after {
 			content: '';
-			background: #1C0920;
+			background: rgba(44, 3, 53, 0.541);
 			display: block;
 			position: absolute;
 			left: 0;
@@ -2294,10 +2300,19 @@ input, select, textarea {
 		padding: 1.5em 0 1.5em 0;
 		z-index: 1;
 		overflow: hidden;
-		background-image: url("../../images/header.jpg");
+		background-image: url("../../images/header_desaturated.png");
 		background-size: cover;
 		background-position: center center;
 		background-attachment: fixed;
+		opacity: 1;
+		-moz-transition: opacity 2.5s ease-in-out;
+		-webkit-transition: opacity 2.5s ease-in-out;
+		-ms-transition: opacity 2.5s ease-in-out;
+		transition: opacity 2.5s ease-in-out;
+		-moz-transition-delay: 0.5s;
+		-webkit-transition-delay: 0.5s;
+		-ms-transition-delay: 0.5s;
+		transition-delay: 0.5s;
 	}
 
 		#nav > ul {
