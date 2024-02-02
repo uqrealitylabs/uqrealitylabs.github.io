@@ -4,6 +4,13 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+import { initializeApp } from "firebase/app";
+import {} from "firebase/analytics";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
+import {} from "firebase/functions";
+
+
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

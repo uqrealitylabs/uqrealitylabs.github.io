@@ -2,7 +2,7 @@ export default function DefaultNews() {
 return (<div class="col-8 col-12-mobile imp-mobile" id="content">
           <article id="main">
               <header>
-                  <h2><a href="#">Newsletters</a></h2>
+                  <h2><a href="#">Week 3 Newsletter</a></h2>
                   <p>
                       Morbi convallis lectus malesuada sed fermentum dolore amet
                   </p>
