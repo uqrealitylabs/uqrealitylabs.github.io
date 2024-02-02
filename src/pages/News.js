@@ -1,6 +1,5 @@
 import React from "react";
 
-import DefaultNews from "./NewsPages/DefaultNews";
 import NewsError from "./NewsPages/NewsError";
 
 import { initializeApp } from "firebase/app";
@@ -56,7 +55,7 @@ function ThisNews() {
   path = path.join("/");
 
   if (path == "") {
-    return <NewsPages.DefaultNews />;
+    return <DefaultNews />;
   } else if (!Object.keys(all_news).includes(path)) {
     return <NewsError />;
   } else {
@@ -69,6 +68,33 @@ function ThisNews() {
 
   }
 }
+
+function DefaultNews() {
+    return (<div class="col-8 col-12-mobile imp-mobile" id="content">
+              <article id="main">
+                  <header>
+                      <h2>All News</h2>
+                  </header>
+
+                    {
+            all_obj.map((item, ind) => (
+              <section key={ind}>
+                <a href={"/news/" + item.pathname}>
+                <header>
+                  <h3>{item.title}</h3>
+                </header>
+                <p>
+                  {item.summary}
+                </p>
+                
+                </a>
+
+              </section>
+            ))
+          }
+              </article>
+          </div>)
+    }
 
 function SideBarPart() {
   return (
@@ -99,7 +125,7 @@ function SideBarPart() {
         }
 
         <footer>
-          <a href="#" className="button">All News</a>
+          <a href="/news" className="button">All News</a>
         </footer>
       </section>
     </div>)
