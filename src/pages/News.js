@@ -78,7 +78,7 @@ function SideBarPart() {
       <hr />
       <section>
         <header>
-          <h3><a href="#">Recommended</a></h3>
+          <h3>Recommended</h3>
         </header>
 
         {

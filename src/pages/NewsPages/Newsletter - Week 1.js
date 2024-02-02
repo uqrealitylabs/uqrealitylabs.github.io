@@ -2,7 +2,7 @@ export default function DefaultNewsCopy() {
 return (<div class="col-8 col-12-mobile imp-mobile" id="content">
           <article id="main">
               <header>
-                  <h2><a href="#">Week 1 Newsletter</a></h2>
+                  <h2>Week 1 Newsletter</h2>
                   <p>
                       Morbi convallis lectus malesuada sed fermentum dolore amet
                   </p>
