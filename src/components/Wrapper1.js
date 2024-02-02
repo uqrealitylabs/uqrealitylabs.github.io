@@ -1,14 +1,14 @@
 export default function Wrapper1() {
-    return 				<div class="wrapper style1">
+    return 				<div className="wrapper style1">
   
-    <section id="features" class="container special">
+    <section id="features" className="container special">
       <header>
         <h2>Morbi ullamcorper et varius leo lacus</h2>
         <p>Ipsum volutpat consectetur orci metus consequat imperdiet duis integer semper magna.</p>
       </header>
-      <div class="row">
-        <article class="col-4 col-12-mobile special">
-          <a href="#" class="image featured"><img src="images/pic07.jpg" alt="" /></a>
+      <div className="row">
+        <article className="col-4 col-12-mobile special">
+          <a href="#" className="image featured"><img src="images/pic07.jpg" alt="" /></a>
           <header>
             <h3><a href="#">Gravida aliquam penatibus</a></h3>
           </header>
@@ -17,8 +17,8 @@ export default function Wrapper1() {
             porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
           </p>
         </article>
-        <article class="col-4 col-12-mobile special">
-          <a href="#" class="image featured"><img src="images/pic08.jpg" alt="" /></a>
+        <article className="col-4 col-12-mobile special">
+          <a href="#" className="image featured"><img src="images/pic08.jpg" alt="" /></a>
           <header>
             <h3><a href="#">Sed quis rhoncus placerat</a></h3>
           </header>
@@ -27,8 +27,8 @@ export default function Wrapper1() {
             porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
           </p>
         </article>
-        <article class="col-4 col-12-mobile special">
-          <a href="#" class="image featured"><img src="images/pic09.jpg" alt="" /></a>
+        <article className="col-4 col-12-mobile special">
+          <a href="#" className="image featured"><img src="images/pic09.jpg" alt="" /></a>
           <header>
             <h3><a href="#">Magna laoreet et aliquam</a></h3>
           </header>

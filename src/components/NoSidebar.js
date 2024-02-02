@@ -1,15 +1,15 @@
 export default function NoSidebar() {
-    return <div class="wrapper style1">
+    return <div className="wrapper style1">
 
-    <div class="container">
-        <article id="main" class="special">
+    <div className="container">
+        <article id="main" className="special">
             <header>
                 <h2><a href="#">No Sidebar</a></h2>
                 <p>
                     Morbi convallis lectus malesuada sed fermentum dolore amet
                 </p>
             </header>
-            <a href="#" class="image featured"><img src="images/pic06.jpg" alt="" /></a>
+            <a href="#" className="image featured"><img src="images/pic06.jpg" alt="" /></a>
             <p>
                 Commodo id natoque malesuada sollicitudin elit suscipit. Curae suspendisse mauris posuere accumsan massa
                 posuere lacus convallis tellus interdum. Amet nullam fringilla nibh nulla convallis ut venenatis purus
@@ -48,9 +48,9 @@ export default function NoSidebar() {
             </section>
         </article>
         <hr />
-        <div class="row">
-            <article class="col-4 col-12-mobile special">
-                <a href="#" class="image featured"><img src="images/pic07.jpg" alt="" /></a>
+        <div className="row">
+            <article className="col-4 col-12-mobile special">
+                <a href="#" className="image featured"><img src="images/pic07.jpg" alt="" /></a>
                 <header>
                     <h3><a href="#">Gravida aliquam penatibus</a></h3>
                 </header>
@@ -59,8 +59,8 @@ export default function NoSidebar() {
                     porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
                 </p>
             </article>
-            <article class="col-4 col-12-mobile special">
-                <a href="#" class="image featured"><img src="images/pic08.jpg" alt="" /></a>
+            <article className="col-4 col-12-mobile special">
+                <a href="#" className="image featured"><img src="images/pic08.jpg" alt="" /></a>
                 <header>
                     <h3><a href="#">Sed quis rhoncus placerat</a></h3>
                 </header>
@@ -69,8 +69,8 @@ export default function NoSidebar() {
                     porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
                 </p>
             </article>
-            <article class="col-4 col-12-mobile special">
-                <a href="#" class="image featured"><img src="images/pic09.jpg" alt="" /></a>
+            <article className="col-4 col-12-mobile special">
+                <a href="#" className="image featured"><img src="images/pic09.jpg" alt="" /></a>
                 <header>
                     <h3><a href="#">Magna laoreet et aliquam</a></h3>
                 </header>

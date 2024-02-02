@@ -1,10 +1,10 @@
 export default function LeftSidebar() {
-    return <div class="wrapper style1">
+    return <div className="wrapper style1">
 
-    <div class="container">
-        <div class="row gtr-200">
-            <div class="col-4 col-12-mobile" id="sidebar">
-                <hr class="first" />
+    <div className="container">
+        <div className="row gtr-200">
+            <div className="col-4 col-12-mobile" id="sidebar">
+                <hr className="first" />
                 <section>
                     <header>
                         <h3><a href="#">Accumsan sed penatibus</a></h3>
@@ -15,7 +15,7 @@ export default function LeftSidebar() {
                         magna tempus feugiat veroeros.
                     </p>
                     <footer>
-                        <a href="#" class="button">Learn More</a>
+                        <a href="#" className="button">Learn More</a>
                     </footer>
                 </section>
                 <hr />
@@ -26,47 +26,47 @@ export default function LeftSidebar() {
                     <p>
                         Tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
                     </p>
-                    <div class="row gtr-50">
-                        <div class="col-4">
-                            <a href="#" class="image fit"><img src="images/pic10.jpg" alt="" /></a>
+                    <div className="row gtr-50">
+                        <div className="col-4">
+                            <a href="#" className="image fit"><img src="images/pic10.jpg" alt="" /></a>
                         </div>
-                        <div class="col-8">
+                        <div className="col-8">
                             <h4>Nibh sed cubilia</h4>
                             <p>
                                 Amet nullam fringilla nibh nulla convallis tique ante proin.
                             </p>
                         </div>
-                        <div class="col-4">
-                            <a href="#" class="image fit"><img src="images/pic11.jpg" alt="" /></a>
+                        <div className="col-4">
+                            <a href="#" className="image fit"><img src="images/pic11.jpg" alt="" /></a>
                         </div>
-                        <div class="col-8">
+                        <div className="col-8">
                             <h4>Proin sed adipiscing</h4>
                             <p>
                                 Amet nullam fringilla nibh nulla convallis tique ante proin.
                             </p>
                         </div>
-                        <div class="col-4">
-                            <a href="#" class="image fit"><img src="images/pic12.jpg" alt="" /></a>
+                        <div className="col-4">
+                            <a href="#" className="image fit"><img src="images/pic12.jpg" alt="" /></a>
                         </div>
-                        <div class="col-8">
+                        <div className="col-8">
                             <h4>Lorem feugiat magna</h4>
                             <p>
                                 Amet nullam fringilla nibh nulla convallis tique ante proin.
                             </p>
                         </div>
-                        <div class="col-4">
-                            <a href="#" class="image fit"><img src="images/pic13.jpg" alt="" /></a>
+                        <div className="col-4">
+                            <a href="#" className="image fit"><img src="images/pic13.jpg" alt="" /></a>
                         </div>
-                        <div class="col-8">
+                        <div className="col-8">
                             <h4>Sed tempus fringilla</h4>
                             <p>
                                 Amet nullam fringilla nibh nulla convallis tique ante proin.
                             </p>
                         </div>
-                        <div class="col-4">
-                            <a href="#" class="image fit"><img src="images/pic14.jpg" alt="" /></a>
+                        <div className="col-4">
+                            <a href="#" className="image fit"><img src="images/pic14.jpg" alt="" /></a>
                         </div>
-                        <div class="col-8">
+                        <div className="col-8">
                             <h4>Malesuada fermentum</h4>
                             <p>
                                 Amet nullam fringilla nibh nulla convallis tique ante proin.
@@ -74,11 +74,11 @@ export default function LeftSidebar() {
                         </div>
                     </div>
                     <footer>
-                        <a href="#" class="button">Magna Adipiscing</a>
+                        <a href="#" className="button">Magna Adipiscing</a>
                     </footer>
                 </section>
             </div>
-            <div class="col-8 col-12-mobile imp-mobile" id="content">
+            <div className="col-8 col-12-mobile imp-mobile" id="content">
                 <article id="main">
                     <header>
                         <h2><a href="#">Left Sidebar</a></h2>
@@ -86,7 +86,7 @@ export default function LeftSidebar() {
                             Morbi convallis lectus malesuada sed fermentum dolore amet
                         </p>
                     </header>
-                    <a href="#" class="image featured"><img src="images/pic06.jpg" alt="" /></a>
+                    <a href="#" className="image featured"><img src="images/pic06.jpg" alt="" /></a>
                     <p>
                         Commodo id natoque malesuada sollicitudin elit suscipit. Curae suspendisse mauris posuere accumsan massa
                         posuere lacus convallis tellus interdum. Amet nullam fringilla nibh nulla convallis ut venenatis purus
@@ -127,9 +127,9 @@ export default function LeftSidebar() {
             </div>
         </div>
         <hr />
-        <div class="row">
-            <article class="col-4 col-12-mobile special">
-                <a href="#" class="image featured"><img src="images/pic07.jpg" alt="" /></a>
+        <div className="row">
+            <article className="col-4 col-12-mobile special">
+                <a href="#" className="image featured"><img src="images/pic07.jpg" alt="" /></a>
                 <header>
                     <h3><a href="#">Gravida aliquam penatibus</a></h3>
                 </header>
@@ -138,8 +138,8 @@ export default function LeftSidebar() {
                     porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
                 </p>
             </article>
-            <article class="col-4 col-12-mobile special">
-                <a href="#" class="image featured"><img src="images/pic08.jpg" alt="" /></a>
+            <article className="col-4 col-12-mobile special">
+                <a href="#" className="image featured"><img src="images/pic08.jpg" alt="" /></a>
                 <header>
                     <h3><a href="#">Sed quis rhoncus placerat</a></h3>
                 </header>
@@ -148,8 +148,8 @@ export default function LeftSidebar() {
                     porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum consequat integer interdum.
                 </p>
             </article>
-            <article class="col-4 col-12-mobile special">
-                <a href="#" class="image featured"><img src="images/pic09.jpg" alt="" /></a>
+            <article className="col-4 col-12-mobile special">
+                <a href="#" className="image featured"><img src="images/pic09.jpg" alt="" /></a>
                 <header>
                     <h3><a href="#">Magna laoreet et aliquam</a></h3>
                 </header>

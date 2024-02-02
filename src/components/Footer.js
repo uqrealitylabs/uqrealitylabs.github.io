@@ -1,129 +1,129 @@
 export default function Footer() {
     return (
   <div id="footer">
-    <div class="container">
-      <div class="row">
+    <div className="container">
+      <div className="row">
   
-          <section class="col-4 col-12-mobile">
+          <section className="col-4 col-12-mobile">
             <header>
-              <h2 class="icon brands fa-twitter circled"><span class="label">Tweets</span></h2>
+              <h2 className="icon brands fa-twitter circled"><span className="label">Tweets</span></h2>
             </header>
-            <ul class="divided">
+            <ul className="divided">
               <li>
-                <article class="tweet">
+                <article className="tweet">
                   Amet nullam fringilla nibh nulla convallis tique ante sociis accumsan.
-                  <span class="timestamp">5 minutes ago</span>
+                  <span className="timestamp">5 minutes ago</span>
                 </article>
               </li>
               <li>
-                <article class="tweet">
+                <article className="tweet">
                   Hendrerit rutrum quisque.
-                  <span class="timestamp">30 minutes ago</span>
+                  <span className="timestamp">30 minutes ago</span>
                 </article>
               </li>
               <li>
-                <article class="tweet">
+                <article className="tweet">
                   Curabitur donec nulla massa laoreet nibh. Lorem praesent montes.
-                  <span class="timestamp">3 hours ago</span>
+                  <span className="timestamp">3 hours ago</span>
                 </article>
               </li>
               <li>
-                <article class="tweet">
+                <article className="tweet">
                   Lacus natoque cras rhoncus curae dignissim ultricies. Convallis orci aliquet.
-                  <span class="timestamp">5 hours ago</span>
+                  <span className="timestamp">5 hours ago</span>
                 </article>
               </li>
             </ul>
           </section>
   
-          <section class="col-4 col-12-mobile">
+          <section className="col-4 col-12-mobile">
             <header>
-              <h2 class="icon solid fa-file circled"><span class="label">Posts</span></h2>
+              <h2 className="icon solid fa-file circled"><span className="label">Posts</span></h2>
             </header>
-            <ul class="divided">
+            <ul className="divided">
               <li>
-                <article class="post stub">
+                <article className="post stub">
                   <header>
                     <h3><a href="#">Nisl fermentum integer</a></h3>
                   </header>
-                  <span class="timestamp">3 hours ago</span>
+                  <span className="timestamp">3 hours ago</span>
                 </article>
               </li>
               <li>
-                <article class="post stub">
+                <article className="post stub">
                   <header>
                     <h3><a href="#">Phasellus portitor lorem</a></h3>
                   </header>
-                  <span class="timestamp">6 hours ago</span>
+                  <span className="timestamp">6 hours ago</span>
                 </article>
               </li>
               <li>
-                <article class="post stub">
+                <article className="post stub">
                   <header>
                     <h3><a href="#">Magna tempus consequat</a></h3>
                   </header>
-                  <span class="timestamp">Yesterday</span>
+                  <span className="timestamp">Yesterday</span>
                 </article>
               </li>
               <li>
-                <article class="post stub">
+                <article className="post stub">
                   <header>
                     <h3><a href="#">Feugiat lorem ipsum</a></h3>
                   </header>
-                  <span class="timestamp">2 days ago</span>
+                  <span className="timestamp">2 days ago</span>
                 </article>
               </li>
             </ul>
           </section>
   
-          <section class="col-4 col-12-mobile">
+          <section className="col-4 col-12-mobile">
             <header>
-              <h2 class="icon solid fa-camera circled"><span class="label">Photos</span></h2>
+              <h2 className="icon solid fa-camera circled"><span className="label">Photos</span></h2>
             </header>
-            <div class="row gtr-25">
-              <div class="col-6">
-                <a href="#" class="image fit"><img src="images/pic10.jpg" alt="" /></a>
+            <div className="row gtr-25">
+              <div className="col-6">
+                <a href="#" className="image fit"><img src="images/pic10.jpg" alt="" /></a>
               </div>
-              <div class="col-6">
-                <a href="#" class="image fit"><img src="images/pic11.jpg" alt="" /></a>
+              <div className="col-6">
+                <a href="#" className="image fit"><img src="images/pic11.jpg" alt="" /></a>
               </div>
-              <div class="col-6">
-                <a href="#" class="image fit"><img src="images/pic12.jpg" alt="" /></a>
+              <div className="col-6">
+                <a href="#" className="image fit"><img src="images/pic12.jpg" alt="" /></a>
               </div>
-              <div class="col-6">
-                <a href="#" class="image fit"><img src="images/pic13.jpg" alt="" /></a>
+              <div className="col-6">
+                <a href="#" className="image fit"><img src="images/pic13.jpg" alt="" /></a>
               </div>
-              <div class="col-6">
-                <a href="#" class="image fit"><img src="images/pic14.jpg" alt="" /></a>
+              <div className="col-6">
+                <a href="#" className="image fit"><img src="images/pic14.jpg" alt="" /></a>
               </div>
-              <div class="col-6">
-                <a href="#" class="image fit"><img src="images/pic15.jpg" alt="" /></a>
+              <div className="col-6">
+                <a href="#" className="image fit"><img src="images/pic15.jpg" alt="" /></a>
               </div>
             </div>
           </section>
   
       </div>
       <hr />
-      <div class="row">
-        <div class="col-12">
+      <div className="row">
+        <div className="col-12">
   
-            <section class="contact">
+            <section className="contact">
               <header>
                 <h3>Nisl turpis nascetur interdum?</h3>
               </header>
               <p>Urna nisl non quis interdum mus ornare ridiculus egestas ridiculus lobortis vivamus tempor aliquet.</p>
-              <ul class="icons">
-                <li><a href="#" class="icon brands fa-twitter"><span class="label">Twitter</span></a></li>
-                <li><a href="#" class="icon brands fa-facebook-f"><span class="label">Facebook</span></a></li>
-                <li><a href="#" class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
-                <li><a href="#" class="icon brands fa-pinterest"><span class="label">Pinterest</span></a></li>
-                <li><a href="#" class="icon brands fa-dribbble"><span class="label">Dribbble</span></a></li>
-                <li><a href="#" class="icon brands fa-linkedin-in"><span class="label">Linkedin</span></a></li>
+              <ul className="icons">
+                <li><a href="#" className="icon brands fa-twitter"><span className="label">Twitter</span></a></li>
+                <li><a href="#" className="icon brands fa-facebook-f"><span className="label">Facebook</span></a></li>
+                <li><a href="#" className="icon brands fa-instagram"><span className="label">Instagram</span></a></li>
+                <li><a href="#" className="icon brands fa-pinterest"><span className="label">Pinterest</span></a></li>
+                <li><a href="#" className="icon brands fa-dribbble"><span className="label">Dribbble</span></a></li>
+                <li><a href="#" className="icon brands fa-linkedin-in"><span className="label">Linkedin</span></a></li>
               </ul>
             </section>
   
-            <div class="copyright">
-              <ul class="menu">
+            <div className="copyright">
+              <ul className="menu">
                 <li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
               </ul>
             </div>

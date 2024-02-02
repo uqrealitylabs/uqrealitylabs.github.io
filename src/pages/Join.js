@@ -2,12 +2,12 @@ import React from "react";
 
 function Join() {
   return (
-    <div class="container">
-        <article id="main" class="special">
+    <div className="container">
+        <article id="main" className="special">
             <header>
                 <h2><a href="#">Join Us!</a></h2>
             </header>
-            <a href="#" class="image featured"><img src="images/pic06.jpg" alt="" /></a>
+            <a href="#" className="image featured"><img src="images/pic06.jpg" alt="" /></a>
             <p>
                 Commodo id natoque malesuada sollicitudin elit suscipit. Curae suspendisse mauris posuere accumsan massa
                 posuere lacus convallis tellus interdum. Amet nullam fringilla nibh nulla convallis ut venenatis purus

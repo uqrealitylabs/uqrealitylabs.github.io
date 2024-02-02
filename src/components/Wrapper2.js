@@ -1,8 +1,8 @@
 export default function Wrapper2() {
-    return <div class="wrapper style2">
+    return <div className="wrapper style2">
   
-    <article id="main" class="container special">
-      <a href="#" class="image featured"><img src="images/pic06.jpg" alt="" /></a>
+    <article id="main" className="container special">
+      <a href="#" className="image featured"><img src="images/pic06.jpg" alt="" /></a>
       <header>
         <h2><a href="#">Sed massa imperdiet magnis</a></h2>
         <p>
@@ -21,7 +21,7 @@ export default function Wrapper2() {
         natoque aenean scelerisque.
       </p>
       <footer>
-        <a href="#" class="button">Continue Reading</a>
+        <a href="#" className="button">Continue Reading</a>
       </footer>
     </article>
   

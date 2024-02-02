@@ -1,5 +1,5 @@
 export default function DefaultNewsCopy() {
-return (<div class="col-8 col-12-mobile imp-mobile" id="content">
+return (<div className="col-8 col-12-mobile imp-mobile" id="content">
           <article id="main">
               <header>
                   <h2>Week 1 Newsletter</h2>
@@ -7,7 +7,7 @@ return (<div class="col-8 col-12-mobile imp-mobile" id="content">
                       Morbi convallis lectus malesuada sed fermentum dolore amet
                   </p>
               </header>
-              <a href="#" class="image featured"><img src="images/pic06.jpg" alt="" /></a>
+              <a href="#" className="image featured"><img src="images/pic06.jpg" alt="" /></a>
               <p>
                   Commodo id natoque malesuada sollicitudin elit suscipit. Curae suspendisse mauris posuere accumsan massa
                   posuere lacus convallis tellus interdum. Amet nullam fringilla nibh nulla convallis ut venenatis purus

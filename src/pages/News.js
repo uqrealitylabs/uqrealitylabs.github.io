@@ -70,7 +70,7 @@ function ThisNews() {
 }
 
 function DefaultNews() {
-    return (<div class="col-8 col-12-mobile imp-mobile" id="content">
+    return (<div className="col-8 col-12-mobile imp-mobile" id="content">
               <article id="main">
                   <header>
                       <h2>All News</h2>
@@ -113,10 +113,10 @@ function SideBarPart() {
           {
             all_obj.map((item, ind) => (
               <>
-                <div key={ind} className="col-4">
+                <div key={2*ind} className="col-4">
                   <a href="#" className="image fit"><img src="../images/pic04.jpg" alt="" /></a>
                 </div>
-                <div className="col-8">
+                <div key={2*ind + 1} className="col-8">
                   <a href={"/news/" + item.pathname}>
                     <h4>{item.title}</h4>
                     <p>{item.summary}</p>

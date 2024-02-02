@@ -1,5 +1,5 @@
 export default function HomePage() {
-    return     <div class="inner">
+    return     <div className="inner">
     <header>
         <h1><a href="index.html" id="logo">UQ Reality Labs</a></h1>
         <hr />
