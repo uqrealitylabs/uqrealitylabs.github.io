@@ -106,27 +106,31 @@ function SideBarPart() {
         <header>
           <h3>Recommended</h3>
         </header>
+      </section>
+      <section>
 
-        {
-          all_obj.map((item, ind) => (
-            <div key={ind}>
-              <div className="col-4">
-                <a href="#" className="image fit"><img src="../images/pic04.jpg" alt="" /></a>
-              </div>
-              <a href={"/news/" + item.pathname}>
-                <div className="col-8">
-                  <h4>{item.title}</h4>
-                  <p>{item.summary}</p>
+        <div className="row gtr-50">
+          {
+            all_obj.map((item, ind) => (
+              <>
+                <div key={ind} className="col-4">
+                  <a href="#" className="image fit"><img src="../images/pic04.jpg" alt="" /></a>
                 </div>
-              </a>
-
-            </div>
-          ))
+                <div className="col-8">
+                  <a href={"/news/" + item.pathname}>
+                    <h4>{item.title}</h4>
+                    <p>{item.summary}</p>
+                  </a>
+                </div>
+              </>
+            ))
         }
+        </div>
 
         <footer>
           <a href="/news" className="button">All News</a>
         </footer>
       </section>
-    </div>)
+    </div>
+    )
 }
