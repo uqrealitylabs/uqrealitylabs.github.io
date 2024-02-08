@@ -7,6 +7,7 @@ const CubeComponent = () => {
   return (
     <div id="cube-wrapper">
       <Cube />
+    </div>
   );
 };
 
