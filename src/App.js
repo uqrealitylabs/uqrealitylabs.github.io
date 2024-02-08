@@ -21,10 +21,7 @@ import Wrapper2 from './components/Wrapper2.js';
 function App() {
   return (
     <>
-    <div id="header">
-      <NavBarHTML />
-      <Welcome />
-    </div>
+    <Welcome/>
     <Page/>
     <Footer/>
     </>
@@ -75,19 +72,21 @@ function Navigation() {
 function Welcome() {
   switch (window.location.pathname.split("/")[1]) {
     case "about":
-      return;
     case "events":
-      return;
     case "news":
-      return;
     case "resources":
-      return;
     case "join":
-      return;
+      return <>
+        <div id="header" style={{height: "default", minHeight: "default"}}>
+          <NavBarHTML />
+        </div>
+      </>
     case "":
-      return <HomepageHTML/>;
     default:
-      return <HomepageHTML/>;
+      return <div id="header" style={{height: "100vh", minHeight: "40em"}}>
+        <NavBarHTML />
+        <HomepageHTML />
+      </div>
   }
 }
 

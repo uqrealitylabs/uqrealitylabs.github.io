@@ -2253,8 +2253,8 @@ input, select, textarea {
 	}
 
 	body.homepage #header {
-		height: 100vh;
-		min-height: 40em;
+		/* height: 100vh;
+		min-height: 40em; */
 		background-image: url("../../images/header_desaturated.png");
 		background-size: cover;
 		background-position: center center;
