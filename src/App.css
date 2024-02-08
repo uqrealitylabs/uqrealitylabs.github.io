@@ -103,3 +103,26 @@ canvas {
 .centre {
   text-align: center;
 }
+
+.hotswap {
+  display: flex;
+  margin-bottom: 0.5em;
+  /* background-color: rgba(150,150,150,0.1); */
+}
+
+.hotswap h2 {
+  padding: 0.5em 0em 0em;
+  width: 50%;
+  display: grid;
+  justify-content: center;
+  justify-self: center;
+  border-bottom: 2pt solid rgba(0, 0, 0, 0);  
+  -moz-transition: background-color 0.35s ease-in-out, color 0.35s ease-in-out, border-bottom-color 0.35s ease-in-out;
+  -webkit-transition: background-color 0.35s ease-in-out, color 0.35s ease-in-out, border-bottom-color 0.35s ease-in-out;
+  -ms-transition: background-color 0.35s ease-in-out, color 0.35s ease-in-out, border-bottom-color 0.35s ease-in-out;
+  transition: background-color 0.35s ease-in-out, color 0.35s ease-in-out, border-bottom-color 0.35s ease-in-out;
+}
+
+.hotswap h2:hover {
+  border-bottom-color: #ef8376;
+}
