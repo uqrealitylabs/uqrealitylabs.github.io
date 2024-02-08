@@ -2,7 +2,7 @@ export default function Footer() {
     return (
   <div id="footer">
     <div className="container">
-      <div className="row">
+      {/* <div className="row">
   
           <section className="col-4 col-12-mobile">
             <header>
@@ -13,24 +13,6 @@ export default function Footer() {
                 <article className="tweet">
                   Amet nullam fringilla nibh nulla convallis tique ante sociis accumsan.
                   <span className="timestamp">5 minutes ago</span>
-                </article>
-              </li>
-              <li>
-                <article className="tweet">
-                  Hendrerit rutrum quisque.
-                  <span className="timestamp">30 minutes ago</span>
-                </article>
-              </li>
-              <li>
-                <article className="tweet">
-                  Curabitur donec nulla massa laoreet nibh. Lorem praesent montes.
-                  <span className="timestamp">3 hours ago</span>
-                </article>
-              </li>
-              <li>
-                <article className="tweet">
-                  Lacus natoque cras rhoncus curae dignissim ultricies. Convallis orci aliquet.
-                  <span className="timestamp">5 hours ago</span>
                 </article>
               </li>
             </ul>
@@ -49,30 +31,6 @@ export default function Footer() {
                   <span className="timestamp">3 hours ago</span>
                 </article>
               </li>
-              <li>
-                <article className="post stub">
-                  <header>
-                    <h3><a href="#">Phasellus portitor lorem</a></h3>
-                  </header>
-                  <span className="timestamp">6 hours ago</span>
-                </article>
-              </li>
-              <li>
-                <article className="post stub">
-                  <header>
-                    <h3><a href="#">Magna tempus consequat</a></h3>
-                  </header>
-                  <span className="timestamp">Yesterday</span>
-                </article>
-              </li>
-              <li>
-                <article className="post stub">
-                  <header>
-                    <h3><a href="#">Feugiat lorem ipsum</a></h3>
-                  </header>
-                  <span className="timestamp">2 days ago</span>
-                </article>
-              </li>
             </ul>
           </section>
   
@@ -87,44 +45,32 @@ export default function Footer() {
               <div className="col-6">
                 <a href="#" className="image fit"><img src="images/pic11.jpg" alt="" /></a>
               </div>
-              <div className="col-6">
-                <a href="#" className="image fit"><img src="images/pic12.jpg" alt="" /></a>
-              </div>
-              <div className="col-6">
-                <a href="#" className="image fit"><img src="images/pic13.jpg" alt="" /></a>
-              </div>
-              <div className="col-6">
-                <a href="#" className="image fit"><img src="images/pic14.jpg" alt="" /></a>
-              </div>
-              <div className="col-6">
-                <a href="#" className="image fit"><img src="images/pic15.jpg" alt="" /></a>
-              </div>
             </div>
           </section>
   
-      </div>
-      <hr />
+      </div> */}
+      {/* <hr /> */}
       <div className="row">
         <div className="col-12">
   
             <section className="contact">
               <header>
-                <h3>Nisl turpis nascetur interdum?</h3>
+                <h3>Want to get involved? Follow our social medias:</h3>
               </header>
-              <p>Urna nisl non quis interdum mus ornare ridiculus egestas ridiculus lobortis vivamus tempor aliquet.</p>
+              <p>Or contact us directly at <a href='mailto:uqrealitylabs@gmail.com'>uqrealitylabs@gmail.com</a></p>
               <ul className="icons">
-                <li><a href="#" className="icon brands fa-twitter"><span className="label">Twitter</span></a></li>
-                <li><a href="#" className="icon brands fa-facebook-f"><span className="label">Facebook</span></a></li>
-                <li><a href="#" className="icon brands fa-instagram"><span className="label">Instagram</span></a></li>
-                <li><a href="#" className="icon brands fa-pinterest"><span className="label">Pinterest</span></a></li>
-                <li><a href="#" className="icon brands fa-dribbble"><span className="label">Dribbble</span></a></li>
-                <li><a href="#" className="icon brands fa-linkedin-in"><span className="label">Linkedin</span></a></li>
+                <li><a href="https://linktr.ee/uqrealitylabs" className="icon brands fa-usb" target="_blank" rel="noreferrer noopener"><span className="label">LinkTree</span></a></li>
+                <li><a href="https://discord.com/invite/eN6v8R3fYD" className="icon brands fa-discord" target="_blank" rel="noreferrer noopener"><span className="label">Discord</span></a></li>
+                <li><a href="https://www.facebook.com/uqrealitylabs" className="icon brands fa-facebook-f" target="_blank" rel="noreferrer noopener"><span className="label">Facebook</span></a></li>
+                <li><a href="https://www.instagram.com/uqrealitylabs/" className="icon brands fa-instagram" target="_blank" rel="noreferrer noopener"><span className="label">Instagram</span></a></li>
+                <li><a href="https://au.linkedin.com/company/uq-reality-labs" className="icon brands fa-linkedin-in" target="_blank" rel="noreferrer noopener"><span className="label">Linkedin</span></a></li>
+                <li><a href="https://github.com/uqrealitylabs" className="icon brands fa-github" target="_blank" rel="noreferrer noopener"><span className="label">GitHub</span></a></li>
               </ul>
             </section>
   
             <div className="copyright">
               <ul className="menu">
-                <li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+                <li>&copy; UQ Reality Labs. All rights reserved</li><li>Design based on: <a href="http://html5up.net">HTML5 UP</a></li>
               </ul>
             </div>
   
