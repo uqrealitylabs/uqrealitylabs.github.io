@@ -2267,7 +2267,7 @@ input, select, textarea {
 
 		body.homepage #header:after {
 			content: '';
-			background: rgba(44, 3, 53, 0.541);
+			/* background: rgba(44, 3, 53, 0.541); */
 			display: block;
 			position: absolute;
 			left: 0;
