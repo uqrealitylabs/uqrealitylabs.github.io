@@ -1,134 +1,136 @@
 import React from "react";
 
 function About() {
-  return (
-    <div className="container">
-        <article id="main" className="special">
+    return (
+        <div className="container">
+            <article id="main" className="special">
+                <header>
+                    <h2><a href="">About Us</a></h2>
+                </header>
+                <a className="image featured"><img src="images/uqrl-top-banner.png" alt="Welcome to UQ Reality Labs!" /></a>
+                <section>
+                    <p>
+                    Welcome to UQ Reality Labs, Australia's first augmented and virtual reality club! We are a not-for-profit student society based out of The University of Queensland, Brisbane, catering to both undergraduate and postgraduate students interested in the Extended Reality (XR) space including Augmented Reality (AR), Virtual Reality (VR), and Mixed Reality (MR). We are committed to providing an inclusive space for students of all backgrounds to learn, share and connect about everything XR related. Throughout the year we host a wide variety of events, including but not limited to networking events, workshops, demos and social nights.
+                    </p>
+                </section>
+                {/* <hr/> */}
+                <section>
+                    <header>
+                        <h3>Our History</h3>
+                    </header>
+                    <p>
+                    UQ Reality Labs is a student-run society that is pioneering the advancement of virtual, mixed, and augmented reality research and development at the University of Queensland. The club was co-founded by Claudia McPherson, Jatin Pawar and Neil Reitmann in October 2022 with a mission to cultivate an interdisciplinary environment that fosters collaboration, project-based learning, and innovation to drive progress in emerging technologies. With that, Reality Labs is Australia’s first student-run AR/VR Club, aiming to provide ease of access to XR and education around it.
+                    </p>
+                </section>
+                {/* <hr/> */}
+                <section>
+                    <header>
+                        <h3>President's Note</h3>
+                    </header>
+                    <p>
+                        <em>As President of UQ Reality Labs (UQRL) in 2024, I lead a community redefining XR's boundaries – not just geographically, but in terms of who gets to experience its magic. Since igniting Brisbane's XR scene in 2023, UQRL has transformed from a campus club to a national network of collaboration, blazing a trail of inclusivity and innovation. Earning the "UQ Union Best Small Club of the Year 2023" award within our first year was a thrilling nod, but our real fuel is seeing XR's potential reach all corners of the map, regardless of background or access.</em><br />
+                        <em><code>&#8212;</code> Masham Siddiqui, 2024 President</em>
+                    </p>
+                </section>
+
+            </article>
+            <hr />
             <header>
-                <h2><a href="#">About Us</a></h2>
+                <h2 style={{ "text-align": "center" }}>Meet the Team</h2>
             </header>
-            <a href="#" className="image featured"><img src="images/pic06.jpg" alt="" /></a>
-            <p>
-                Commodo id natoque malesuada sollicitudin elit suscipit. Curae suspendisse mauris posuere accumsan massa
-                posuere lacus convallis tellus interdum. Amet nullam fringilla nibh nulla convallis ut venenatis purus
-                lobortis. Auctor etiam porttitor phasellus tempus cubilia ultrices tempor sagittis. Nisl fermentum
-                consequat integer interdum integer purus sapien. Nibh eleifend nulla nascetur pharetra commodo mi augue
-                interdum tellus. Ornare cursus augue feugiat sodales velit lorem. Semper elementum ullamcorper lacinia
-                natoque aenean scelerisque vel lacinia mollis quam sodales congue.
-            </p>
-            <section>
-                <header>
-                    <h3>Ultrices tempor sagittis nisl</h3>
-                </header>
-                <p>
-                    Nascetur volutpat nibh ullamcorper vivamus at purus. Cursus ultrices porttitor sollicitudin imperdiet
-                    at pretium tellus in euismod a integer sodales neque. Nibh quis dui quis mattis eget imperdiet venenatis
-                    feugiat. Neque primis ligula cum erat aenean tristique luctus risus ipsum praesent iaculis. Fermentum elit
-                    fringilla consequat dis arcu. Pellentesque mus tempor vitae pretium sodales porttitor lacus. Phasellus
-                    egestas odio nisl duis sociis purus faucibus morbi. Eget massa mus etiam sociis pharetra magna.
-                </p>
-                <p>
-                    Eleifend auctor turpis magnis sed porta nisl pretium. Aenean suspendisse nulla eget sed etiam parturient
-                    orci cursus nibh. Quisque eu nec neque felis laoreet diam morbi egestas. Dignissim cras rutrum consectetur
-                    ut penatibus fermentum nibh erat malesuada varius.
-                </p>
-            </section>
-        </article>
-        <hr />
-        <h2 style={{"text-align": "center"}}>Meet the Team</h2>
-        <hr />
-        <div className="row">
-            <article className="col-4 col-12-mobile special">
-                <a href="#" className="image featured"><img src="images/pic07.jpg" alt="" /></a>
-                <header>
-                    <h3><a href="#">Masham Siddiqui</a></h3>
-                </header>
-                <p className="centre">
-                    2024 President
-                </p>
-            </article>
-            <article className="col-4 col-12-mobile special">
-                <a href="#" className="image featured"><img src="images/pic08.jpg" alt="" /></a>
-                <header>
-                    <h3><a href="#">Vince Lapore</a></h3>
-                </header>
-                <p className="centre">
-                    2024 Secretary
-                </p>
-            </article>
-            <article className="col-4 col-12-mobile special">
-                <a href="#" className="image featured"><img src="images/pic09.jpg" alt="" /></a>
-                <header>
-                    <h3><a href="#">Harrison Wills</a></h3>
-                </header>
-                <p className="centre">
-                    2024 Treasurer
-                </p>
-            </article>
+            <hr />
+            <div className="row">
+                <article className="col-4 col-12-mobile special">
+                    <a href="#" className="image featured"><img src="images/pic07.jpg" alt="" /></a>
+                    <header>
+                        <h3><a href="#">Masham Siddiqui</a></h3>
+                    </header>
+                    <p className="centre">
+                        2024 President
+                    </p>
+                </article>
+                <article className="col-4 col-12-mobile special">
+                    <a href="#" className="image featured"><img src="images/pic08.jpg" alt="" /></a>
+                    <header>
+                        <h3><a href="#">Vince Lapore</a></h3>
+                    </header>
+                    <p className="centre">
+                        2024 Secretary
+                    </p>
+                </article>
+                <article className="col-4 col-12-mobile special">
+                    <a href="#" className="image featured"><img src="images/pic09.jpg" alt="" /></a>
+                    <header>
+                        <h3><a href="#">Harrison Wills</a></h3>
+                    </header>
+                    <p className="centre">
+                        2024 Treasurer
+                    </p>
+                </article>
+            </div>
+            <hr />
+            <div className="row">
+                <article className="col-4 col-12-mobile special">
+                    <a href="#" className="image featured"><img src="images/pic07.jpg" alt="" /></a>
+                    <header>
+                        <h3><a href="#">Srikrishna Bhat</a></h3>
+                    </header>
+                    <p className="centre">
+                        Workshop Director
+                    </p>
+                </article>
+                <article className="col-4 col-12-mobile special">
+                    <a href="#" className="image featured"><img src="images/pic08.jpg" alt="" /></a>
+                    <header>
+                        <h3><a href="#">Karthikeyan Venkatesan</a></h3>
+                    </header>
+                    <p className="centre">
+                        Growth & Engagement Director
+                    </p>
+                </article>
+                <article className="col-4 col-12-mobile special">
+                    <a href="#" className="image featured"><img src="images/pic09.jpg" alt="" /></a>
+                    <header>
+                        <h3><a href="#">Jason Qu</a></h3>
+                    </header>
+                    <p className="centre">
+                        Growth & Engagement Director
+                    </p>
+                </article>
+            </div>
+            <hr />
+            <div className="row">
+                <article className="col-4 col-12-mobile special">
+                    <a href="#" className="image featured"><img src="images/pic07.jpg" alt="" /></a>
+                    <header>
+                        <h3><a href="#">Shuvodeep Saha</a></h3>
+                    </header>
+                    <p className="centre">
+                        Industry Director
+                    </p>
+                </article>
+                <article className="col-4 col-12-mobile special">
+                    <a href="#" className="image featured"><img src="images/pic08.jpg" alt="" /></a>
+                    <header>
+                        <h3><a href="#">Swaraj Randhir</a></h3>
+                    </header>
+                    <p className="centre">
+                        Media Director
+                    </p>
+                </article>
+                <article className="col-4 col-12-mobile special">
+                    <a href="#" className="image featured"><img src="images/pic09.jpg" alt="" /></a>
+                    <header>
+                        <h3><a href="#">Benjamin Tran</a></h3>
+                    </header>
+                    <p className="centre">
+                        General Director
+                    </p>
+                </article>
+            </div>
+            <hr />
         </div>
-        <hr />
-        <div className="row">
-            <article className="col-4 col-12-mobile special">
-                <a href="#" className="image featured"><img src="images/pic07.jpg" alt="" /></a>
-                <header>
-                    <h3><a href="#">Srikrishna Bhat</a></h3>
-                </header>
-                <p className="centre">
-                    Workshop Director
-                </p>
-            </article>
-            <article className="col-4 col-12-mobile special">
-                <a href="#" className="image featured"><img src="images/pic08.jpg" alt="" /></a>
-                <header>
-                    <h3><a href="#">Karthikeyan Venkatesan</a></h3>
-                </header>
-                <p className="centre">
-                    Growth & Engagement Director
-                </p>
-            </article>
-            <article className="col-4 col-12-mobile special">
-                <a href="#" className="image featured"><img src="images/pic09.jpg" alt="" /></a>
-                <header>
-                    <h3><a href="#">Jason Qu</a></h3>
-                </header>
-                <p className="centre">
-                    Growth & Engagement Director
-                </p>
-            </article>
-        </div>
-        <hr/>
-        <div className="row">
-            <article className="col-4 col-12-mobile special">
-                <a href="#" className="image featured"><img src="images/pic07.jpg" alt="" /></a>
-                <header>
-                    <h3><a href="#">Shuvodeep Saha</a></h3>
-                </header>
-                <p className="centre">
-                    Industry Director
-                </p>
-            </article>
-            <article className="col-4 col-12-mobile special">
-                <a href="#" className="image featured"><img src="images/pic08.jpg" alt="" /></a>
-                <header>
-                    <h3><a href="#">Swaraj Randhir</a></h3>
-                </header>
-                <p className="centre">
-                    Media Director
-                </p>
-            </article>
-            <article className="col-4 col-12-mobile special">
-                <a href="#" className="image featured"><img src="images/pic09.jpg" alt="" /></a>
-                <header>
-                    <h3><a href="#">Benjamin Tran</a></h3>
-                </header>
-                <p className="centre">
-                    General Director
-                </p>
-            </article>
-        </div>
-        <hr/>
-    </div>
-  );
+    );
 }
 
 export default About;
