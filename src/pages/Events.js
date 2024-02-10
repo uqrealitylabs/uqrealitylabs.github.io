@@ -33,20 +33,30 @@ var upcoming_events = [];
 var past_events = [];
 var current_date = new Date();
 
-querySnapshot.forEach(doc => {
-    var data = doc.data();
-    if (data.visible) {
-        const path = ref(storage, data.image);
-        if (data.date.toDate() < current_date) {
-            past_events.push(data);
-        } else {
-            upcoming_events.push(data);
 
-        }
-    }
-})
 
-console.log("BLAH: ", upcoming_events)
+async function retrieveEvents() {
+    await new Promise((resolve, reject) => {
+        querySnapshot.forEach(doc => {
+            var data = doc.data();
+            if (data.visible) {
+                const path = ref(storage, data.image);
+                getDownloadURL(path).then(url => {
+                    data.image = url;
+                    resolve()
+                })
+                if (data.date.toDate() < current_date) {
+                    past_events.push(data);
+                } else {
+                    upcoming_events.push(data);
+        
+                }
+            }
+        })
+    })
+}
+
+await retrieveEvents();
 
 console.log("Upcoming Events", upcoming_events);
 console.log("Past Events", past_events);
@@ -56,7 +66,7 @@ function Upcoming() {
         {
             upcoming_events.map((item, ind) => (
                 <article key={ind} className="col-4 col-12-mobile special">
-                    <a href={item.link} target="_blank" rel="noreferrer noopener" className="image featured" style={{marginBottom: '0.1em'}}><img src='' alt="" /></a>
+                    <a href={item.link} target="_blank" rel="noreferrer noopener" className="image featured" style={{marginBottom: '0.1em'}}><img src={item.image} alt="" /></a>
                     <header>
                         <h6>{item.date.toDate().toString().split(":").slice(0, 2).join(':')}</h6>
                         <h3><a href={item.link} target="_blank" rel="noreferrer noopener">{item.name}</a></h3>
@@ -76,7 +86,7 @@ function Past() {
         {
             past_events.map((item, ind) => (
                 <article key={ind} className="col-4 col-12-mobile special">
-                    <a href={item.link} target="_blank" rel="noreferrer noopener" className="image featured" style={{marginBottom: '0.1em'}}><img src="../images/pic07.jpg" alt="" /></a>
+                    <a href={item.link} target="_blank" rel="noreferrer noopener" className="image featured" style={{marginBottom: '0.1em'}}><img src={item.image} alt="" /></a>
                     <header>
                         <h6>{item.date.toDate().toString().split(":").slice(0, 2).join(':')}</h6>
                         <h3><a href={item.link} target="_blank" rel="noreferrer noopener">{item.name}</a></h3>
