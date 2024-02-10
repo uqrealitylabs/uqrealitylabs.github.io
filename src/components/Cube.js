@@ -36,7 +36,47 @@ export default function Cube() {
     const facesCube = new THREE.Mesh(geometry, facesMaterial.flat());
     scene.add(facesCube);
 
-    var rotate = true;
+    var isDragging = false;
+    var autoRotate = true;
+    var previousMousePosition = {
+      x: 0,
+      y: 0
+    }
+
+    const handleMouseDown = (event) => {
+      isDragging = true;
+      previousMousePosition = {
+        x: event.clientX,
+        y: event.clientY
+      };
+    };
+
+    const handleMouseMove = (event) => {
+      if (!isDragging) return;
+
+      const deltaMove = {
+        x: event.clientX - previousMousePosition.x,
+        y: event.clientY - previousMousePosition.y
+      };
+
+      // Rotate the cube based on mouse movement
+      facesCube.rotation.x += deltaMove.y * 0.01;
+      facesCube.rotation.y += deltaMove.x * 0.01;
+
+      // Rotate the cube based on mouse movement
+      edgesCube.rotation.x += deltaMove.y * 0.01;
+      edgesCube.rotation.y += deltaMove.x * 0.01;
+
+      previousMousePosition = {
+        x: event.clientX,
+        y: event.clientY
+      };
+    };
+
+    const handleMouseUp = () => {
+      isDragging = false;
+    };
+
 
     const handleFaceMouseover = (event) => {
       const face = identifyFace(renderer, event, camera, facesCube);
@@ -48,16 +88,15 @@ export default function Cube() {
 
       // Change the color of the clicked face
       if (face != null) {
-        rotate = false;
         facesMaterial[face].opacity = 0.7;
         document.body.style.cursor = "pointer";
       } else {
-        rotate = true;
         document.body.style.cursor = "default";
       }
     };
 
     const handleFaceClick = (event) => {
+      if (isDragging) return;
       const face = identifyFace(renderer, event, camera, facesCube)
       switch (face) {
         case 4:
@@ -82,6 +121,11 @@ export default function Cube() {
       }
     };
 
+    // Add mouse event listeners
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
     // Add click event listener
     window.addEventListener("mousemove", handleFaceMouseover);
     window.addEventListener("click", handleFaceClick);
@@ -105,15 +149,13 @@ export default function Cube() {
     // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
-
-      // Rotate the cube
-      if (rotate) {
+      
+      if (!autoRotate) {
         edgesCube.rotation.x += 0.01;
         edgesCube.rotation.y += 0.01;
         facesCube.rotation.x += 0.01;
         facesCube.rotation.y += 0.01;
       }
-
 
       // Update the outline pass
       composer.render();
@@ -127,6 +169,9 @@ export default function Cube() {
     // Clean up on component unmount
     return () => {
       window.removeEventListener("click", handleFaceClick);
+      window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
       container.removeChild(renderer.domElement);
       document.body.removeChild(container);
     };
