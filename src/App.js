@@ -17,6 +17,7 @@ import LeftSideBar from './components/LeftSidebar.js';
 import Footer from './components/Footer.js';
 import Wrapper1 from './components/Wrapper1.js';
 import Wrapper2 from './components/Wrapper2.js';
+import Roadmap from './components/Roadmap.js';
 
 function App() {
   return (
@@ -83,7 +84,15 @@ function Welcome() {
       </>
     case "":
     default:
-      return <div id="header" style={{height: "100vh", minHeight: "40em"}}>
+      return <div id="header" style={{
+        height: "100vh", minHeight: "40em",
+          backgroundImage: "url('images/Banner\ Design.png')",
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center bottom',
+          backgroundSize: '100% auto',
+          backgroundAttachment: 'fixed',
+        
+        }}>
         <NavBarHTML />
         <HomepageHTML />
       </div>
@@ -105,17 +114,15 @@ function Page() {
     case "":
       return (
       <> 
-        <CubeComponent/>
-        <Wrapper1/>
-        <Wrapper2/>
+        {/* <CubeComponent/> */}
+        {/* <Roadmap/> */}
       </>
       );
     default:
       return (
         <> 
-          <CubeComponent/>
-          <Wrapper1/>
-          <Wrapper2/>
+          {/* <CubeComponent/> */}
+          {/* <Roadmap/> */}
         </>
         );
   }
