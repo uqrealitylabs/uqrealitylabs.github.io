@@ -41,27 +41,27 @@ function About() {
             <hr />
             <div className="row">
                 <article className="col-4 col-12-mobile special">
-                    <a href="#" className="image featured"><img src="images/pic07.jpg" alt="" /></a>
+                    <a className="image featured"><img src="images/pic07.jpg" alt="" /></a>
                     <header>
-                        <h3><a href="#">Masham Siddiqui</a></h3>
+                        <h3><a>Masham Siddiqui</a></h3>
                     </header>
                     <p className="centre">
                         2024 President
                     </p>
                 </article>
                 <article className="col-4 col-12-mobile special">
-                    <a href="#" className="image featured"><img src="images/pic08.jpg" alt="" /></a>
+                    <a className="image featured"><img src="images/pic08.jpg" alt="" /></a>
                     <header>
-                        <h3><a href="#">Vince Lapore</a></h3>
+                        <h3><a>Vince Lapore</a></h3>
                     </header>
                     <p className="centre">
                         2024 Secretary
                     </p>
                 </article>
                 <article className="col-4 col-12-mobile special">
-                    <a href="#" className="image featured"><img src="images/pic09.jpg" alt="" /></a>
+                    <a className="image featured"><img src="images/pic09.jpg" alt="" /></a>
                     <header>
-                        <h3><a href="#">Harrison Wills</a></h3>
+                        <h3><a>Harrison Wills</a></h3>
                     </header>
                     <p className="centre">
                         2024 Treasurer
@@ -71,27 +71,27 @@ function About() {
             <hr />
             <div className="row">
                 <article className="col-4 col-12-mobile special">
-                    <a href="#" className="image featured"><img src="images/pic07.jpg" alt="" /></a>
+                    <a className="image featured"><img src="images/pic07.jpg" alt="" /></a>
                     <header>
-                        <h3><a href="#">Srikrishna Bhat</a></h3>
+                        <h3><a>Srikrishna Bhat</a></h3>
                     </header>
                     <p className="centre">
                         Workshop Director
                     </p>
                 </article>
                 <article className="col-4 col-12-mobile special">
-                    <a href="#" className="image featured"><img src="images/pic08.jpg" alt="" /></a>
+                    <a className="image featured"><img src="images/pic08.jpg" alt="" /></a>
                     <header>
-                        <h3><a href="#">Karthikeyan Venkatesan</a></h3>
+                        <h3><a>Karthikeyan Venkatesan</a></h3>
                     </header>
                     <p className="centre">
                         Growth & Engagement Director
                     </p>
                 </article>
                 <article className="col-4 col-12-mobile special">
-                    <a href="#" className="image featured"><img src="images/pic09.jpg" alt="" /></a>
+                    <a className="image featured"><img src="images/pic09.jpg" alt="" /></a>
                     <header>
-                        <h3><a href="#">Jason Qu</a></h3>
+                        <h3><a>Jason Qu</a></h3>
                     </header>
                     <p className="centre">
                         Growth & Engagement Director
@@ -101,27 +101,27 @@ function About() {
             <hr />
             <div className="row">
                 <article className="col-4 col-12-mobile special">
-                    <a href="#" className="image featured"><img src="images/pic07.jpg" alt="" /></a>
+                    <a className="image featured"><img src="images/pic07.jpg" alt="" /></a>
                     <header>
-                        <h3><a href="#">Shuvodeep Saha</a></h3>
+                        <h3><a>Shuvodeep Saha</a></h3>
                     </header>
                     <p className="centre">
                         Industry Director
                     </p>
                 </article>
                 <article className="col-4 col-12-mobile special">
-                    <a href="#" className="image featured"><img src="images/pic08.jpg" alt="" /></a>
+                    <a className="image featured"><img src="images/pic08.jpg" alt="" /></a>
                     <header>
-                        <h3><a href="#">Swaraj Randhir</a></h3>
+                        <h3><a>Swaraj Randhir</a></h3>
                     </header>
                     <p className="centre">
                         Media Director
                     </p>
                 </article>
                 <article className="col-4 col-12-mobile special">
-                    <a href="#" className="image featured"><img src="images/pic09.jpg" alt="" /></a>
+                    <a className="image featured"><img src="images/pic09.jpg" alt="" /></a>
                     <header>
-                        <h3><a href="#">Benjamin Tran</a></h3>
+                        <h3><a>Benjamin Tran</a></h3>
                     </header>
                     <p className="centre">
                         General Director

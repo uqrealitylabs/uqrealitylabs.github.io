@@ -123,7 +123,7 @@ function Events() {
                 <header>
                     <h2>Events</h2>
                 </header>
-                <a className="image featured"><img src="../images/UQ Reality Labs IGM Photo.JPG" alt="" /></a>
+                <a className="image featured"><img src="../images/367484605_268085206011462_4069322954688490795_n.jpg" alt="" /></a>
                 <span className="hotswap">
                     <h2><a href="/events/upcoming">Upcoming Events</a></h2>
                     <h2><a href="/events/past">Past Events</a></h2>
