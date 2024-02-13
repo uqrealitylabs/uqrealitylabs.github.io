@@ -36,7 +36,7 @@ querySnapshot.forEach(doc => {
 })
 
 export default function News() {
-  return (<div className="container">
+  return (<div id="main" className="container">
     <div className="row gtr-200">
       <SideBarPart />
       <ThisNews />
