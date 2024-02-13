@@ -1,6 +1,8 @@
+// second style for generic content, template currently unworked
+
 export default function Wrapper2() {
-    return <div className="wrapper style2">
-  
+  return <div className="wrapper style2">
+
     <article id="main" className="container special">
       <a href="#" className="image featured"><img src="images/pic06.jpg" alt="" /></a>
       <header>
@@ -24,6 +26,6 @@ export default function Wrapper2() {
         <a href="#" className="button">Continue Reading</a>
       </footer>
     </article>
-  
+
   </div>
-  }
+}

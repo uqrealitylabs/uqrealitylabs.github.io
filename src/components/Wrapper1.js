@@ -1,6 +1,8 @@
+// first style for generic content, template currently unworked
+
 export default function Wrapper1() {
-    return 				<div className="wrapper style1">
-  
+  return <div className="wrapper style1">
+
     <section id="features" className="container special">
       <header>
         <h2>Morbi ullamcorper et varius leo lacus</h2>
@@ -39,7 +41,6 @@ export default function Wrapper1() {
         </article>
       </div>
     </section>
-  
+
   </div>
-  }
-  
+}

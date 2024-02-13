@@ -1,5 +1,7 @@
+// A page-width banner used for grabbing attention
+
 export default function Banner() {
-    return 				<section id="banner">
+  return <section id="banner">
     <header>
       <h2>Hi. You're looking at <strong>Helios</strong>.</h2>
       <p>
@@ -8,4 +10,4 @@ export default function Banner() {
       </p>
     </header>
   </section>
-  }
+}

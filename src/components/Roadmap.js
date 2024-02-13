@@ -1,9 +1,11 @@
-export default function Wrapper1() {
-    return 				<div className="style1" id="roadmap" >
-  
+// this is the main page for the homepage, currently not live
+
+export default function Roadmap() {
+  return <div className="style1" id="roadmap" >
+
     <section id="features" className="container special">
       <header>
-        <h2 style={{color: 'white'}}>Welcome to UQ Reality Labs!</h2>
+        <h2 style={{ color: 'white' }}>Welcome to UQ Reality Labs!</h2>
       </header>
       <div className="row">
         <article className="col-4 col-12-mobile special">
@@ -38,7 +40,6 @@ export default function Wrapper1() {
         </article>
       </div>
     </section>
-  
+
   </div>
-  }
-  
+}

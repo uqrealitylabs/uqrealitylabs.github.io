@@ -1,3 +1,5 @@
+// A 3D Cube for navigation
+
 // Cube.js
 import { useEffect } from "react";
 import * as THREE from "three";
@@ -23,7 +25,7 @@ export default function Cube() {
       0.1,
       1000
     );
-    const renderer = new THREE.WebGLRenderer({alpha: true});
+    const renderer = new THREE.WebGLRenderer({ alpha: true });
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
@@ -87,14 +89,14 @@ export default function Cube() {
       mouse.x =
         ((event.clientX - canvasBounds.left - fixedPosition.left) /
           canvasBounds.width) *
-          2 -
+        2 -
         1;
       mouse.y =
         -(
           (event.clientY - canvasBounds.top - fixedPosition.top) /
           canvasBounds.height
         ) *
-          2 +
+        2 +
         1;
 
       // Raycast from the camera to the faces
@@ -132,14 +134,14 @@ export default function Cube() {
       mouse.x =
         ((event.clientX - canvasBounds.left - fixedPosition.left) /
           canvasBounds.width) *
-          2 -
+        2 -
         1;
       mouse.y =
         -(
           (event.clientY - canvasBounds.top - fixedPosition.top) /
           canvasBounds.height
         ) *
-          2 +
+        2 +
         1;
 
       // Raycast from the camera to the faces
