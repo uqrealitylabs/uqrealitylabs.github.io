@@ -86,8 +86,8 @@ function Welcome() {
     default:
       return <div id="header" style={{
         height: "100vh", minHeight: "40em",
-          backgroundImage: "url('images/Banner\ Design.png')",
-          backgroundRepeat: 'no-repeat',
+          backgroundImage: "url('images/Banner Design Smaller.png')",
+          backgroundRepeat: 'repeat-y',
           backgroundPosition: 'center bottom',
           backgroundSize: '100% auto',
           backgroundAttachment: 'fixed',
