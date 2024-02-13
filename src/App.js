@@ -42,7 +42,7 @@ function Welcome() {
         backgroundImage: "url('images/Banner Design Smaller.png')",
         backgroundRepeat: 'repeat-y',
         backgroundPosition: 'center bottom',
-        backgroundSize: '100% auto',
+        backgroundSize: 'cover',
         backgroundAttachment: 'fixed',
 
       }}>

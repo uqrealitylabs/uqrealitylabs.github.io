@@ -22,21 +22,18 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-global.db = getFirestore(app);
+const db = getFirestore(app);
 
-const querySnapshot = await getDocs(collection(global.db, "NewsPages"));
+const querySnapshot = await getDocs(collection(db, "NewsPages"));
 var all_news = {};
 var all_obj = []
-global.all_obj = all_obj;
 
 querySnapshot.forEach(doc => {
   if (doc.data().visible) {
     all_news[doc.data().pathname] = doc.data().modulename;
-    global.all_obj.push(doc.data())
+    all_obj.push(doc.data())
   }
 })
-
-console.log("All News: ", all_news)
 
 export default function News() {
   return (<div className="container">

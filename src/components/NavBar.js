@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 
 export default function NavBar() {
 	var func = () => {
+		console.log("func in navbar")
 		var $this = $("nav");
 		var $a = $this.find('a');
 		var b = [];

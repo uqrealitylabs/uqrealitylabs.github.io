@@ -23,12 +23,10 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-global.db = getFirestore(app);
+const db = getFirestore(app);
 const storage = getStorage(app);
-global.ref = ref
-global.getDownloadURL = getDownloadURL;
 
-const querySnapshot = await getDocs(collection(global.db, "Events"));
+const querySnapshot = await getDocs(collection(db, "Events"));
 var upcoming_events = [];
 var past_events = [];
 var current_date = new Date();
@@ -57,9 +55,6 @@ async function retrieveEvents() {
 }
 
 await retrieveEvents();
-
-console.log("Upcoming Events", upcoming_events);
-console.log("Past Events", past_events);
 
 function Upcoming() {
     return <div className="row">
@@ -105,7 +100,6 @@ function GetSubpage() {
     let path = window.location.pathname.split('/');
     path = path.slice(2);
     path = path.join("/");
-    console.log(path)
 
     if (path == "" || path == "upcoming") {
         return <Upcoming />

@@ -150,7 +150,6 @@ export default function Cube() {
 
       if (intersects.length > 0) {
         const clickedFace = intersects[0].face; // Get the face that was clicked
-        console.log("Clicked on ", clickedFace.materialIndex);
         switch (clickedFace.materialIndex) {
           case 4:
             break;

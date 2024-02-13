@@ -131,7 +131,6 @@ function GetSubpage() {
     let path = window.location.pathname.split('/');
     path = path.slice(2);
     path = path.join("/");
-    console.log(path)
 
     if (path == "" || path == "students") {
         return <Students />
