@@ -1,60 +1,132 @@
 import React from "react";
 
-function Events() {
-  return (
-    <div className="page">
-      <h1 className="page-title">Events</h1>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas vitae
-        cursus felis. Quisque facilisis augue eget neque scelerisque, in rhoncus
-        eros consectetur. Vivamus eu dolor iaculis, suscipit nisi a, tristique
-        sapien. Etiam pharetra condimentum venenatis. Nulla ultrices turpis
-        luctus, egestas quam rhoncus, dapibus eros. Suspendisse fringilla augue
-        id arcu placerat, ut maximus sapien mollis. Phasellus vel lorem
-        eleifend, varius diam et, varius dolor. Duis ut mauris eget tortor
-        finibus consequat ut ac arcu. Duis sit amet nisi id est molestie aliquet
-        vitae vitae nunc. Etiam tellus est, hendrerit a eros non, condimentum
-        vulputate quam. Donec consectetur mauris velit, sed molestie augue
-        euismod ut. Suspendisse facilisis dolor eget massa lobortis efficitur.
-        Mauris eu molestie tortor. Integer quis sagittis est. Sed lacinia dui
-        sed gravida feugiat. Aliquam eu neque risus. Fusce vitae ipsum congue,
-        ullamcorper nisi a, iaculis massa. Etiam tempus nulla at fermentum
-        gravida. Nam molestie eros ut urna tristique, id interdum ipsum
-        vestibulum. Fusce pellentesque leo non nisi tristique, pretium pharetra
-        purus congue. Nam eu varius libero, eu tincidunt lorem. Aenean eget leo
-        nibh. Pellentesque congue est maximus justo placerat maximus.
-        Pellentesque elit dui, sollicitudin ac elit in, venenatis suscipit
-        tortor. Aenean posuere, ante a sagittis aliquam, tellus ex vehicula
-        ligula, eget ullamcorper nunc lectus sit amet leo. Vivamus sit amet
-        cursus dui. Vivamus at sem justo. Vivamus vulputate cursus bibendum. Sed
-        mollis ligula ipsum, id accumsan nulla pulvinar vel. Nullam rhoncus quis
-        purus id bibendum. Pellentesque vulputate a velit nec scelerisque.
-        Mauris metus magna, hendrerit efficitur porta quis, elementum egestas
-        augue. Etiam eu risus id sem molestie rhoncus. Morbi ex nunc, aliquet at
-        lorem eget, aliquet eleifend orci. Suspendisse a lorem id lectus
-        ullamcorper feugiat a a dolor. Nullam vulputate commodo convallis.
-        Vivamus ut ultrices orci. Phasellus ac blandit sem. Pellentesque turpis
-        odio, placerat ac turpis sed, tempor auctor lectus. In venenatis tortor
-        massa, vitae euismod arcu finibus sit amet. Donec eget venenatis urna.
-        Nullam erat libero, euismod ut nisl eget, pharetra molestie erat. Cras
-        tellus leo, suscipit eget dapibus sit amet, suscipit mollis libero.
-        Curabitur viverra lectus neque, sit amet blandit erat blandit eget.
-        Praesent ut suscipit nisi, id lobortis purus. In consequat ipsum ligula,
-        id imperdiet ante mattis at. Etiam semper nulla eros. Ut venenatis lorem
-        ut elit sodales, sit amet malesuada magna dapibus. Proin dapibus
-        sagittis ipsum, mollis accumsan est commodo eget. Pellentesque semper
-        enim convallis tortor vestibulum, sed eleifend libero feugiat. Etiam a
-        interdum magna, eu rhoncus enim. Vivamus tortor ipsum, dictum vitae
-        iaculis consectetur, scelerisque non mauris. Suspendisse commodo varius
-        nisl, vitae gravida leo tristique sed. Sed vel diam dapibus, efficitur
-        massa sit amet, faucibus quam. Fusce ligula velit, lobortis at
-        ullamcorper nec, fringilla sit amet metus. Aliquam efficitur aliquet
-        dolor, vel mattis tellus tincidunt eu. In non ornare ipsum, eget
-        consectetur turpis. Vestibulum nec imperdiet nisi. Curabitur consequat
-        tincidunt pellentesque.
-      </p>
+import { initializeApp } from "firebase/app";
+import { } from "firebase/analytics";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
+import { } from "firebase/functions";
+import { getStorage, ref, listAll, getDownloadURL } from "firebase/storage";
+
+
+import * as NewsPages from './NewsPages';
+
+import defaultImage from '../images/logo.png';
+import { ProgressBar } from "react-bootstrap";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB1GUickwEMArTz9cgakuPzNRgK-38rDp0",
+  authDomain: "uqrl-website.firebaseapp.com",
+  projectId: "uqrl-website",
+  storageBucket: "uqrl-website.appspot.com",
+  messagingSenderId: "206129493891",
+  appId: "1:206129493891:web:2fc1052e277820561c68b6",
+  measurementId: "G-5N14928QGL"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+const querySnapshot = await getDocs(collection(db, "Events"));
+var upcoming_events = [];
+var past_events = [];
+var current_date = new Date();
+
+
+
+async function retrieveEvents() {
+    await new Promise((resolve, reject) => {
+        querySnapshot.forEach(doc => {
+            var data = doc.data();
+            if (data.visible) {
+                const path = ref(storage, data.image);
+                getDownloadURL(path).then(url => {
+                    data.image = url;
+                    resolve()
+                })
+                if (data.date.toDate() < current_date) {
+                    past_events.push(data);
+                } else {
+                    upcoming_events.push(data);
+        
+                }
+            }
+        })
+    })
+}
+
+await retrieveEvents();
+
+function Upcoming() {
+    return <div className="row">
+        {
+            upcoming_events.map((item, ind) => (
+                <article key={ind} className="col-4 col-12-mobile special">
+                    <a href={item.link} target="_blank" rel="noreferrer noopener" className="image featured" style={{marginBottom: '0.1em'}}><img src={item.image} alt="" /></a>
+                    <header>
+                        <h6>{item.date.toDate().toString().split(":").slice(0, 2).join(':')}</h6>
+                        <h3><a href={item.link} target="_blank" rel="noreferrer noopener">{item.name}</a></h3>
+                    </header>
+                    <p className="centre">
+                        {item.description}
+                    </p>
+                </article>
+            ))
+
+        }
     </div>
-  );
+}
+
+function Past() {
+    return <div className="row">
+        {
+            past_events.map((item, ind) => (
+                <article key={ind} className="col-4 col-12-mobile special">
+                    <a href={item.link} target="_blank" rel="noreferrer noopener" className="image featured" style={{marginBottom: '0.1em'}}><img src={item.image} alt="" /></a>
+                    <header>
+                        <h6>{item.date.toDate().toString().split(":").slice(0, 2).join(':')}</h6>
+                        <h3><a href={item.link} target="_blank" rel="noreferrer noopener">{item.name}</a></h3>
+                    </header>
+                    <p className="centre">
+                        {item.description}
+                    </p>
+                </article>
+            ))
+
+        }
+    </div>
+}
+
+function GetSubpage() {
+    let path = window.location.pathname.split('/');
+    path = path.slice(2);
+    path = path.join("/");
+
+    if (path == "" || path == "upcoming") {
+        return <Upcoming />
+    } else if (path == "past") {
+        return <Past />
+    } else {
+        window.location.pathname = "404.html"
+    }
+}
+
+function Events() {
+    return (
+        <div className="container">
+            <article id="main" className="special">
+                <header>
+                    <h2>Events</h2>
+                </header>
+                <a className="image featured"><img src="../images/367484605_268085206011462_4069322954688490795_n.jpg" alt="" /></a>
+                <span className="hotswap">
+                    <h2><a href="/events/upcoming">Upcoming Events</a></h2>
+                    <h2><a href="/events/past">Past Events</a></h2>
+                </span>
+                <GetSubpage />
+            </article>
+            <hr/>
+        </div>
+    );
 }
 
 export default Events;

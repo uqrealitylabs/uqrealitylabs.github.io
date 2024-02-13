@@ -1,60 +1,133 @@
 import React from "react";
 
-function News() {
-  return (
-    <div className="page">
-      <h1 className="page-title">News</h1>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas vitae
-        cursus felis. Quisque facilisis augue eget neque scelerisque, in rhoncus
-        eros consectetur. Vivamus eu dolor iaculis, suscipit nisi a, tristique
-        sapien. Etiam pharetra condimentum venenatis. Nulla ultrices turpis
-        luctus, egestas quam rhoncus, dapibus eros. Suspendisse fringilla augue
-        id arcu placerat, ut maximus sapien mollis. Phasellus vel lorem
-        eleifend, varius diam et, varius dolor. Duis ut mauris eget tortor
-        finibus consequat ut ac arcu. Duis sit amet nisi id est molestie aliquet
-        vitae vitae nunc. Etiam tellus est, hendrerit a eros non, condimentum
-        vulputate quam. Donec consectetur mauris velit, sed molestie augue
-        euismod ut. Suspendisse facilisis dolor eget massa lobortis efficitur.
-        Mauris eu molestie tortor. Integer quis sagittis est. Sed lacinia dui
-        sed gravida feugiat. Aliquam eu neque risus. Fusce vitae ipsum congue,
-        ullamcorper nisi a, iaculis massa. Etiam tempus nulla at fermentum
-        gravida. Nam molestie eros ut urna tristique, id interdum ipsum
-        vestibulum. Fusce pellentesque leo non nisi tristique, pretium pharetra
-        purus congue. Nam eu varius libero, eu tincidunt lorem. Aenean eget leo
-        nibh. Pellentesque congue est maximus justo placerat maximus.
-        Pellentesque elit dui, sollicitudin ac elit in, venenatis suscipit
-        tortor. Aenean posuere, ante a sagittis aliquam, tellus ex vehicula
-        ligula, eget ullamcorper nunc lectus sit amet leo. Vivamus sit amet
-        cursus dui. Vivamus at sem justo. Vivamus vulputate cursus bibendum. Sed
-        mollis ligula ipsum, id accumsan nulla pulvinar vel. Nullam rhoncus quis
-        purus id bibendum. Pellentesque vulputate a velit nec scelerisque.
-        Mauris metus magna, hendrerit efficitur porta quis, elementum egestas
-        augue. Etiam eu risus id sem molestie rhoncus. Morbi ex nunc, aliquet at
-        lorem eget, aliquet eleifend orci. Suspendisse a lorem id lectus
-        ullamcorper feugiat a a dolor. Nullam vulputate commodo convallis.
-        Vivamus ut ultrices orci. Phasellus ac blandit sem. Pellentesque turpis
-        odio, placerat ac turpis sed, tempor auctor lectus. In venenatis tortor
-        massa, vitae euismod arcu finibus sit amet. Donec eget venenatis urna.
-        Nullam erat libero, euismod ut nisl eget, pharetra molestie erat. Cras
-        tellus leo, suscipit eget dapibus sit amet, suscipit mollis libero.
-        Curabitur viverra lectus neque, sit amet blandit erat blandit eget.
-        Praesent ut suscipit nisi, id lobortis purus. In consequat ipsum ligula,
-        id imperdiet ante mattis at. Etiam semper nulla eros. Ut venenatis lorem
-        ut elit sodales, sit amet malesuada magna dapibus. Proin dapibus
-        sagittis ipsum, mollis accumsan est commodo eget. Pellentesque semper
-        enim convallis tortor vestibulum, sed eleifend libero feugiat. Etiam a
-        interdum magna, eu rhoncus enim. Vivamus tortor ipsum, dictum vitae
-        iaculis consectetur, scelerisque non mauris. Suspendisse commodo varius
-        nisl, vitae gravida leo tristique sed. Sed vel diam dapibus, efficitur
-        massa sit amet, faucibus quam. Fusce ligula velit, lobortis at
-        ullamcorper nec, fringilla sit amet metus. Aliquam efficitur aliquet
-        dolor, vel mattis tellus tincidunt eu. In non ornare ipsum, eget
-        consectetur turpis. Vestibulum nec imperdiet nisi. Curabitur consequat
-        tincidunt pellentesque.
-      </p>
+import NewsError from "./NewsPages/NewsError";
+
+import { initializeApp } from "firebase/app";
+import { } from "firebase/analytics";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
+import { } from "firebase/functions";
+
+import * as NewsPages from './NewsPages';
+
+import defaultImage from '../images/logo.png';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB1GUickwEMArTz9cgakuPzNRgK-38rDp0",
+  authDomain: "uqrl-website.firebaseapp.com",
+  projectId: "uqrl-website",
+  storageBucket: "uqrl-website.appspot.com",
+  messagingSenderId: "206129493891",
+  appId: "1:206129493891:web:2fc1052e277820561c68b6",
+  measurementId: "G-5N14928QGL"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const querySnapshot = await getDocs(collection(db, "NewsPages"));
+var all_news = {};
+var all_obj = []
+
+querySnapshot.forEach(doc => {
+  if (doc.data().visible) {
+    all_news[doc.data().pathname] = doc.data().modulename;
+    all_obj.push(doc.data())
+  }
+})
+
+export default function News() {
+  return (<div className="container">
+    <div className="row gtr-200">
+      <SideBarPart />
+      <ThisNews />
     </div>
+    <hr />
+  </div>
   );
 }
 
-export default News;
+function ThisNews() {
+  let path = window.location.pathname.split('/');
+  path = path.slice(2);
+  path = path.join("/");
+
+  if (path == "") {
+    return <DefaultNews />;
+  } else if (!Object.keys(all_news).includes(path)) {
+    return <NewsError />;
+  } else {
+    try {
+      let Component = NewsPages[all_news[path]];
+      return <Component />;
+    } catch {
+
+    }
+
+  }
+}
+
+function DefaultNews() {
+    return (<div className="col-8 col-12-mobile imp-mobile" id="content">
+              <article id="main">
+                  <header>
+                      <h2>All News</h2>
+                  </header>
+
+                    {
+            all_obj.map((item, ind) => (
+              <section key={ind}>
+                <a href={"/news/" + item.pathname}>
+                <header>
+                  <h3>{item.title}</h3>
+                </header>
+                <p>
+                  {item.summary}
+                </p>
+                
+                </a>
+
+              </section>
+            ))
+          }
+              </article>
+          </div>)
+    }
+
+function SideBarPart() {
+  return (
+    <div className="col-4 col-12-mobile" id="sidebar">
+      <hr className="first" />
+
+      <hr />
+      <section>
+        <header>
+          <h3>Recommended</h3>
+        </header>
+      </section>
+      <section>
+
+        <div className="row gtr-50">
+          {
+            all_obj.map((item, ind) => (
+              <>
+                <div key={2*ind} className="col-4">
+                  <a href="#" className="image fit"><img src="../images/pic04.jpg" alt="" /></a>
+                </div>
+                <div key={2*ind + 1} className="col-8">
+                  <a href={"/news/" + item.pathname}>
+                    <h4>{item.title}</h4>
+                    <p>{item.summary}</p>
+                  </a>
+                </div>
+              </>
+            ))
+        }
+        </div>
+
+        <footer>
+          <a href="/news" className="button">All News</a>
+        </footer>
+      </section>
+    </div>
+    )
+}

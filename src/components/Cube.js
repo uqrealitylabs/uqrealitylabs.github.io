@@ -1,3 +1,5 @@
+// A 3D Cube for navigation
+
 // Cube.js
 import { useEffect } from "react";
 import * as THREE from "three";
@@ -15,7 +17,7 @@ export default function Cube() {
   useEffect(() => {
     // Set up Three.js scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x444444); // Set gray background
+    // scene.background = new THREE.Color(0x444444); // Set gray background
 
     const camera = new THREE.PerspectiveCamera(
       75,
@@ -23,7 +25,7 @@ export default function Cube() {
       0.1,
       1000
     );
-    const renderer = new THREE.WebGLRenderer();
+    const renderer = new THREE.WebGLRenderer({ alpha: true });
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
@@ -87,14 +89,14 @@ export default function Cube() {
       mouse.x =
         ((event.clientX - canvasBounds.left - fixedPosition.left) /
           canvasBounds.width) *
-          2 -
+        2 -
         1;
       mouse.y =
         -(
           (event.clientY - canvasBounds.top - fixedPosition.top) /
           canvasBounds.height
         ) *
-          2 +
+        2 +
         1;
 
       // Raycast from the camera to the faces
@@ -132,14 +134,14 @@ export default function Cube() {
       mouse.x =
         ((event.clientX - canvasBounds.left - fixedPosition.left) /
           canvasBounds.width) *
-          2 -
+        2 -
         1;
       mouse.y =
         -(
           (event.clientY - canvasBounds.top - fixedPosition.top) /
           canvasBounds.height
         ) *
-          2 +
+        2 +
         1;
 
       // Raycast from the camera to the faces
@@ -148,7 +150,6 @@ export default function Cube() {
 
       if (intersects.length > 0) {
         const clickedFace = intersects[0].face; // Get the face that was clicked
-        console.log("Clicked on ", clickedFace.materialIndex);
         switch (clickedFace.materialIndex) {
           case 4:
             break;

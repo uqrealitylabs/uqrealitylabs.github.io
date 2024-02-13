@@ -4,7 +4,7 @@ import Cube from "./Cube"; // Import your Cube component
 
 const CubeComponent = () => {
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, width: "100%" }}>
+    <div id="cube-wrapper">
       <Cube />
     </div>
   );
