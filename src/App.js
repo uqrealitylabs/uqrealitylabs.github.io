@@ -72,12 +72,7 @@ function Page() {
         </>
       );
     default:
-      return (
-        <>
-          {/* <CubeComponent/> */}
-          {/* <Roadmap/> */}
-        </>
-      );
+      window.location.pathname = "/404.html";
   }
 }
 
