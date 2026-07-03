@@ -7,7 +7,20 @@
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
+    <nav id="navbar" aria-label="Main">
+      <a href="#" class="nav-logo" data-section="0">
+        <img id="nav-logo-img" src="" alt="UQ Reality Labs logo" />
+      </a>
+      <div class="nav-links">
+        <button type="button" data-section="0">Home</button>
+        <button type="button" data-section="1">About</button>
+        <button type="button" data-section="2">Contact</button>
+        <button type="button" data-section="3">Sponsors</button>
+        <button type="button" data-section="4">Committee</button>
+      </div>
+    </nav>
     <canvas id="canvas"></canvas>
+    <div id="status" hidden></div>
     <script type="module" src="/js/main.js"></script>
   </body>
 </html>
