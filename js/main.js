@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { gsap } from "gsap";
 
 const CLEAR_COLOUR = 0x0f1118;
 const CAM_FOV = 60;
@@ -26,6 +27,29 @@ const MODEL_PATH = `${ASSET_BASE}Assets/test-two.glb`;
 // tweak model placement in the scene
 const MODEL_POS = { x: 0, y: 0, z: -200 };
 const MODEL_ROTATION = { x: -20, y: 160, z: 180 }; // degrees
+const MODEL_ENTRANCE_DURATION = 1.5;
+const MODEL_ENTRANCE_EASE = "power3.out";
+const MODEL_ENTRANCE_OFFSET_FACTOR = 200; // distance below final position (× model size)
+
+const HOME_TITLE = "UQ Reality Labs est. 2022"
+const HOME_DESCRIPTION = "Scroll down for more"
+
+const ABOUT_TITLE = "About";
+const ABOUT_DESCRIPTION = "UQ Reality Labs is Australia's first Augmented and Virtual Reality Club. \
+ \nUQ Union Best Faculty Club (EAIT) 2024. \n UQ Union Best Small Club 2023. \n Join Us!";
+
+const JOIN_LINK = "https://campus.hellorubric.com/?eid=39778"
+
+const CONTACT_TITLE = "Contact";
+const CONTACT_DESCRIPTION = "Here are some ways to get in touch with us";
+
+const SPONSOR_TITLE = "Sponsors";
+const SPONSOR_DESCRIPTION = "Here are some of the companies that support us";
+
+
+// light offsets relative to model center (camera views from +Z)
+const KEY_LIGHT_OFFSET = { x: 2, y: 10, z: 40 };
+const FILL_LIGHT_OFFSET = { x: -12, y: 4, z: 25 };
 
 const canvas = document.querySelector("#canvas");
 
@@ -58,16 +82,17 @@ if (ENABLE_ORBIT_CONTROLS) {
 }
 
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x2a2f45, 0.95);
-hemiLight.position.set(0, 30, 0);
 scene.add(hemiLight);
 
 const keyLight = new THREE.DirectionalLight(0xffffff, 1.25);
-keyLight.position.set(6, 8, 7);
 scene.add(keyLight);
+scene.add(keyLight.target);
 
 const fillLight = new THREE.DirectionalLight(0xbfd2ff, 0.55);
-fillLight.position.set(-5, 2, -3);
 scene.add(fillLight);
+scene.add(fillLight.target);
+
+const lightTarget = new THREE.Vector3();
 
 const lightHelpers = [];
 if (ENABLE_LIGHT_DEBUG) {
@@ -127,16 +152,79 @@ function applyModelTransform() {
   );
 }
 
+function applyModelRotation() {
+  if (!modelGroup) return;
+
+  modelGroup.rotation.set(
+    THREE.MathUtils.degToRad(MODEL_ROTATION.x),
+    THREE.MathUtils.degToRad(MODEL_ROTATION.y),
+    THREE.MathUtils.degToRad(MODEL_ROTATION.z)
+  );
+}
+
+function aimLightsAtModel() {
+  const pos = modelGroup ? modelGroup.position : MODEL_POS;
+  lightTarget.set(pos.x, pos.y + modelLookHeight, pos.z);
+
+  hemiLight.position.set(lightTarget.x, lightTarget.y + 30, lightTarget.z);
+
+  keyLight.position.set(
+    lightTarget.x + KEY_LIGHT_OFFSET.x,
+    lightTarget.y + KEY_LIGHT_OFFSET.y,
+    lightTarget.z + KEY_LIGHT_OFFSET.z
+  );
+  keyLight.target.position.copy(lightTarget);
+
+  fillLight.position.set(
+    lightTarget.x + FILL_LIGHT_OFFSET.x,
+    lightTarget.y + FILL_LIGHT_OFFSET.y,
+    lightTarget.z + FILL_LIGHT_OFFSET.z
+  );
+  fillLight.target.position.copy(lightTarget);
+}
+
 function setCameraOnModel() {
   if (!modelGroup) return;
 
-  const { x, y, z } = modelGroup.position;
-  camera.position.set(x - camLeftOffset, y + camHeightOffset, cameraZ);
+  camera.position.set(
+    MODEL_POS.x - camLeftOffset,
+    MODEL_POS.y + camHeightOffset,
+    cameraZ
+  );
 
-  lookTarget.set(x, y + modelLookHeight, z);
+  lookTarget.set(
+    MODEL_POS.x,
+    MODEL_POS.y + modelLookHeight,
+    MODEL_POS.z
+  );
   camera.lookAt(lookTarget);
 
   logCameraPosition("Camera (setCameraOnModel)");
+}
+
+function animateModelEntrance(modelSize) {
+  if (!modelGroup) return;
+
+  const finalY = MODEL_POS.y;
+  const startY = finalY - modelSize * MODEL_ENTRANCE_OFFSET_FACTOR;
+  const animPos = { y: startY };
+
+  modelGroup.position.set(MODEL_POS.x, startY, MODEL_POS.z);
+
+  gsap.to(animPos, {
+    y: finalY,
+    duration: MODEL_ENTRANCE_DURATION,
+    ease: MODEL_ENTRANCE_EASE,
+    onUpdate: () => {
+      modelGroup.position.y = animPos.y;
+      aimLightsAtModel();
+    },
+    onComplete: () => {
+      modelGroup.position.set(MODEL_POS.x, MODEL_POS.y, MODEL_POS.z);
+      aimLightsAtModel();
+      logModelPosition("Model (entrance complete)");
+    },
+  });
 }
 
 loader.load(
@@ -151,7 +239,7 @@ loader.load(
     modelGroup.add(gltf.scene);
     scene.add(modelGroup);
 
-    applyModelTransform();
+    applyModelRotation();
 
     modelLookHeight = size.y * 0.35;
     camLeftOffset = maxSize * CAM_LEFT_FACTOR;
@@ -162,6 +250,8 @@ loader.load(
     camera.updateProjectionMatrix();
 
     setCameraOnModel();
+    animateModelEntrance(maxSize);
+    aimLightsAtModel();
     logModelPosition("Model (loaded)");
   },
   (xhr) => {
