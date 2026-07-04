@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f1118" />
     <title>UQ Reality Labs</title>
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
@@ -11,15 +12,60 @@
       <a href="#" class="nav-logo" data-section="0">
         <img id="nav-logo-img" src="" alt="UQ Reality Labs logo" />
       </a>
-      <div class="nav-links">
-        <button type="button" data-section="0">Home</button>
-        <button type="button" data-section="1">About</button>
-        <button type="button" data-section="2">Contact</button>
-        <button type="button" data-section="3">Sponsors</button>
-        <button type="button" data-section="4">Committee</button>
+      <div id="nav-links" class="nav-links">
+        <button type="button" data-section="0" data-short="Home"><span>Home</span></button>
+        <button type="button" data-section="1" data-short="Info"><span>About</span></button>
+        <button type="button" data-section="2" data-short="Contact"><span>Contact</span></button>
+        <button type="button" data-section="3" data-short="Sponsor"><span>Sponsors</span></button>
+        <button type="button" data-section="4" data-short="Team"><span>Committee</span></button>
       </div>
     </nav>
-    <canvas id="canvas"></canvas>
+    <canvas id="canvas" aria-label="Interactive UQ Reality Labs 3D scene"></canvas>
+    <div id="chalk-layer" aria-hidden="true">
+      <svg class="bee-trail bee-trail--join" viewBox="0 0 220 120" focusable="false">
+        <path class="bee-trail__ghost" d="M12 88 C36 18 72 104 94 58 C116 12 146 116 174 52 C190 20 204 38 214 70" />
+        <path id="bee-trail-join" class="bee-trail__path" d="M12 88 C36 18 72 104 94 58 C116 12 146 116 174 52 C190 20 204 38 214 70" />
+        <text class="bee-trail__label" x="118" y="30">JOIN us</text>
+        <circle class="bee-trail__dot" r="4">
+          <animateMotion dur="3.1s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#bee-trail-join" />
+          </animateMotion>
+        </circle>
+      </svg>
+      <svg class="bee-trail bee-trail--social" viewBox="0 0 240 110" focusable="false">
+        <path class="bee-trail__ghost" d="M14 72 C42 18 82 92 104 48 C128 2 156 96 182 48 C204 10 222 18 232 36" />
+        <path id="bee-trail-social" class="bee-trail__path" d="M14 72 C42 18 82 92 104 48 C128 2 156 96 182 48 C204 10 222 18 232 36" />
+        <text class="bee-trail__label" x="18" y="24">buzz buzz</text>
+        <circle class="bee-trail__dot" r="3.8">
+          <animateMotion dur="3.4s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#bee-trail-social" />
+          </animateMotion>
+        </circle>
+      </svg>
+      <svg class="bee-trail bee-trail--committee" viewBox="0 0 260 130" focusable="false">
+        <path class="bee-trail__ghost" d="M18 94 C48 18 92 122 122 62 C154 4 184 120 218 58 C238 20 250 34 254 54" />
+        <path id="bee-trail-committee" class="bee-trail__path" d="M18 94 C48 18 92 122 122 62 C154 4 184 120 218 58 C238 20 250 34 254 54" />
+        <text class="bee-trail__label" x="36" y="42">crew?</text>
+        <circle class="bee-trail__dot" r="4">
+          <animateMotion dur="3.2s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#bee-trail-committee" />
+          </animateMotion>
+        </circle>
+      </svg>
+    </div>
+    <div id="member-popup" class="member-popup" hidden>
+      <div class="member-popup__backdrop" data-popup-close></div>
+      <article class="member-popup__card" role="dialog" aria-modal="true" aria-labelledby="member-popup-title" tabindex="-1">
+        <button class="member-popup__close" type="button" aria-label="Close profile" data-popup-close>&times;</button>
+        <img id="member-popup-image" alt="" />
+        <div>
+          <h2 id="member-popup-title"></h2>
+          <p id="member-popup-role"></p>
+          <p id="member-popup-copy" class="member-popup__copy"></p>
+          <a id="member-popup-link" target="_blank" rel="noopener noreferrer">View LinkedIn profile</a>
+        </div>
+      </article>
+    </div>
     <div id="status" hidden></div>
     <script type="module" src="/js/main.js"></script>
   </body>

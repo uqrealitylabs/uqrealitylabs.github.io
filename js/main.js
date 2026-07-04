@@ -27,15 +27,22 @@ const CAM_HEIGHT_FACTOR = 0.05;
 
 const SCROLL_DURATION = 1;
 const SCROLL_TOLERANCE = 30;
-const STAR_COUNT = 200;
+const STAR_COUNT = 90;
+const STAR_RADIUS = 0.16;
 const STAR_DRIFT_DISTANCE = 200;
 const SECTION_Y_STEP = 200;
 const TEXT_FONT_SIZE = 2;
 const TEXT_MAX_WIDTH = 40;
-const TEXT_REVEAL_DURATION = 1;
-const TEXT_HIDE_DURATION = 1;
+const TEXT_REVEAL_DURATION = 0.42;
+const TEXT_HIDE_DURATION = 0.22;
 const DESCRIPTION_Y_OFFSET = -5;
 const DESCRIPTION_FONT_SIZE = 1.25;
+const COMPACT_VIEWPORT_WIDTH = 860;
+const SHORT_VIEWPORT_HEIGHT = 680;
+const POINTER_IDLE_MS = 900;
+const POINTER_DAMPING = 0.08;
+const REDUCED_POINTER_DAMPING = 0.025;
+const CAMERA_ANCHOR_SECTION_INDEX = 0;
 
 const ASSET_BASE = import.meta.env.BASE_URL;
 //const TITLE_FONT = `${ASSET_BASE}Assets/fonts/PixelifySans/static/PixelifySans-Regular.ttf`;
@@ -46,7 +53,7 @@ const MODEL_PATH = `${ASSET_BASE}Assets/test-two.glb`;
 const LABS_LOGO_PATH = `${ASSET_BASE}Assets/images/labs_logo.png`;
 
 const HOME_TITLE = "UQ Reality Labs est. 2022";
-const HOME_DESCRIPTION = "Scroll down for more!";
+const HOME_DESCRIPTION = "Scroll. Reality gets weirder.";
 
 const ABOUT_TITLE = "About";
 const ABOUT_DESCRIPTION = "UQ Reality Labs is Australia's first Augmented and Virtual Reality Club. \
@@ -56,13 +63,13 @@ const JOIN_LINK = "https://campus.hellorubric.com/?s=5809";
 const ABOUT_SECTION_INDEX = 1;
 const RUBRIC_IMAGE_PATH = `${ASSET_BASE}Assets/images/rubric.png`;
 const ABOUT_IMAGE_Y_OFFSET = -5;
-const ABOUT_IMAGE_HEIGHT = 8;
+const ABOUT_IMAGE_HEIGHT = 5.2;
 
 const CONTACT_TITLE = "Contact";
-const CONTACT_DESCRIPTION = "Here are some ways to get in touch with us";
+const CONTACT_DESCRIPTION = "Send a signal.";
 
 const SPONSOR_TITLE = "Sponsors";
-const SPONSOR_DESCRIPTION = "Here are some of the companies that support us!\n Send us an email to sponsor us.";
+const SPONSOR_DESCRIPTION = "Interested in supporting UQ Reality Labs?\nSend us an email to sponsor us.";
 const NUAXION_LOGO_PATH = `${ASSET_BASE}Assets/images/nuaxion_logo.avif`;
 const SPONSOR_SECTION_INDEX = 3;
 const SPONSOR_IMAGE_Y_OFFSET = -5;
@@ -70,7 +77,7 @@ const SPONSOR_IMAGE_HEIGHT = 8;
 
 
 const COMMITTEE_TITLE = "Committee";
-const COMMITTEE_DESCRIPTION = "Meet the UQ Reality Labs committee.";
+const COMMITTEE_DESCRIPTION = "The tiny crew behind the headset chaos.";
 
 const CYRUS_LINK = "https://www.linkedin.com/in/cyrus-forudi/";
 const NAVYA_LINK = "https://www.linkedin.com/in/navpas/"
@@ -99,40 +106,47 @@ const COMMITTEE_CAPTION_FONT_SIZE = 0.85;
 const COMMITTEE_ROWS = [
   [
     {
-      image: `${ASSET_BASE}Assets/images/Cyrus.png`,
+      image: `${ASSET_BASE}Assets/images/Cyrus.webp`,
       url: CYRUS_LINK,
+      name: "Cyrus Forudi",
       title: CYRUS_TITLE,
     },
     {
-      image: `${ASSET_BASE}Assets/images/Navya.png`,
+      image: `${ASSET_BASE}Assets/images/Navya.webp`,
       url: NAVYA_LINK,
+      name: "Navya",
       title: NAVYA_TITLE,
     },
     {
-      image: `${ASSET_BASE}Assets/images/Amna.png`,
+      image: `${ASSET_BASE}Assets/images/Amna.webp`,
       url: AMNA_LINK,
+      name: "Amna",
       title: AMNA_TITLE,
     },
   ],
   [
     {
-      image: `${ASSET_BASE}Assets/images/Chloe.png`,
+      image: `${ASSET_BASE}Assets/images/Chloe.webp`,
       url: CHLOE_LINK,
+      name: "Chloe Lim",
       title: CHLOE_TITLE,
     },
     {
-      image: `${ASSET_BASE}Assets/images/Clare.png`,
+      image: `${ASSET_BASE}Assets/images/Clare.webp`,
       url: CLARE_LINK,
+      name: "Clare Johnston-Koto",
       title: CLARE_TITLE,
     },
     {
-      image: `${ASSET_BASE}Assets/images/Radhesh.png`,
+      image: `${ASSET_BASE}Assets/images/Radhesh.webp`,
       url: RADHESH_LINK,
+      name: "Radhesh",
       title: RADHESH_TITLE,
     },
     {
       image: `${ASSET_BASE}Assets/images/doris.jpg`,
       url: DORIS_LINK,
+      name: "Doris Wei",
       title: DORIS_TITLE,
     },
   ],
@@ -144,7 +158,6 @@ const DISCORD_LINK = "https://discord.com/invite/eN6v8R3fYD";
 const EMAIL_LINK = "mailto:uqrealitylabs@gmail.com";
 
 const CONTACT_SECTION_INDEX = 2;
-const SOCIAL_CUBE_SIZE = 2.4;
 const SOCIAL_CUBE_SPACING = 6;
 const SOCIAL_CUBE_BASE = {
   x: 0,
@@ -152,14 +165,14 @@ const SOCIAL_CUBE_BASE = {
   z: -20,
 };
 const SOCIAL_CUBE_SCALE_MIN = 1;
-const SOCIAL_CUBE_SCALE_MAX = 1.2;
+const SOCIAL_CUBE_SCALE_MAX = 1.08;
 const SOCIAL_CUBE_FLOAT_DISTANCE = 0.35;
 const SOCIAL_CUBE_FLOAT_DURATION = 2;
-const SOCIAL_CUBE_GROW_DURATION = 0.8;
-const SOCIAL_CUBE_ENTRANCE_DURATION = 2;
+const SOCIAL_CUBE_GROW_DURATION = 0.18;
+const SOCIAL_CUBE_ENTRANCE_DURATION = 0.68;
 const SOCIAL_CUBE_ENTRANCE_EASE = "power3.out";
 const SOCIAL_CUBE_ENTRANCE_OFFSET = 12;
-const SOCIAL_CUBE_EXIT_DURATION = 2;
+const SOCIAL_CUBE_EXIT_DURATION = 0.5;
 const SOCIAL_CUBE_EXIT_EASE = "power3.in";
 const SOCIAL_CUBE_EXIT_OFFSET = 35;
 
@@ -167,21 +180,25 @@ const SOCIAL_CUBES = [
   {
     texture: `${ASSET_BASE}Assets/images/linkedin.png`,
     url: LINKEDIN_LINK,
+    label: "LinkedIn",
     xOffset: -SOCIAL_CUBE_SPACING * 1.5,
   },
   {
     texture: `${ASSET_BASE}Assets/images/instagram.jpg`,
     url: INSTAGRAM_LINK,
+    label: "Instagram",
     xOffset: -SOCIAL_CUBE_SPACING * 0.5,
   },
   {
     texture: `${ASSET_BASE}Assets/images/discord.jpg`,
     url: DISCORD_LINK,
+    label: "Discord",
     xOffset: SOCIAL_CUBE_SPACING * 0.5,
   },
   {
     texture: `${ASSET_BASE}Assets/images/email.jpg`,
     url: EMAIL_LINK,
+    label: "Email",
     xOffset: SOCIAL_CUBE_SPACING * 1.5,
   },
 ];
@@ -213,6 +230,22 @@ const DESCRIPTION_SECTIONS = [
   { x: -15, y: 13 + DESCRIPTION_Y_OFFSET, z: -20, text: COMMITTEE_DESCRIPTION },
 ];
 
+const COMPACT_TEXT_LAYOUTS = [
+  { x: 0, y: 8.4, z: -18, textAlign: "center", anchorX: "center" },
+  { x: 0, y: 8.6, z: -18, textAlign: "center", anchorX: "center" },
+  { x: 0, y: 8.6, z: -18, textAlign: "center", anchorX: "center" },
+  { x: 0, y: 8.6, z: -18, textAlign: "center", anchorX: "center" },
+  { x: 0, y: 8.6, z: -18, textAlign: "center", anchorX: "center" },
+];
+
+const COMPACT_DESCRIPTION_LAYOUTS = [
+  { x: 0, y: 4.2, z: -18, textAlign: "center", anchorX: "center" },
+  { x: 0, y: 5.8, z: -18, textAlign: "center", anchorX: "center" },
+  { x: 0, y: 5.4, z: -18, textAlign: "center", anchorX: "center" },
+  { x: 0, y: 5.6, z: -18, textAlign: "center", anchorX: "center" },
+  { x: 0, y: 5.6, z: -18, textAlign: "center", anchorX: "center" },
+];
+
 const SPONSOR_IMAGE_POS = { x: 0, y: 5, z: -20 };
 const ABOUT_IMAGE_POS = { x: 0, y: 0, z: -25 };
 
@@ -228,31 +261,45 @@ const KEY_LIGHT_OFFSET = { x: 2, y: 10, z: 40 };
 const FILL_LIGHT_OFFSET = { x: -12, y: 4, z: 25 };
 const RAINBOW_Z_OFFSET = -80; // behind model (home model z -20 → light z -100)
 const RAINBOW_FADE_DURATION = 0.6;
-const RAINBOW_GLOW_SCALE = 14;
-const RAINBOW_OUTER_GLOW_SCALE = 22;
+const RAINBOW_GLOW_SCALE = 8;
+const RAINBOW_OUTER_GLOW_SCALE = 12;
 const RAINBOW_LIGHT_INTENSITY = 1.5;
 const RAINBOW_LIGHT_DISTANCE = 40;
 const RAINBOW_LIGHT_DECAY = 0.75;
 
 const canvas = document.querySelector("#canvas");
 const statusLabel = document.querySelector("#status");
+const navbar = document.querySelector("#navbar");
 const navLogoImage = document.querySelector("#nav-logo-img");
 const navSectionButtons = document.querySelectorAll("#navbar [data-section]");
+const memberPopup = document.querySelector("#member-popup");
+const memberPopupCard = document.querySelector(".member-popup__card");
+const memberPopupImage = document.querySelector("#member-popup-image");
+const memberPopupTitle = document.querySelector("#member-popup-title");
+const memberPopupRole = document.querySelector("#member-popup-role");
+const memberPopupCopy = document.querySelector("#member-popup-copy");
+const memberPopupLink = document.querySelector("#member-popup-link");
+let lastMemberTrigger = null;
 
 if (DEBUG && statusLabel) {
   statusLabel.hidden = false;
   statusLabel.textContent = "Loading…";
 }
 
+document.body.dataset.section = "0";
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(CLEAR_COLOUR);
+let canvasRect = canvas.getBoundingClientRect();
+let viewportWidth = Math.max(canvas.clientWidth || window.innerWidth, 320);
+let viewportHeight = Math.max(canvas.clientHeight || window.innerHeight, 320);
 
 const stars = [];
+const starGeometry = new THREE.SphereGeometry(STAR_RADIUS, 8, 8);
+const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
 function generateStars() {
-  const geometry = new THREE.SphereGeometry(0.25, 24, 24);
-  const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const star = new THREE.Mesh(geometry, material);
+  const star = new THREE.Mesh(starGeometry, starMaterial);
   const [x, y, z] = Array(3)
     .fill()
     .map(() => THREE.MathUtils.randFloatSpread(800));
@@ -281,14 +328,21 @@ Array(STAR_COUNT)
 
 const camera = new THREE.PerspectiveCamera(
   CAM_FOV,
-  window.innerWidth / window.innerHeight,
+  viewportWidth / viewportHeight,
   CAM_NEAR,
   CAM_FAR
 );
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(window.innerWidth, window.innerHeight);
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: window.devicePixelRatio <= 1.5,
+  powerPreference: "high-performance",
+});
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.04;
+renderer.setPixelRatio(getRenderPixelRatio());
+renderer.setSize(viewportWidth, viewportHeight, false);
 
 let controls;
 if (ENABLE_ORBIT_CONTROLS) {
@@ -332,6 +386,7 @@ dracoLoader.setDecoderPath(
 
 const loader = new GLTFLoader();
 loader.setDRACOLoader(dracoLoader);
+const textureLoader = new THREE.TextureLoader();
 
 const lookTarget = new THREE.Vector3();
 let modelGroup = null;
@@ -348,11 +403,172 @@ let socialCubes = [];
 let sponsorImage = null;
 let aboutJoinImage = null;
 let committeeMembers = [];
+let hoveredCommitteeImage = null;
+let cachedViewportLayout = null;
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
+let pointerDirty = true;
 let rainbowBackdrop = null;
 let rainbowHue = 0;
+let roundedAlphaTexture = null;
+let baseCameraZ = 5;
+let baseCamLeftOffset = 0;
+let baseCamHeightOffset = 0;
+const pointerTarget = new THREE.Vector2(0, 0);
+const pointerCurrent = new THREE.Vector2(0, 0);
+const pointerNeutral = new THREE.Vector2(0, 0);
+let lastPointerAt = 0;
+let parallaxActive = false;
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+function isCompactViewport() {
+  return viewportWidth <= COMPACT_VIEWPORT_WIDTH;
+}
+
+function isShortViewport() {
+  return viewportHeight <= SHORT_VIEWPORT_HEIGHT;
+}
+
+function getRenderPixelRatio() {
+  const maxRatio = isCompactViewport() ? 1.35 : 1.5;
+
+  return Math.min(window.devicePixelRatio || 1, maxRatio);
+}
+
+function updateViewportSize() {
+  canvasRect = canvas.getBoundingClientRect();
+  const rect = canvasRect;
+
+  viewportWidth = Math.max(Math.round(rect.width || window.innerWidth), 320);
+  viewportHeight = Math.max(Math.round(rect.height || window.innerHeight), 240);
+  cachedViewportLayout = null;
+}
+
+function applyCameraLayout() {
+  const layout = getViewportLayout();
+
+  camera.aspect = viewportWidth / viewportHeight;
+  camera.fov = layout.narrow ? 66 : layout.compact ? 64 : CAM_FOV;
+  cameraZ = baseCameraZ * layout.cameraScale;
+  camLeftOffset = baseCamLeftOffset;
+  camHeightOffset = baseCamHeightOffset + layout.cameraYOffset;
+  camera.updateProjectionMatrix();
+
+  if (modelGroup) {
+    setCameraOnModel(getCameraAnchorPos());
+    aimLightsAtModel();
+  }
+}
+
+function applyPointerMotion() {
+  const reduced = prefersReducedMotion.matches;
+  const now = performance.now();
+
+  if (!parallaxActive || now - lastPointerAt > POINTER_IDLE_MS || reduced) {
+    pointerTarget.lerp(pointerNeutral, reduced ? 0.18 : 0.04);
+
+    if (Math.abs(pointerTarget.x) < 0.01 && Math.abs(pointerTarget.y) < 0.01) {
+      parallaxActive = false;
+      pointerTarget.set(0, 0);
+    }
+  }
+
+  pointerCurrent.lerp(pointerTarget, reduced ? REDUCED_POINTER_DAMPING : POINTER_DAMPING);
+
+  if (!modelGroup || isAnimating) return;
+
+  const layout = getViewportLayout();
+  const sectionPos = getCameraAnchorPos();
+  const parallaxX = reduced ? 0 : pointerCurrent.x * (layout.compact ? 0.16 : 0.34);
+  const parallaxY = reduced ? 0 : pointerCurrent.y * (layout.compact ? 0.12 : 0.22);
+
+  camera.position.set(
+    sectionPos.x - camLeftOffset + parallaxX,
+    sectionPos.y + camHeightOffset - parallaxY,
+    cameraZ
+  );
+  lookTarget.set(
+    sectionPos.x + parallaxX * 0.25,
+    sectionPos.y + modelLookHeight - parallaxY * 0.2,
+    sectionPos.z
+  );
+  camera.lookAt(lookTarget);
+
+  modelGroup.rotation.set(
+    THREE.MathUtils.degToRad(MODEL_ROTATION.x) + pointerCurrent.y * 0.025,
+    THREE.MathUtils.degToRad(MODEL_ROTATION.y) + pointerCurrent.x * 0.04,
+    THREE.MathUtils.degToRad(MODEL_ROTATION.z)
+  );
+
+  const tiltX = -pointerCurrent.y * (reduced ? 0.015 : 0.075);
+  const tiltY = pointerCurrent.x * (reduced ? 0.02 : 0.11);
+
+  for (const cube of socialCubes) {
+    if (cube.visible) {
+      cube.rotation.set(tiltX, tiltY, 0);
+    }
+  }
+
+  for (const member of committeeMembers) {
+    if (member.image.visible) {
+      member.image.rotation.set(tiltX * 0.65, tiltY * 0.65, 0);
+    }
+  }
+
+  for (const mesh of [aboutJoinImage, sponsorImage]) {
+    if (mesh?.visible) {
+      mesh.rotation.set(tiltX * 0.5, tiltY * 0.5, 0);
+    }
+  }
+}
+
+function getViewportLayout() {
+  if (cachedViewportLayout) return cachedViewportLayout;
+
+  const narrow = viewportWidth <= 480;
+  const compact = isCompactViewport();
+  const tablet = viewportWidth <= 1024;
+  const short = isShortViewport();
+  const wide = viewportWidth >= 1600;
+
+  cachedViewportLayout = {
+    narrow,
+    compact,
+    tablet,
+    wide,
+    cameraScale: narrow ? 1.42 : compact ? 1.28 : short ? 1.12 : wide ? 0.94 : 1,
+    cameraYOffset: narrow ? 0.8 : compact ? 0.45 : 0,
+    titleFontSize: narrow ? 1.05 : compact ? 1.24 : short ? 1.55 : wide ? 2.15 : TEXT_FONT_SIZE,
+    descriptionFontSize: narrow ? 0.72 : compact ? 0.84 : short ? 1 : DESCRIPTION_FONT_SIZE,
+    textMaxWidth: narrow ? 16 : compact ? 20 : short ? 32 : wide ? 46 : TEXT_MAX_WIDTH,
+    sponsorImageHeight: compact ? 4.4 : SPONSOR_IMAGE_HEIGHT,
+    sponsorImageY: compact ? -1.5 : SPONSOR_IMAGE_POS.y + SPONSOR_IMAGE_Y_OFFSET,
+    aboutImageHeight: narrow ? 2.9 : compact ? 3.35 : ABOUT_IMAGE_HEIGHT,
+    aboutImageY: narrow ? -2.1 : compact ? -2.35 : ABOUT_IMAGE_POS.y + ABOUT_IMAGE_Y_OFFSET,
+    socialCubeSpacing: narrow ? 2.75 : compact ? 3.15 : SOCIAL_CUBE_SPACING,
+    socialCubeY: compact ? -0.1 : SOCIAL_CUBE_BASE.y,
+    socialCardWidth: narrow ? 2.4 : compact ? 2.75 : 3.25,
+    socialCardHeight: narrow ? 2.4 : compact ? 2.75 : 3.25,
+    committeeImageHeight: narrow ? 2.25 : compact ? 2.55 : tablet ? 4.2 : COMMITTEE_IMAGE_HEIGHT,
+    committeeImageSpacing: narrow ? 3.8 : compact ? 4.45 : tablet ? 7 : COMMITTEE_IMAGE_SPACING,
+    committeeRowSpacing: narrow ? 3.2 : compact ? 3.8 : tablet ? 6.2 : COMMITTEE_ROW_SPACING,
+    committeeCaptionFontSize: narrow ? 0.5 : compact ? 0.6 : COMMITTEE_CAPTION_FONT_SIZE,
+    committeeBaseY: narrow ? 2.8 : compact ? 3.1 : COMMITTEE_BASE_POSITION.y,
+    committeeMobileRows: narrow ? [1, 2, 4] : null,
+  };
+
+  return cachedViewportLayout;
+}
+
+function getResponsiveSection(section, index, compactLayouts) {
+  if (!isCompactViewport()) return section;
+
+  return {
+    ...section,
+    ...compactLayouts[index],
+  };
+}
 
 function getSectionPos(index = currentIndex) {
   return MODEL_SECTIONS[index];
@@ -362,8 +578,24 @@ function getCurrentSectionPos() {
   return getSectionPos(currentIndex);
 }
 
+function getCameraAnchorPos() {
+  return getSectionPos(CAMERA_ANCHOR_SECTION_INDEX);
+}
+
 function debugLog(...args) {
   if (DEBUG) console.log(...args);
+}
+
+function updatePointerFromEvent(event) {
+  const rect = canvasRect.width ? canvasRect : canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  pointerTarget.set(mouse.x, mouse.y);
+  lastPointerAt = performance.now();
+  parallaxActive = true;
+  pointerDirty = true;
 }
 
 function logCameraPosition(context = "Camera") {
@@ -473,6 +705,52 @@ function createRainbowGlowMaterial(texture, opacity) {
   });
 }
 
+function getRoundedAlphaTexture() {
+  if (roundedAlphaTexture) return roundedAlphaTexture;
+
+  const size = 128;
+  const radius = 22;
+  const alphaCanvas = document.createElement("canvas");
+  alphaCanvas.width = size;
+  alphaCanvas.height = size;
+
+  const ctx = alphaCanvas.getContext("2d");
+  ctx.fillStyle = "#fff";
+  ctx.beginPath();
+  ctx.roundRect(0, 0, size, size, radius);
+  ctx.fill();
+
+  roundedAlphaTexture = new THREE.CanvasTexture(alphaCanvas);
+  roundedAlphaTexture.minFilter = THREE.LinearFilter;
+  roundedAlphaTexture.magFilter = THREE.LinearFilter;
+  return roundedAlphaTexture;
+}
+
+function createRoundedImageMaterial() {
+  return new THREE.MeshBasicMaterial({
+    alphaMap: getRoundedAlphaTexture(),
+    alphaTest: 0.02,
+    transparent: true,
+    opacity: 0,
+  });
+}
+
+function createRoundedIconMaterial(texture) {
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  return new THREE.MeshStandardMaterial({
+    map: texture,
+    alphaMap: getRoundedAlphaTexture(),
+    alphaTest: 0.02,
+    transparent: true,
+    roughness: 0.72,
+    metalness: 0.04,
+    emissive: 0x111111,
+    emissiveIntensity: 0.18,
+    side: THREE.DoubleSide,
+  });
+}
+
 function createRainbowBackdrop(maxSize) {
   const group = new THREE.Group();
   const texture = createRainbowGlowTexture();
@@ -505,6 +783,7 @@ function createRainbowBackdrop(maxSize) {
   group.userData.glowMeshes = [innerGlow, outerGlow];
   group.userData.glowOpacities = [0.7, 0.35];
   group.userData.pointLight = pointLight;
+  group.userData.baseSize = maxSize;
   group.visible = false;
 
   for (const mesh of group.userData.glowMeshes) {
@@ -513,7 +792,28 @@ function createRainbowBackdrop(maxSize) {
   pointLight.intensity = 0;
 
   scene.add(group);
+  resizeRainbowBackdrop(group);
   return group;
+}
+
+function resizeSquarePlane(mesh, size) {
+  if (Math.abs((mesh.userData.size ?? 0) - size) < 0.1) return;
+
+  mesh.geometry.dispose();
+  mesh.geometry = new THREE.PlaneGeometry(size, size);
+  mesh.userData.size = size;
+}
+
+function resizeRainbowBackdrop(target = rainbowBackdrop) {
+  if (!target) return;
+
+  const layout = getViewportLayout();
+  const baseSize = target.userData.baseSize;
+  const innerScale = layout.narrow ? 6.2 : layout.compact ? 7.2 : layout.wide ? 9.5 : RAINBOW_GLOW_SCALE;
+  const outerScale = layout.narrow ? 8.5 : layout.compact ? 10 : layout.wide ? 13.5 : RAINBOW_OUTER_GLOW_SCALE;
+
+  resizeSquarePlane(target.userData.glowMeshes[0], baseSize * innerScale);
+  resizeSquarePlane(target.userData.glowMeshes[1], baseSize * outerScale);
 }
 
 function updateRainbowBackdropPosition() {
@@ -587,13 +887,17 @@ function showRainbowBackdrop() {
 
 function animateRainbowBackdrop() {
   if (!rainbowBackdrop?.visible) return;
+  if (prefersReducedMotion.matches) {
+    updateRainbowBackdropRotation();
+    return;
+  }
 
   rainbowHue = (rainbowHue + 0.003) % 1;
   rainbowBackdrop.userData.pointLight.color.setHSL(rainbowHue, 1, 0.55);
   updateRainbowBackdropRotation();
 }
 
-function setCameraOnModel(sectionPos = getCurrentSectionPos()) {
+function setCameraOnModel(sectionPos = getCameraAnchorPos()) {
   if (!modelGroup) return;
 
   camera.position.set(
@@ -623,13 +927,140 @@ function updateStatus() {
   }
 
   updateNavbarActive();
+  updateHudState();
 }
 
 function updateNavbarActive() {
   navSectionButtons.forEach((button) => {
     const sectionIndex = Number(button.dataset.section);
-    button.classList.toggle("is-active", sectionIndex === currentIndex);
+    const isActive = sectionIndex === currentIndex;
+
+    button.classList.toggle("is-active", isActive);
+
+    if (isActive) {
+      button.setAttribute("aria-current", "page");
+    } else {
+      button.removeAttribute("aria-current");
+    }
   });
+}
+
+function updateHudState() {
+  document.body.dataset.section = String(currentIndex);
+
+  if (currentIndex !== COMMITTEE_SECTION_INDEX) {
+    closeMemberPopup();
+  }
+}
+
+function getCommitteeCards() {
+  return COMMITTEE_ROWS.flat();
+}
+
+function getScreenPoint(object) {
+  const point = new THREE.Vector3();
+  object.getWorldPosition(point);
+  point.project(camera);
+
+  return {
+    x: ((point.x + 1) / 2) * viewportWidth,
+    y: ((-point.y + 1) / 2) * viewportHeight,
+  };
+}
+
+function openMemberPopup(index, originObject = null) {
+  const member = getCommitteeCards()[index];
+  if (!member || !memberPopup) return;
+  const origin = originObject ? getScreenPoint(originObject) : {
+    x: viewportWidth / 2,
+    y: viewportHeight / 2,
+  };
+
+  memberPopupImage.src = member.image;
+  memberPopupImage.alt = member.name;
+  memberPopupTitle.textContent = member.name;
+  memberPopupRole.textContent = member.title;
+  memberPopupCopy.textContent = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Bio notes coming soon.";
+  memberPopupLink.href = member.url;
+  memberPopupCard?.style.setProperty("--popup-dx", `${origin.x - viewportWidth / 2}px`);
+  memberPopupCard?.style.setProperty("--popup-dy", `${origin.y - viewportHeight / 2}px`);
+  memberPopup.hidden = false;
+
+  requestAnimationFrame(() => {
+    memberPopup.classList.add("is-open");
+    memberPopupCard?.focus();
+  });
+}
+
+function closeMemberPopup() {
+  if (!memberPopup || memberPopup.hidden) return;
+
+  memberPopup.classList.remove("is-open");
+  window.setTimeout(() => {
+    if (!memberPopup.classList.contains("is-open")) {
+      memberPopup.hidden = true;
+
+      if (currentIndex === COMMITTEE_SECTION_INDEX) {
+        lastMemberTrigger?.focus?.();
+      }
+    }
+  }, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 180);
+}
+
+function setupMemberPopup() {
+  memberPopup?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-popup-close]")) {
+      closeMemberPopup();
+    }
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeMemberPopup();
+    }
+  });
+}
+
+let navCondenseTimer = 0;
+
+function setNavbarCondensed(condensed) {
+  if (!navbar) return;
+
+  navbar.classList.toggle("is-condensed", condensed);
+}
+
+function scheduleNavbarCondense(delay = 1200) {
+  window.clearTimeout(navCondenseTimer);
+  navCondenseTimer = window.setTimeout(() => {
+    if (!navbar?.matches(":hover") && !navbar?.contains(document.activeElement)) {
+      setNavbarCondensed(true);
+    }
+  }, delay);
+}
+
+function setupNavbarCondense() {
+  if (!navbar) return;
+
+  navbar.addEventListener("pointerenter", () => {
+    setNavbarCondensed(false);
+    window.clearTimeout(navCondenseTimer);
+  });
+
+  navbar.addEventListener("pointerleave", () => scheduleNavbarCondense(600));
+  navbar.addEventListener("pointerdown", () => setNavbarCondensed(false));
+  navbar.addEventListener("focusin", () => {
+    setNavbarCondensed(false);
+    window.clearTimeout(navCondenseTimer);
+  });
+
+  navbar.addEventListener("focusout", (event) => {
+    if (!navbar.contains(event.relatedTarget)) {
+      scheduleNavbarCondense(700);
+    }
+  });
+
+  setNavbarCondensed(false);
+  scheduleNavbarCondense(1400);
 }
 
 function goToSection(index) {
@@ -648,16 +1079,12 @@ function setupNavbar() {
     button.addEventListener("click", (event) => {
       event.preventDefault();
       goToSection(Number(button.dataset.section));
+      scheduleNavbarCondense(500);
     });
   });
 
   updateNavbarActive();
-}
-
-function setTextByLength(textMesh, length) {
-  const full = textMesh.userData.fullText;
-  textMesh.text = full.slice(0, Math.max(0, Math.min(length, full.length)));
-  textMesh.sync();
+  setupNavbarCondense();
 }
 
 function stopTextAnimation(textMesh) {
@@ -674,21 +1101,22 @@ function revealTextMesh(textMesh) {
 
   const full = textMesh.userData.fullText;
   textMesh.visible = true;
-  setTextByLength(textMesh, 0);
-
-  const state = { length: 0 };
+  textMesh.text = full;
+  textMesh.scale.setScalar(prefersReducedMotion.matches ? 1 : 0.985);
 
   return new Promise((resolve) => {
-    textMesh.userData.textTween = gsap.to(state, {
-      length: full.length,
-      duration: TEXT_REVEAL_DURATION,
-      ease: "none",
-      onUpdate: () => setTextByLength(textMesh, Math.floor(state.length)),
-      onComplete: () => {
-        setTextByLength(textMesh, full.length);
-        textMesh.userData.textTween = null;
-        resolve();
-      },
+    textMesh.sync(() => {
+      textMesh.userData.textTween = gsap.to(textMesh.scale, {
+        x: 1,
+        y: 1,
+        z: 1,
+        duration: prefersReducedMotion.matches ? 0 : TEXT_REVEAL_DURATION,
+        ease: "power2.out",
+        onComplete: () => {
+          textMesh.userData.textTween = null;
+          resolve();
+        },
+      });
     });
   });
 }
@@ -698,19 +1126,18 @@ function hideTextMesh(textMesh, duration = TEXT_HIDE_DURATION) {
 
   stopTextAnimation(textMesh);
 
-  const full = textMesh.userData.fullText;
-  const state = { length: full.length };
-  setTextByLength(textMesh, full.length);
-
   return new Promise((resolve) => {
-    textMesh.userData.textTween = gsap.to(state, {
-      length: 0,
-      duration,
-      ease: "none",
-      onUpdate: () => setTextByLength(textMesh, Math.ceil(state.length)),
+    textMesh.userData.textTween = gsap.to(textMesh.scale, {
+      x: prefersReducedMotion.matches ? 1 : 0.985,
+      y: prefersReducedMotion.matches ? 1 : 0.985,
+      z: prefersReducedMotion.matches ? 1 : 0.985,
+      duration: prefersReducedMotion.matches ? 0 : duration,
+      ease: "power2.in",
       onComplete: () => {
-        setTextByLength(textMesh, 0);
+        textMesh.text = "";
         textMesh.visible = false;
+        textMesh.scale.setScalar(1);
+        textMesh.sync();
         textMesh.userData.textTween = null;
         resolve();
       },
@@ -784,6 +1211,7 @@ function createSectionText(section, options = {}) {
     textAlign = section.textAlign ?? "left",
     anchorX = section.anchorX ?? "left",
   } = options;
+  const layout = getViewportLayout();
   const outText = new Text();
 
   outText.userData.fullText = section.text;
@@ -791,7 +1219,7 @@ function createSectionText(section, options = {}) {
   outText.font = font;
   outText.fontSize = fontSize;
   outText.color = 0xffffff;
-  outText.maxWidth = TEXT_MAX_WIDTH;
+  outText.maxWidth = layout.textMaxWidth;
   outText.position.set(section.x, section.y, section.z);
   outText.textAlign = textAlign;
   outText.anchorX = anchorX;
@@ -814,13 +1242,100 @@ function initSectionTexts() {
   );
 }
 
+function applyTextMeshLayout(textMesh, section) {
+  if (!textMesh) return;
+
+  const layout = getViewportLayout();
+  const layoutKey = [
+    section.x,
+    section.y,
+    section.z,
+    textMesh.fontSize,
+    layout.textMaxWidth,
+    section.textAlign ?? "left",
+    section.anchorX ?? "left",
+  ].join("|");
+
+  if (textMesh.userData.layoutKey === layoutKey) return;
+
+  textMesh.position.set(section.x, section.y, section.z);
+  textMesh.textAlign = section.textAlign ?? "left";
+  textMesh.anchorX = section.anchorX ?? "left";
+  textMesh.maxWidth = layout.textMaxWidth;
+  textMesh.userData.layoutKey = layoutKey;
+  textMesh.sync();
+}
+
+function applySectionTextLayout() {
+  const layout = getViewportLayout();
+
+  sectionTexts.forEach((textMesh, index) => {
+    textMesh.fontSize = layout.titleFontSize;
+    applyTextMeshLayout(
+      textMesh,
+      getResponsiveSection(TEXT_SECTIONS[index], index, COMPACT_TEXT_LAYOUTS)
+    );
+  });
+
+  sectionDescriptionTexts.forEach((textMesh, index) => {
+    textMesh.fontSize = layout.descriptionFontSize;
+    applyTextMeshLayout(
+      textMesh,
+      getResponsiveSection(
+        DESCRIPTION_SECTIONS[index],
+        index,
+        COMPACT_DESCRIPTION_LAYOUTS
+      )
+    );
+  });
+}
+
+function resizePlane(mesh, height) {
+  if (!mesh?.userData.aspect) return;
+
+  const width = height * mesh.userData.aspect;
+  if (
+    Math.abs((mesh.userData.width ?? 0) - width) < 0.01 &&
+    Math.abs((mesh.userData.height ?? 0) - height) < 0.01
+  ) {
+    return;
+  }
+
+  mesh.geometry.dispose();
+  mesh.geometry = new THREE.PlaneGeometry(width, height);
+  mesh.userData.width = width;
+  mesh.userData.height = height;
+}
+
+function applySponsorImageLayout() {
+  if (!sponsorImage) return;
+
+  const layout = getViewportLayout();
+  sponsorImage.position.set(SPONSOR_IMAGE_POS.x, layout.sponsorImageY, SPONSOR_IMAGE_POS.z);
+  resizePlane(sponsorImage, layout.sponsorImageHeight);
+}
+
+function applyAboutJoinImageLayout() {
+  if (!aboutJoinImage) return;
+
+  const layout = getViewportLayout();
+  aboutJoinImage.position.set(ABOUT_IMAGE_POS.x, layout.aboutImageY, ABOUT_IMAGE_POS.z);
+  resizePlane(aboutJoinImage, layout.aboutImageHeight);
+}
+
+function applyResponsiveLayout() {
+  applySectionTextLayout();
+  applySponsorImageLayout();
+  applyAboutJoinImageLayout();
+  applyCommitteeLayout();
+  applySocialCubeLayout();
+  resizeRainbowBackdrop();
+  pointerDirty = true;
+}
+
 function createSponsorImage() {
   const sponsorDescription = SPONSOR_IMAGE_POS;
-  const textureLoader = new THREE.TextureLoader();
-  const material = new THREE.MeshBasicMaterial({
-    transparent: true,
-    opacity: 0,
-  });
+  const material = createRoundedImageMaterial();
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
 
   mesh.position.set(
@@ -836,12 +1351,8 @@ function createSponsorImage() {
     material.map = texture;
     material.needsUpdate = true;
 
-    const aspect = texture.image.width / texture.image.height;
-    const height = SPONSOR_IMAGE_HEIGHT;
-    const width = height * aspect;
-
-    mesh.geometry.dispose();
-    mesh.geometry = new THREE.PlaneGeometry(width, height);
+    mesh.userData.aspect = texture.image.width / texture.image.height;
+    applySponsorImageLayout();
   });
 
   return mesh;
@@ -888,11 +1399,7 @@ function hideSponsorImage() {
 }
 
 function createAboutJoinImage() {
-  const textureLoader = new THREE.TextureLoader();
-  const material = new THREE.MeshBasicMaterial({
-    transparent: true,
-    opacity: 0,
-  });
+  const material = createRoundedImageMaterial();
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
 
   mesh.position.set(
@@ -909,12 +1416,8 @@ function createAboutJoinImage() {
     material.map = texture;
     material.needsUpdate = true;
 
-    const aspect = texture.image.width / texture.image.height;
-    const height = ABOUT_IMAGE_HEIGHT;
-    const width = height * aspect;
-
-    mesh.geometry.dispose();
-    mesh.geometry = new THREE.PlaneGeometry(width, height);
+    mesh.userData.aspect = texture.image.width / texture.image.height;
+    applyAboutJoinImageLayout();
   });
 
   return mesh;
@@ -985,9 +1488,7 @@ function setupAboutJoinInteraction() {
       return;
     }
 
-    const rect = canvas.getBoundingClientRect();
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    updatePointerFromEvent(event);
 
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObject(aboutJoinImage);
@@ -998,9 +1499,32 @@ function setupAboutJoinInteraction() {
   });
 }
 
-function getCommitteeMemberPosition(rowIndex, colIndex, rowLength) {
-  const xOffset = (colIndex - (rowLength - 1) / 2) * COMMITTEE_IMAGE_SPACING;
-  const y = COMMITTEE_BASE_POSITION.y - rowIndex * COMMITTEE_ROW_SPACING;
+function getCommitteeMemberPosition(rowIndex, colIndex, rowLength, memberIndex = 0) {
+  const layout = getViewportLayout();
+  let xOffset;
+  let y;
+
+  if (layout.committeeMobileRows) {
+    let row = 0;
+    let firstIndex = 0;
+
+    while (
+      row < layout.committeeMobileRows.length - 1 &&
+      memberIndex >= firstIndex + layout.committeeMobileRows[row]
+    ) {
+      firstIndex += layout.committeeMobileRows[row];
+      row += 1;
+    }
+
+    const rowLengthForIndex = layout.committeeMobileRows[row];
+    const col = memberIndex - firstIndex;
+
+    xOffset = (col - (rowLengthForIndex - 1) / 2) * layout.committeeImageSpacing;
+    y = layout.committeeBaseY - row * layout.committeeRowSpacing;
+  } else {
+    xOffset = (colIndex - (rowLength - 1) / 2) * layout.committeeImageSpacing;
+    y = layout.committeeBaseY - rowIndex * layout.committeeRowSpacing;
+  }
 
   return {
     x: COMMITTEE_BASE_POSITION.x + xOffset,
@@ -1011,10 +1535,11 @@ function getCommitteeMemberPosition(rowIndex, colIndex, rowLength) {
 
 function createCommitteeCaption(title, position, imageHeight) {
   const caption = new Text();
+  const layout = getViewportLayout();
 
   caption.text = title;
   caption.font = DESCRIPTION_FONT;
-  caption.fontSize = COMMITTEE_CAPTION_FONT_SIZE;
+  caption.fontSize = layout.committeeCaptionFontSize;
   caption.color = 0xffffff;
   caption.anchorX = "center";
   caption.anchorY = "top";
@@ -1033,24 +1558,28 @@ function createCommitteeCaption(title, position, imageHeight) {
 }
 
 function createCommitteeMembers() {
-  const textureLoader = new THREE.TextureLoader();
   const members = [];
+  let memberIndex = 0;
 
   COMMITTEE_ROWS.forEach((row, rowIndex) => {
     row.forEach((config, colIndex) => {
       const position = getCommitteeMemberPosition(
         rowIndex,
         colIndex,
-        row.length
+        row.length,
+        memberIndex
       );
-      const material = new THREE.MeshBasicMaterial({
-        transparent: true,
-        opacity: 0,
-      });
+      const material = createRoundedImageMaterial();
       const image = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
 
       image.position.set(position.x, position.y, position.z);
       image.userData.url = config.url;
+      image.userData.name = config.name;
+      image.userData.title = config.title;
+      image.userData.image = config.image;
+      image.userData.memberIndex = memberIndex;
+      image.userData.texturePath = config.image;
+      image.userData.layout = { rowIndex, colIndex, rowLength: row.length, memberIndex };
       image.userData.fadeTween = null;
       image.visible = false;
       scene.add(image);
@@ -1058,30 +1587,52 @@ function createCommitteeMembers() {
       const caption = createCommitteeCaption(
         config.title,
         position,
-        COMMITTEE_IMAGE_HEIGHT
+        getViewportLayout().committeeImageHeight
       );
+      caption.userData.layout = image.userData.layout;
       caption.userData.fadeTween = null;
 
-      textureLoader.load(config.image, (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        material.map = texture;
-        material.needsUpdate = true;
-
-        const aspect = texture.image.width / texture.image.height;
-        const height = COMMITTEE_IMAGE_HEIGHT;
-        const width = height * aspect;
-
-        image.geometry.dispose();
-        image.geometry = new THREE.PlaneGeometry(width, height);
-        caption.position.y =
-          position.y - height / 2 - COMMITTEE_CAPTION_GAP;
+      members.push({
+        image,
+        caption,
+        url: config.url,
+        name: config.name,
+        title: config.title,
+        sourceImage: config.image,
+        rowIndex,
+        colIndex,
+        rowLength: row.length,
+        memberIndex,
       });
-
-      members.push({ image, caption, url: config.url });
+      memberIndex += 1;
     });
   });
 
   return members;
+}
+
+function applyCommitteeLayout() {
+  const layout = getViewportLayout();
+
+  committeeMembers.forEach((member) => {
+    const position = getCommitteeMemberPosition(
+      member.rowIndex,
+      member.colIndex,
+      member.rowLength,
+      member.memberIndex
+    );
+
+    member.image.position.set(position.x, position.y, position.z);
+    resizePlane(member.image, layout.committeeImageHeight);
+
+    member.caption.fontSize = layout.committeeCaptionFontSize;
+    member.caption.position.set(
+      position.x,
+      position.y - layout.committeeImageHeight / 2 - COMMITTEE_CAPTION_GAP,
+      position.z
+    );
+    member.caption.sync();
+  });
 }
 
 function stopCommitteeMemberFade(member) {
@@ -1096,42 +1647,55 @@ function stopCommitteeMemberFade(member) {
   }
 }
 
-function revealCommitteeMembers() {
+function loadCommitteeMemberTexture(member) {
+  if (member.image.material.map) return Promise.resolve();
+  if (member.image.userData.texturePromise) {
+    return member.image.userData.texturePromise;
+  }
+
+  member.image.userData.texturePromise = new Promise((resolve, reject) => {
+    textureLoader.load(
+      member.image.userData.texturePath,
+      (texture) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        member.image.material.map = texture;
+        member.image.material.needsUpdate = true;
+        member.image.userData.aspect = texture.image.width / texture.image.height;
+        applyCommitteeLayout();
+        resolve();
+      },
+      undefined,
+      reject
+    );
+  });
+
+  return member.image.userData.texturePromise;
+}
+
+async function revealCommitteeMembers() {
   if (committeeMembers.length === 0) return Promise.resolve();
+
+  await Promise.allSettled(committeeMembers.map(loadCommitteeMemberTexture));
 
   return Promise.all(
     committeeMembers.map((member) => {
       stopCommitteeMemberFade(member);
       member.image.visible = true;
       member.caption.visible = true;
-      member.caption.fillOpacity = 0;
+      member.caption.fillOpacity = 1;
       member.caption.sync();
 
-      return Promise.all([
-        new Promise((resolve) => {
-          member.image.userData.fadeTween = gsap.to(member.image.material, {
-            opacity: 1,
-            duration: TEXT_REVEAL_DURATION,
-            ease: "power2.out",
-            onComplete: () => {
-              member.image.userData.fadeTween = null;
-              resolve();
-            },
-          });
-        }),
-        new Promise((resolve) => {
-          member.caption.userData.fadeTween = gsap.to(member.caption, {
-            fillOpacity: 1,
-            duration: TEXT_REVEAL_DURATION,
-            ease: "power2.out",
-            onUpdate: () => member.caption.sync(),
-            onComplete: () => {
-              member.caption.userData.fadeTween = null;
-              resolve();
-            },
-          });
-        }),
-      ]);
+      return new Promise((resolve) => {
+        member.image.userData.fadeTween = gsap.to(member.image.material, {
+          opacity: 1,
+          duration: TEXT_REVEAL_DURATION,
+          ease: "power2.out",
+          onComplete: () => {
+            member.image.userData.fadeTween = null;
+            resolve();
+          },
+        });
+      });
     })
   );
 }
@@ -1139,37 +1703,28 @@ function revealCommitteeMembers() {
 function hideCommitteeMembers() {
   if (committeeMembers.length === 0) return Promise.resolve();
 
+  setCommitteeImageHovered(null);
+
   return Promise.all(
     committeeMembers.map((member) => {
       stopCommitteeMemberFade(member);
 
-      return Promise.all([
-        new Promise((resolve) => {
-          member.image.userData.fadeTween = gsap.to(member.image.material, {
-            opacity: 0,
-            duration: TEXT_HIDE_DURATION,
-            ease: "power2.in",
-            onComplete: () => {
-              member.image.visible = false;
-              member.image.userData.fadeTween = null;
-              resolve();
-            },
-          });
-        }),
-        new Promise((resolve) => {
-          member.caption.userData.fadeTween = gsap.to(member.caption, {
-            fillOpacity: 0,
-            duration: TEXT_HIDE_DURATION,
-            ease: "power2.in",
-            onUpdate: () => member.caption.sync(),
-            onComplete: () => {
-              member.caption.visible = false;
-              member.caption.userData.fadeTween = null;
-              resolve();
-            },
-          });
-        }),
-      ]);
+      member.caption.fillOpacity = 0;
+      member.caption.visible = false;
+      member.caption.sync();
+
+      return new Promise((resolve) => {
+        member.image.userData.fadeTween = gsap.to(member.image.material, {
+          opacity: 0,
+          duration: TEXT_HIDE_DURATION,
+          ease: "power2.in",
+          onComplete: () => {
+            member.image.visible = false;
+            member.image.userData.fadeTween = null;
+            resolve();
+          },
+        });
+      });
     })
   );
 }
@@ -1178,6 +1733,44 @@ function getVisibleCommitteeImages() {
   return committeeMembers
     .map((member) => member.image)
     .filter((image) => image.visible);
+}
+
+function setCommitteeImageHovered(image) {
+  if (hoveredCommitteeImage === image) return;
+
+  if (hoveredCommitteeImage) {
+    gsap.killTweensOf(hoveredCommitteeImage.position, "z");
+    gsap.to(hoveredCommitteeImage.scale, {
+      x: 1,
+      y: 1,
+      z: 1,
+      duration: 0.16,
+      ease: "power2.out",
+    });
+    gsap.to(hoveredCommitteeImage.position, {
+      z: COMMITTEE_BASE_POSITION.z,
+      duration: 0.16,
+      ease: "power2.out",
+    });
+  }
+
+  hoveredCommitteeImage = image;
+
+  if (hoveredCommitteeImage) {
+    gsap.killTweensOf(hoveredCommitteeImage.position, "z");
+    gsap.to(hoveredCommitteeImage.scale, {
+      x: 1.04,
+      y: 1.04,
+      z: 1.04,
+      duration: 0.16,
+      ease: "power2.out",
+    });
+    gsap.to(hoveredCommitteeImage.position, {
+      z: COMMITTEE_BASE_POSITION.z + 1,
+      duration: 0.16,
+      ease: "power2.out",
+    });
+  }
 }
 
 function updateCommitteeHover() {
@@ -1190,11 +1783,15 @@ function updateCommitteeHover() {
   }
 
   const visibleImages = getVisibleCommitteeImages();
-  if (visibleImages.length === 0) return;
+  if (visibleImages.length === 0) {
+    setCommitteeImageHovered(null);
+    return;
+  }
 
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects(visibleImages);
 
+  setCommitteeImageHovered(intersects[0]?.object ?? null);
   canvas.style.cursor = intersects.length > 0 ? "pointer" : "default";
 }
 
@@ -1208,16 +1805,14 @@ function setupCommitteeInteraction() {
       return;
     }
 
-    const rect = canvas.getBoundingClientRect();
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    updatePointerFromEvent(event);
 
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(getVisibleCommitteeImages());
 
     if (intersects.length > 0) {
-      const url = intersects[0].object.userData.url;
-      window.open(url, "_blank", "noopener,noreferrer");
+      lastMemberTrigger = canvas;
+      openMemberPopup(intersects[0].object.userData.memberIndex, intersects[0].object);
     }
   });
 }
@@ -1245,22 +1840,87 @@ function warmupSectionTexts() {
   ]);
 }
 
+function getSocialCubeBasePosition(index) {
+  const layout = getViewportLayout();
+  const xOffset = (index - (SOCIAL_CUBES.length - 1) / 2) * layout.socialCubeSpacing;
+
+  return {
+    x: SOCIAL_CUBE_BASE.x + xOffset,
+    y: layout.socialCubeY,
+    z: SOCIAL_CUBE_BASE.z,
+  };
+}
+
+function resizeSocialCard(card) {
+  const layout = getViewportLayout();
+
+  if (
+    Math.abs((card.userData.width ?? 0) - layout.socialCardWidth) < 0.01 &&
+    Math.abs((card.userData.height ?? 0) - layout.socialCardHeight) < 0.01
+  ) {
+    return;
+  }
+
+  card.geometry.dispose();
+  card.geometry = new THREE.PlaneGeometry(layout.socialCardWidth, layout.socialCardHeight);
+  card.userData.width = layout.socialCardWidth;
+  card.userData.height = layout.socialCardHeight;
+
+  if (card.userData.caption) {
+    card.userData.caption.fontSize = layout.narrow ? 0.42 : layout.compact ? 0.5 : 0.62;
+    card.userData.caption.position.set(0, -layout.socialCardHeight / 2 - 0.42, 0);
+    card.userData.caption.sync();
+  }
+}
+
+function applySocialCubeLayout() {
+  socialCubes.forEach((cube) => {
+    const basePosition = getSocialCubeBasePosition(cube.userData.socialIndex);
+
+    cube.userData.baseX = basePosition.x;
+    cube.userData.baseY = basePosition.y;
+    resizeSocialCard(cube);
+
+    if (!cube.userData.entranceTween && !cube.userData.exitTween) {
+      cube.position.set(basePosition.x, basePosition.y, basePosition.z);
+    }
+  });
+}
+
+function createSocialCaption(label) {
+  const layout = getViewportLayout();
+  const caption = new Text();
+
+  caption.text = label;
+  caption.font = DESCRIPTION_FONT;
+  caption.fontSize = layout.narrow ? 0.42 : layout.compact ? 0.5 : 0.62;
+  caption.color = 0xffffff;
+  caption.anchorX = "center";
+  caption.anchorY = "top";
+  caption.textAlign = "center";
+  caption.position.set(0, -layout.socialCardHeight / 2 - 0.42, 0);
+  caption.sync();
+
+  return caption;
+}
+
 function createSocialCubes() {
-  const textureLoader = new THREE.TextureLoader();
-
-  return SOCIAL_CUBES.map((config) => {
+  return SOCIAL_CUBES.map((config, index) => {
     const texture = textureLoader.load(config.texture);
+    const basePosition = getSocialCubeBasePosition(index);
+    const layout = getViewportLayout();
     const cube = new THREE.Mesh(
-      new THREE.BoxGeometry(SOCIAL_CUBE_SIZE, SOCIAL_CUBE_SIZE, SOCIAL_CUBE_SIZE),
-      new THREE.MeshBasicMaterial({ map: texture })
+      new THREE.PlaneGeometry(layout.socialCardWidth, layout.socialCardHeight),
+      createRoundedIconMaterial(texture)
     );
+    const caption = createSocialCaption(config.label);
 
-    cube.position.set(
-      SOCIAL_CUBE_BASE.x + config.xOffset,
-      SOCIAL_CUBE_BASE.y,
-      SOCIAL_CUBE_BASE.z
-    );
+    cube.position.set(basePosition.x, basePosition.y, basePosition.z);
     cube.userData.url = config.url;
+    cube.userData.socialIndex = index;
+    cube.userData.width = layout.socialCardWidth;
+    cube.userData.height = layout.socialCardHeight;
+    cube.userData.caption = caption;
     cube.userData.baseX = cube.position.x;
     cube.userData.baseY = cube.position.y;
     cube.userData.hovered = false;
@@ -1274,6 +1934,7 @@ function createSocialCubes() {
       SOCIAL_CUBE_SCALE_MIN,
       SOCIAL_CUBE_SCALE_MIN
     );
+    cube.add(caption);
     scene.add(cube);
     return cube;
   });
@@ -1304,6 +1965,7 @@ function stopSocialCubeFloat(cube) {
 
 function startSocialCubeFloat(cube, delay = 0) {
   stopSocialCubeFloat(cube);
+  if (prefersReducedMotion.matches) return;
 
   cube.userData.floatTween = gsap.to(cube.position, {
     y: cube.userData.baseY + SOCIAL_CUBE_FLOAT_DISTANCE,
@@ -1320,6 +1982,8 @@ function stopSocialCubeGrow(cube) {
     cube.userData.growTween.kill();
     cube.userData.growTween = null;
   }
+
+  gsap.killTweensOf(cube.position, "z");
 }
 
 function setSocialCubeHovered(cube, hovered) {
@@ -1330,10 +1994,13 @@ function setSocialCubeHovered(cube, hovered) {
       x: SOCIAL_CUBE_SCALE_MAX,
       y: SOCIAL_CUBE_SCALE_MAX,
       z: SOCIAL_CUBE_SCALE_MAX,
-      duration: SOCIAL_CUBE_GROW_DURATION,
-      ease: "sine.inOut",
-      yoyo: true,
-      repeat: -1,
+      duration: 0.18,
+      ease: "power2.out",
+    });
+    gsap.to(cube.position, {
+      z: SOCIAL_CUBE_BASE.z + 1.1,
+      duration: 0.18,
+      ease: "power2.out",
     });
   } else {
     gsap.to(cube.scale, {
@@ -1341,6 +2008,11 @@ function setSocialCubeHovered(cube, hovered) {
       y: SOCIAL_CUBE_SCALE_MIN,
       z: SOCIAL_CUBE_SCALE_MIN,
       duration: 0.3,
+      ease: "power2.out",
+    });
+    gsap.to(cube.position, {
+      z: SOCIAL_CUBE_BASE.z,
+      duration: 0.22,
       ease: "power2.out",
     });
   }
@@ -1437,6 +2109,7 @@ function setSocialCubesVisible(visible) {
   socialCubes.forEach((cube) => {
     cube.visible = visible;
   });
+  pointerDirty = true;
 
   if (visible) {
     startSocialCubeEntrance();
@@ -1481,12 +2154,10 @@ function updateSocialCubeHover() {
 }
 
 function setupSocialCubeInteraction() {
-  window.addEventListener("mousemove", (event) => {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  });
+  canvas.addEventListener("pointermove", updatePointerFromEvent, { passive: true });
+  canvas.addEventListener("pointerdown", updatePointerFromEvent, { passive: true });
 
-  window.addEventListener("click", () => {
+  window.addEventListener("click", (event) => {
     if (
       currentIndex !== CONTACT_SECTION_INDEX ||
       isAnimating ||
@@ -1495,6 +2166,7 @@ function setupSocialCubeInteraction() {
       return;
     }
 
+    updatePointerFromEvent(event);
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(
       socialCubes.filter((cube) => cube.visible)
@@ -1527,6 +2199,8 @@ async function transitionToSection(newIndex) {
 
   currentIndex = newIndex;
   updateStatus();
+  setNavbarCondensed(false);
+  scheduleNavbarCondense(900);
 
   const targetPos = getCurrentSectionPos();
   animateStarsOnTransition();
@@ -1569,6 +2243,7 @@ async function transitionToSection(newIndex) {
   }
 
   isAnimating = false;
+  pointerDirty = true;
 }
 
 function goToNextSection() {
@@ -1595,21 +2270,55 @@ function goToPrevSection() {
 function setupScrollControl() {
   Observer.create({
     target: window,
-    type: "wheel,touch,pointer",
+    type: "wheel,touch",
     preventDefault: true,
+    ignore: ".member-popup, .member-popup *",
     onDown: () => goToNextSection(),
     onUp: () => goToPrevSection(),
     tolerance: SCROLL_TOLERANCE,
   });
 }
 
+function setupKeyboardNavigation() {
+  window.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+
+    const tagName = event.target?.tagName;
+    if (tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT") {
+      return;
+    }
+
+    const actions = {
+      ArrowDown: goToNextSection,
+      ArrowRight: goToNextSection,
+      PageDown: goToNextSection,
+      ArrowUp: goToPrevSection,
+      ArrowLeft: goToPrevSection,
+      PageUp: goToPrevSection,
+      Home: () => goToSection(0),
+      End: () => goToSection(MODEL_SECTIONS.length - 1),
+    };
+    const action = actions[event.key];
+
+    if (!action) return;
+
+    event.preventDefault();
+    action();
+  });
+}
+
 setupScrollControl();
+setupKeyboardNavigation();
 initSectionTexts();
 sponsorImage = createSponsorImage();
 aboutJoinImage = createAboutJoinImage();
 committeeMembers = createCommitteeMembers();
 setupNavbar();
+setupMemberPopup();
 socialCubes = createSocialCubes();
+applyResponsiveLayout();
 setupSocialCubeInteraction();
 setupAboutJoinInteraction();
 setupCommitteeInteraction();
@@ -1641,6 +2350,7 @@ function animateModelEntrance(modelSize) {
       updateStatus();
       await revealSectionContent(0);
       await showRainbowBackdrop();
+      pointerDirty = true;
       logModelPosition("Model (entrance complete)");
     },
   });
@@ -1662,12 +2372,12 @@ loader.load(
     const maxSize = Math.max(size.x, size.y, size.z);
 
     modelLookHeight = size.y * 0.35;
-    camLeftOffset = maxSize * CAM_LEFT_FACTOR;
-    camHeightOffset = maxSize * CAM_HEIGHT_FACTOR;
-    cameraZ = maxSize * CAM_DISTANCE_FACTOR;
+    baseCamLeftOffset = maxSize * CAM_LEFT_FACTOR;
+    baseCamHeightOffset = maxSize * CAM_HEIGHT_FACTOR;
+    baseCameraZ = maxSize * CAM_DISTANCE_FACTOR;
     camera.near = Math.max(maxSize / 100, 0.01);
     camera.far = Math.max(maxSize * 100, CAM_FAR);
-    camera.updateProjectionMatrix();
+    applyCameraLayout();
 
     rainbowBackdrop = createRainbowBackdrop(maxSize);
 
@@ -1690,23 +2400,44 @@ loader.load(
   }
 );
 
-function onResize() {
-  const { innerWidth, innerHeight } = window;
+let resizeFrame = 0;
 
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
+function onResize() {
+  updateViewportSize();
+  renderer.setPixelRatio(getRenderPixelRatio());
+  renderer.setSize(viewportWidth, viewportHeight, false);
+  applyCameraLayout();
+  applyResponsiveLayout();
 }
 
-window.addEventListener("resize", onResize);
+function queueResize() {
+  if (resizeFrame) return;
+
+  resizeFrame = requestAnimationFrame(() => {
+    resizeFrame = 0;
+    onResize();
+  });
+}
+
+window.addEventListener("resize", queueResize, { passive: true });
+
+if ("ResizeObserver" in window) {
+  const resizeObserver = new ResizeObserver(queueResize);
+  resizeObserver.observe(canvas);
+}
 
 function animate() {
   requestAnimationFrame(animate);
 
   animateRainbowBackdrop();
-  updateSocialCubeHover();
-  updateAboutJoinHover();
-  updateCommitteeHover();
+  applyPointerMotion();
+
+  if (pointerDirty) {
+    updateSocialCubeHover();
+    updateAboutJoinHover();
+    updateCommitteeHover();
+    pointerDirty = false;
+  }
 
   if (ENABLE_ORBIT_CONTROLS && controls) {
     controls.update();
