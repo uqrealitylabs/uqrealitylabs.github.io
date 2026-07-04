@@ -7,6 +7,7 @@ shortBio: "Lorem ipsum dolor sit amet."
 slugline: "Chaos scheduler."
 microcopy: "Chaos scheduler."
 accentColor: "#22C55E"
+pathVariant: "ziggle"
 order: 5
 ---
 Lorem ipsum dolor sit amet, consectetur adipiscing elit.

@@ -7,6 +7,7 @@ shortBio: "Lorem ipsum dolor sit amet."
 slugline: "Makes pixels behave."
 microcopy: "Makes pixels behave."
 accentColor: "#A78BFA"
+pathVariant: "spiral-pop"
 order: 4
 ---
 Lorem ipsum dolor sit amet, consectetur adipiscing elit.

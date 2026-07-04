@@ -7,6 +7,7 @@ shortBio: "Lorem ipsum dolor sit amet."
 slugline: "Minutes magician."
 microcopy: "Minutes magician."
 accentColor: "#F59E0B"
+pathVariant: "loop-buzz"
 order: 2
 ---
 Lorem ipsum dolor sit amet, consectetur adipiscing elit.

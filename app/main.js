@@ -134,6 +134,7 @@ async function loadCommitteeRows() {
           slugline: data.slugline || data.microcopy || role.label,
           microcopy: data.microcopy || data.slugline || role.label,
           accentColor: data.accentColor || role.accentColors?.[0] || "#FF5757",
+          pathVariant: data.pathVariant || role.pathVariant || "underline-swoop",
           order: Number.isFinite(data.order) ? data.order : 0,
           roleSlug: role.slug,
         };
@@ -446,6 +447,7 @@ let sectionDescriptionTexts = [];
 let socialCubes = [];
 let sponsorImage = null;
 let aboutJoinImage = null;
+let rubricMoodTimer = 0;
 let committeeMembers = [];
 let hoveredCommitteeImage = null;
 let cachedViewportLayout = null;
@@ -483,7 +485,8 @@ function isShortViewport() {
 }
 
 function getRenderPixelRatio() {
-  const maxRatio = 2;
+  const canvasPixels = viewportWidth * viewportHeight;
+  const maxRatio = canvasPixels <= 480_000 ? 2.5 : 2;
 
   return Math.min(window.devicePixelRatio || 1, maxRatio);
 }
@@ -620,7 +623,7 @@ function getViewportLayout() {
     cachedViewportLayout.socialCardWidth = 2.2;
     cachedViewportLayout.socialCardHeight = 2.2;
     cachedViewportLayout.committeeImageHeight = 1.85;
-    cachedViewportLayout.committeeCaptionFontSize = 0.52;
+    cachedViewportLayout.committeeCaptionFontSize = 0.6;
   }
 
   return cachedViewportLayout;
@@ -773,8 +776,8 @@ function createRainbowGlowMaterial(texture, opacity) {
 function getRoundedAlphaTexture() {
   if (roundedAlphaTexture) return roundedAlphaTexture;
 
-  const size = 128;
-  const radius = 22;
+  const size = 512;
+  const radius = 88;
   const alphaCanvas = document.createElement("canvas");
   alphaCanvas.width = size;
   alphaCanvas.height = size;
@@ -835,9 +838,6 @@ function createSocialTexture({ label, accent }) {
 
   ctx.fillStyle = "#151823";
   ctx.fillRect(0, 0, size, size);
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 34;
-  ctx.strokeRect(58, 58, size - 116, size - 116);
   ctx.fillStyle = "#fff3d2";
   ctx.strokeStyle = "#fff3d2";
   ctx.lineCap = "round";
@@ -1118,10 +1118,22 @@ function updateNavbarActive() {
 
 function updateHudState() {
   document.body.dataset.section = String(currentIndex);
+  document.body.removeAttribute("data-trails-ready");
 
   if (currentIndex !== COMMITTEE_SECTION_INDEX) {
     closeMemberPopup();
   }
+}
+
+function restartChalkTrailMotion() {
+  if (prefersReducedMotion.matches) return;
+
+  window.requestAnimationFrame(() => {
+    document.body.dataset.trailsReady = "true";
+    document
+      .querySelectorAll(".bee-trail animateMotion")
+      .forEach((animation) => animation.beginElement?.());
+  });
 }
 
 function getCommitteeCards() {
@@ -1211,7 +1223,10 @@ function positionMemberPopup(anchor) {
 
   const viewport = getPopupViewport();
   const safe = getSafeAreaInsets();
-  const rect = memberPopupCard.getBoundingClientRect();
+  const rect = {
+    width: memberPopupCard.offsetWidth,
+    height: memberPopupCard.offsetHeight,
+  };
   const pad = 12;
   const gap = 14;
   const minLeft = viewport.left + safe.left + pad;
@@ -1474,7 +1489,10 @@ function revealSectionContent(index) {
     promises.push(revealCommitteeMembers());
   }
 
-  return Promise.all(promises);
+  return Promise.all(promises).then((results) => {
+    if (index === currentIndex) restartChalkTrailMotion();
+    return results;
+  });
 }
 
 function hideSectionContent(index) {
@@ -1809,6 +1827,8 @@ function setAboutJoinImageHovered(hovered) {
   const baseY = aboutJoinImage.userData.baseY ?? aboutJoinImage.position.y;
 
   if (hovered) {
+    window.clearTimeout(rubricMoodTimer);
+    document.body.removeAttribute("data-rubric-mood");
     document.body.dataset.contentHover = "join";
     gsap.to(aboutJoinImage.scale, {
       x: 1.06,
@@ -1826,6 +1846,12 @@ function setAboutJoinImageHovered(hovered) {
     });
   } else {
     document.body.removeAttribute("data-content-hover");
+    window.clearTimeout(rubricMoodTimer);
+    document.body.dataset.rubricMood = "sad";
+    rubricMoodTimer = window.setTimeout(
+      () => document.body.removeAttribute("data-rubric-mood"),
+      prefersReducedMotion.matches ? 650 : 820
+    );
     aboutJoinImage.userData.tiltZ = -0.12;
     gsap.to(aboutJoinImage.scale, {
       x: 1.08,
@@ -1959,6 +1985,7 @@ function createCommitteeMembers() {
       image.userData.title = config.title;
       image.userData.image = config.image;
       image.userData.accentColor = config.accentColor;
+      image.userData.pathVariant = config.pathVariant;
       image.userData.memberIndex = memberIndex;
       image.userData.texturePath = config.image;
       image.userData.layout = { rowIndex, colIndex, rowLength: row.length, memberIndex };
@@ -1987,6 +2014,7 @@ function createCommitteeMembers() {
         body: config.body,
         microcopy: config.microcopy,
         accentColor: config.accentColor,
+        pathVariant: config.pathVariant,
         sourceImage: config.image,
         rowIndex,
         colIndex,
@@ -2136,12 +2164,12 @@ function setCommitteeImageHovered(image) {
       x: 1,
       y: 1,
       z: 1,
-      duration: 0.16,
+      duration: motionDuration(0.16),
       ease: "power2.out",
     });
     gsap.to(hoveredCommitteeImage.position, {
       z: COMMITTEE_BASE_POSITION.z,
-      duration: 0.16,
+      duration: motionDuration(0.16),
       ease: "power2.out",
     });
   }
@@ -2149,12 +2177,15 @@ function setCommitteeImageHovered(image) {
   hoveredCommitteeImage = image;
   document.body.style.removeProperty("--committee-accent");
   document.body.removeAttribute("data-committee-group");
+  document.body.removeAttribute("data-path-variant");
 
   if (hoveredCommitteeImage) {
     const accent = hoveredCommitteeImage.userData.accentColor || "#FF5757";
     document.body.style.setProperty("--committee-accent", accent);
     document.body.dataset.committeeGroup =
       hoveredCommitteeImage.userData.layout.rowIndex === 0 ? "role" : "content";
+    document.body.dataset.pathVariant =
+      hoveredCommitteeImage.userData.pathVariant || "underline-swoop";
     hoveredCommitteeImage.userData.caption.color = accent;
     hoveredCommitteeImage.userData.caption.sync();
     gsap.killTweensOf(hoveredCommitteeImage.position, "z");
@@ -2163,12 +2194,12 @@ function setCommitteeImageHovered(image) {
       x: 1.04,
       y: 1.04,
       z: 1.04,
-      duration: 0.16,
+      duration: motionDuration(0.16),
       ease: "power2.out",
     });
     gsap.to(hoveredCommitteeImage.position, {
       z: COMMITTEE_BASE_POSITION.z + 1,
-      duration: 0.16,
+      duration: motionDuration(0.16),
       ease: "power2.out",
     });
   }
@@ -2272,7 +2303,7 @@ function resizeSocialCard(card) {
   card.userData.height = layout.socialCardHeight;
 
   if (card.userData.caption) {
-    card.userData.caption.fontSize = layout.narrow ? 0.42 : layout.compact ? 0.5 : 0.62;
+    card.userData.caption.fontSize = layout.narrow ? 0.5 : layout.compact ? 0.56 : 0.64;
     card.userData.caption.position.set(
       0,
       -layout.socialCardHeight / 2 - 0.42,
@@ -2302,7 +2333,7 @@ function createSocialCaption(label) {
 
   caption.text = label;
   caption.font = DESCRIPTION_FONT;
-  caption.fontSize = layout.narrow ? 0.42 : layout.compact ? 0.5 : 0.62;
+  caption.fontSize = layout.narrow ? 0.5 : layout.compact ? 0.56 : 0.64;
   caption.color = 0xffffff;
   caption.anchorX = "center";
   caption.anchorY = "top";
