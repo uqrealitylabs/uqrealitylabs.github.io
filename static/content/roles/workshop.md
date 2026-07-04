@@ -9,12 +9,12 @@
   "pathVariant": "ziggle-pop",
   "order": 6,
   "music": {
-    "label": "ziggle loop",
-    "source": "synth",
-    "url": "",
-    "volume": 0.32,
+    "label": "crab rave",
+    "source": "youtube",
+    "url": "https://www.youtube.com/watch?v=LDU_Txk06tM",
+    "volume": 0.3,
     "start": 0,
-    "duration": 3.5
+    "duration": 5
   },
   "members": [
     {

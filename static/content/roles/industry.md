@@ -9,12 +9,12 @@
   "pathVariant": "underline-swoop",
   "order": 7,
   "music": {
-    "label": "handshake chime",
-    "source": "synth",
-    "url": "",
-    "volume": 0.27,
+    "label": "trololo",
+    "source": "youtube",
+    "url": "https://www.youtube.com/watch?v=oavMtUWDBTM",
+    "volume": 0.28,
     "start": 0,
-    "duration": 3.3
+    "duration": 5
   },
   "members": [
     {

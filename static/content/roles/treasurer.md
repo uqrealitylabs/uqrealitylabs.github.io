@@ -9,12 +9,12 @@
   "pathVariant": "hop-hop",
   "order": 3,
   "music": {
-    "label": "coin shuffle",
-    "source": "synth",
-    "url": "",
-    "volume": 0.29,
+    "label": "sandstorm",
+    "source": "youtube",
+    "url": "https://www.youtube.com/watch?v=y6120QOlsfU",
+    "volume": 0.3,
     "start": 0,
-    "duration": 3.6
+    "duration": 5
   },
   "members": [
     {

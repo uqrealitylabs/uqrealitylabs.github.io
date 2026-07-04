@@ -7,12 +7,12 @@
       "texture": "/Assets/images/linkedin.png",
       "accent": "#0A66C2",
       "music": {
-        "label": "buttoned-up ping",
-        "source": "synth",
-        "url": "",
-        "volume": 0.26,
+        "label": "rickroll ping",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "volume": 0.28,
         "start": 0,
-        "duration": 2.4
+        "duration": 5
       }
     },
     {
@@ -21,12 +21,12 @@
       "texture": "/Assets/images/instagram.jpg",
       "accent": "#E1306C",
       "music": {
-        "label": "camera flash sparkle",
-        "source": "synth",
-        "url": "",
+        "label": "nyan cat sparkle",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=QH2-TGUlwu4",
         "volume": 0.3,
         "start": 0,
-        "duration": 2.2
+        "duration": 5
       }
     },
     {
@@ -35,12 +35,12 @@
       "texture": "/Assets/images/discord.jpg",
       "accent": "#5865F2",
       "music": {
-        "label": "buddy beep",
-        "source": "synth",
-        "url": "",
-        "volume": 0.28,
+        "label": "coffin dance bounce",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=j9V78UbdzWI",
+        "volume": 0.3,
         "start": 0,
-        "duration": 2.1
+        "duration": 5
       }
     },
     {
@@ -49,12 +49,12 @@
       "texture": "/Assets/images/email.jpg",
       "accent": "#F59E0B",
       "music": {
-        "label": "mail chime",
-        "source": "synth",
-        "url": "",
-        "volume": 0.24,
+        "label": "crab rave mail",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=LDU_Txk06tM",
+        "volume": 0.28,
         "start": 0,
-        "duration": 1.9
+        "duration": 5
       }
     }
   ]

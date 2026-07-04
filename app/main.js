@@ -50,9 +50,6 @@ const DESCRIPTION_FONT = `${ASSET_BASE}Assets/fonts/Bitcount_Single/static/Bitco
 const MODEL_PATH = `${ASSET_BASE}Assets/test-two.glb`;
 const LABS_LOGO_PATH = `${ASSET_BASE}Assets/images/labs_logo.png`;
 const SOCIAL_CONTENT_PATH = "content/tabs/socials.md";
-const SOUND_PREF_KEY = "uqrl-sound-muted";
-const SOUND_UNLOCK_KEY = "uqrl-sound-unlocked";
-const SOUND_HINT_TEXT = "tap to enable sound";
 
 const TAB_ORDER = ["home", "about", "contact", "sponsors", "committee"];
 
@@ -303,7 +300,7 @@ async function loadSiteContent() {
 }
 
 const SPONSOR_IMAGE_POS = { x: 0, y: 5, z: -20 };
-const ABOUT_IMAGE_POS = { x: 0, y: 0, z: -25 };
+const ABOUT_IMAGE_POS = { x: 0, y: 0, z: -18.75 };
 
 // UQRL model thing
 const MODEL_SCALE = 0.10;
@@ -464,11 +461,8 @@ let hoveredSocialCube = null;
 let socialHoverKey = "";
 let audioContext = null;
 let activeSound = null;
-let audioUnlocked = localStorage.getItem(SOUND_UNLOCK_KEY) === "1";
-let audioMuted = localStorage.getItem(SOUND_PREF_KEY) === "1";
-let soundHintVisible = false;
-const soundHint = document.querySelector("#sound-hint");
-const soundToggle = document.querySelector("#sound-toggle");
+let audioUnlocked = false;
+let logoFallbackTexture = null;
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -498,6 +492,52 @@ function clamp01(value) {
   return Math.min(Math.max(value, 0), 1);
 }
 
+function createLogoFallbackTexture() {
+  if (logoFallbackTexture) return logoFallbackTexture;
+
+  const size = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#10131b";
+  ctx.fillRect(0, 0, size, size);
+
+  const gradient = ctx.createLinearGradient(0, 0, size, size);
+  gradient.addColorStop(0, "#f6e7c5");
+  gradient.addColorStop(0.45, "#ff5757");
+  gradient.addColorStop(1, "#10131b");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = "rgba(16, 19, 27, 0.82)";
+  for (let i = -size; i < size * 2; i += 42) {
+    ctx.save();
+    ctx.translate(i, 0);
+    ctx.rotate(-Math.PI / 6);
+    ctx.fillRect(0, 0, 18, size * 2);
+    ctx.restore();
+  }
+
+  ctx.fillStyle = "#f6e7c5";
+  ctx.font = "700 120px Pixelify Sans, system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("UQ", size / 2, size / 2 - 24);
+  ctx.font = "700 54px Pixelify Sans, system-ui, sans-serif";
+  ctx.fillText("Reality Labs", size / 2, size / 2 + 62);
+
+  logoFallbackTexture = new THREE.CanvasTexture(canvas);
+  logoFallbackTexture.colorSpace = THREE.SRGBColorSpace;
+  logoFallbackTexture.flipY = false;
+  logoFallbackTexture.minFilter = THREE.LinearMipmapLinearFilter;
+  logoFallbackTexture.magFilter = THREE.LinearFilter;
+  logoFallbackTexture.generateMipmaps = true;
+  logoFallbackTexture.needsUpdate = true;
+  return logoFallbackTexture;
+}
+
 function hashString(value = "") {
   let hash = 0;
 
@@ -507,43 +547,6 @@ function hashString(value = "") {
   }
 
   return Math.abs(hash);
-}
-
-function updateSoundUI() {
-  if (soundToggle) {
-    soundToggle.dataset.muted = audioMuted ? "true" : "false";
-    soundToggle.setAttribute("aria-pressed", audioMuted ? "true" : "false");
-    soundToggle.setAttribute("aria-label", audioMuted ? "Enable sound" : "Mute sound");
-  }
-
-  if (soundHint) {
-    soundHint.hidden = !soundHintVisible;
-  }
-
-  document.body.dataset.audioMuted = audioMuted ? "true" : "false";
-}
-
-function showSoundHint() {
-  soundHintVisible = true;
-  if (soundHint) {
-    soundHint.textContent = SOUND_HINT_TEXT;
-  }
-  updateSoundUI();
-}
-
-function hideSoundHint() {
-  soundHintVisible = false;
-  updateSoundUI();
-}
-
-function setAudioMuted(muted) {
-  audioMuted = muted;
-  localStorage.setItem(SOUND_PREF_KEY, muted ? "1" : "0");
-  if (muted) {
-    stopActiveSound(true);
-    hideSoundHint();
-  }
-  updateSoundUI();
 }
 
 function ensureAudioContext() {
@@ -561,12 +564,7 @@ function unlockAudio() {
     const context = ensureAudioContext();
     context.resume().catch(() => {});
     audioUnlocked = true;
-    localStorage.setItem(SOUND_UNLOCK_KEY, "1");
-    hideSoundHint();
-    updateSoundUI();
-  } catch {
-    showSoundHint();
-  }
+  } catch {}
 }
 
 function stopActiveSound(immediate = false) {
@@ -621,11 +619,8 @@ function stopActiveSound(immediate = false) {
 }
 
 function playMusicCue(music, key = "") {
-  if (!music || audioMuted) return;
-  if (!audioUnlocked) {
-    showSoundHint();
-    return;
-  }
+  if (!music) return;
+  if (!audioUnlocked) return;
   if (prefersReducedMotion.matches) return;
 
   const context = ensureAudioContext();
@@ -695,17 +690,6 @@ function setupAudioUnlock() {
   unlockEvents.forEach((eventName) => {
     window.addEventListener(eventName, unlockAudio, { capture: true });
   });
-
-  soundToggle?.addEventListener("click", () => {
-    unlockAudio();
-    const nextMuted = !audioMuted;
-    setAudioMuted(nextMuted);
-    if (!nextMuted) {
-      hideSoundHint();
-    }
-  });
-
-  updateSoundUI();
 }
 
 function isCompactViewport() {
@@ -833,8 +817,8 @@ function getViewportLayout() {
     textMaxWidth: narrow ? 12 : compact ? 18 : tablet ? 30 : wide ? 40 : 36,
     sponsorImageHeight: compact ? 3.5 : SPONSOR_IMAGE_HEIGHT,
     sponsorImageY: compact ? -0.8 : SPONSOR_IMAGE_POS.y + SPONSOR_IMAGE_Y_OFFSET,
-    aboutImageHeight: narrow ? 3.6 : compact ? 4 : ABOUT_IMAGE_HEIGHT,
-    aboutImageY: narrow ? -1.75 : compact ? -2.05 : ABOUT_IMAGE_POS.y + ABOUT_IMAGE_Y_OFFSET,
+    aboutImageHeight: narrow ? 3.2 : compact ? 3.65 : ABOUT_IMAGE_HEIGHT,
+    aboutImageY: narrow ? -2.15 : compact ? -2.35 : ABOUT_IMAGE_POS.y + ABOUT_IMAGE_Y_OFFSET,
     socialCubeSpacing: narrow ? 3.2 : compact ? 3.55 : SOCIAL_CUBE_SPACING,
     socialCubeY: compact ? -0.15 : SOCIAL_CUBE_BASE.y,
     socialCardWidth: narrow ? 2.75 : compact ? 3.05 : 3.25,
@@ -1085,12 +1069,15 @@ function createRoundedIconMaterial(texture) {
     alphaMap: getRoundedAlphaTexture(),
     alphaTest: 0.02,
     transparent: true,
-    roughness: 0.48,
+    roughness: 0.58,
     metalness: 0.02,
-    clearcoat: 0.42,
-    clearcoatRoughness: 0.18,
-    emissive: 0x111722,
-    emissiveIntensity: 0.08,
+    clearcoat: 0.26,
+    clearcoatRoughness: 0.3,
+    sheen: 0.34,
+    sheenColor: new THREE.Color(0xf5e6d2),
+    sheenRoughness: 0.78,
+    emissive: 0x0f1420,
+    emissiveIntensity: 0.05,
     side: THREE.DoubleSide,
   });
 }
@@ -1098,21 +1085,24 @@ function createRoundedIconMaterial(texture) {
 function createSocialCardMaterials(texture) {
   const faceMaterial = createRoundedIconMaterial(texture);
   const sheetMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0x151a26,
-    roughness: 0.62,
+    color: 0x191f2d,
+    roughness: 0.7,
     metalness: 0.01,
-    clearcoat: 0.24,
-    clearcoatRoughness: 0.36,
+    clearcoat: 0.14,
+    clearcoatRoughness: 0.46,
+    sheen: 0.22,
+    sheenColor: new THREE.Color(0xfff4df),
+    sheenRoughness: 0.92,
     emissive: 0x05070d,
-    emissiveIntensity: 0.06,
+    emissiveIntensity: 0.04,
     side: THREE.DoubleSide,
   });
   const topMaterial = sheetMaterial.clone();
-  topMaterial.color.set(0x1c2230);
+  topMaterial.color.set(0x202638);
   const bottomMaterial = sheetMaterial.clone();
-  bottomMaterial.color.set(0x101521);
+  bottomMaterial.color.set(0x0f141e);
   const backMaterial = sheetMaterial.clone();
-  backMaterial.color.set(0x161b28);
+  backMaterial.color.set(0x171d2a);
 
   return [
     sheetMaterial,
@@ -1492,7 +1482,7 @@ function openMemberPopup(index, originObject = null) {
 
   memberPopupImage.src = member.image;
   memberPopupImage.srcset = member.photoWidth ? `${member.image} ${member.photoWidth}w` : "";
-  memberPopupImage.sizes = "(max-width: 860px) min(64vw, 13rem), 9rem";
+  memberPopupImage.sizes = "(max-width: 860px) min(46vw, 9rem), 8rem";
   memberPopupImage.width = member.photoWidth || 900;
   memberPopupImage.height = member.photoHeight || member.photoWidth || 900;
   memberPopupImage.style.objectPosition = member.photoFocus || "50% 50%";
@@ -1963,6 +1953,7 @@ function createAboutJoinImage() {
     ABOUT_IMAGE_POS.y + ABOUT_IMAGE_Y_OFFSET,
     ABOUT_IMAGE_POS.z
   );
+  mesh.renderOrder = 6;
   mesh.userData.url = JOIN_LINK;
   mesh.visible = false;
   scene.add(mesh);
@@ -2671,6 +2662,7 @@ function stopSocialCubeGrow(cube) {
   }
 
   gsap.killTweensOf(cube.position, "z");
+  gsap.killTweensOf(cube.rotation);
 }
 
 function setSocialCubeHovered(cube, hovered) {
@@ -2689,6 +2681,11 @@ function setSocialCubeHovered(cube, hovered) {
       duration: 0.18,
       ease: "power2.out",
     });
+    gsap.to(cube.rotation, {
+      z: cube.userData.socialIndex % 2 === 0 ? 0.04 : -0.04,
+      duration: 0.18,
+      ease: "power2.out",
+    });
   } else {
     gsap.to(cube.scale, {
       x: SOCIAL_CUBE_SCALE_MIN,
@@ -2700,6 +2697,11 @@ function setSocialCubeHovered(cube, hovered) {
     gsap.to(cube.position, {
       z: SOCIAL_CUBE_BASE.z,
       duration: 0.22,
+      ease: "power2.out",
+    });
+    gsap.to(cube.rotation, {
+      z: 0,
+      duration: 0.2,
       ease: "power2.out",
     });
   }
@@ -2732,6 +2734,7 @@ function resetSocialCubeTransform(cube) {
     cube.userData.baseY,
     SOCIAL_CUBE_BASE.z
   );
+  cube.rotation.set(0, 0, 0);
 }
 
 function stopSocialCubeAnimations() {
@@ -3095,10 +3098,15 @@ function restoreLogoBoxMaterials(root, logoTexture) {
 
 async function loadSceneModel() {
   try {
-    const [gltf, logoTexture] = await Promise.all([
-      loader.loadAsync(MODEL_PATH),
-      textureLoader.loadAsync(LABS_LOGO_PATH),
-    ]);
+    const gltf = await loader.loadAsync(MODEL_PATH);
+    let logoTexture;
+
+    try {
+      logoTexture = await textureLoader.loadAsync(LABS_LOGO_PATH);
+    } catch (textureError) {
+      console.warn("Logo texture fallback:", textureError);
+      logoTexture = createLogoFallbackTexture();
+    }
 
     modelGroup = new THREE.Group();
 

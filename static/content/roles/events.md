@@ -9,12 +9,12 @@
   "pathVariant": "route-hop",
   "order": 5,
   "music": {
-    "label": "route hop",
-    "source": "synth",
-    "url": "",
+    "label": "coffin dance",
+    "source": "youtube",
+    "url": "https://www.youtube.com/watch?v=j9V78UbdzWI",
     "volume": 0.3,
     "start": 0,
-    "duration": 3.7
+    "duration": 5
   },
   "members": [
     {

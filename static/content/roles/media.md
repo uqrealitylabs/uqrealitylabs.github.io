@@ -9,12 +9,12 @@
   "pathVariant": "spiral-pop",
   "order": 4,
   "music": {
-    "label": "sparkle pop",
-    "source": "synth",
-    "url": "",
+    "label": "nyan cat",
+    "source": "youtube",
+    "url": "https://www.youtube.com/watch?v=QH2-TGUlwu4",
     "volume": 0.3,
     "start": 0,
-    "duration": 3.4
+    "duration": 5
   },
   "members": [
     {

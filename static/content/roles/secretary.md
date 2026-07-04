@@ -9,12 +9,12 @@
   "pathVariant": "loop-buzz",
   "order": 2,
   "music": {
-    "label": "paperclip bop",
-    "source": "synth",
-    "url": "",
-    "volume": 0.31,
+    "label": "never gonna give you up",
+    "source": "youtube",
+    "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "volume": 0.3,
     "start": 0,
-    "duration": 3.8
+    "duration": 5
   },
   "members": [
     {

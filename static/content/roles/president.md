@@ -9,12 +9,12 @@
   "pathVariant": "steady-loop",
   "order": 1,
   "music": {
-    "label": "tiny crown loop",
-    "source": "synth",
-    "url": "",
-    "volume": 0.34,
+    "label": "gangnam style",
+    "source": "youtube",
+    "url": "https://www.youtube.com/watch?v=9bZkp7q19f0",
+    "volume": 0.3,
     "start": 0,
-    "duration": 4.2
+    "duration": 5
   },
   "members": [
     {
