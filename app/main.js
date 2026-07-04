@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { gsap } from "gsap";
 import { Observer } from "gsap/all";
 import { Text } from "troika-three-text";
@@ -38,8 +39,8 @@ const DESCRIPTION_Y_OFFSET = -5;
 const DESCRIPTION_FONT_SIZE = 1.25;
 const COMPACT_VIEWPORT_WIDTH = 860;
 const SHORT_VIEWPORT_HEIGHT = 680;
-const POINTER_IDLE_MS = 900;
-const POINTER_DAMPING = 0.08;
+const POINTER_IDLE_MS = 1200;
+const POINTER_DAMPING = 0.12;
 const REDUCED_POINTER_DAMPING = 0.025;
 const CAMERA_ANCHOR_SECTION_INDEX = 0;
 
@@ -48,40 +49,15 @@ const TITLE_FONT = `${ASSET_BASE}Assets/fonts/Bitcount_Single/static/BitcountSin
 const DESCRIPTION_FONT = `${ASSET_BASE}Assets/fonts/Bitcount_Single/static/BitcountSingle_Roman-Regular.ttf`;
 const MODEL_PATH = `${ASSET_BASE}Assets/test-two.glb`;
 const LABS_LOGO_PATH = `${ASSET_BASE}Assets/images/labs_logo.png`;
+const SOCIAL_CONTENT_PATH = "content/tabs/socials.md";
+const SOUND_PREF_KEY = "uqrl-sound-muted";
+const SOUND_UNLOCK_KEY = "uqrl-sound-unlocked";
+const SOUND_HINT_TEXT = "tap to enable sound";
 
 const TAB_ORDER = ["home", "about", "contact", "sponsors", "committee"];
-const TAB_PARTIALS = import.meta.glob("./tabs/*.html", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-});
 
 function compactContentText(text = "") {
   return text.trim().replace(/[ \t]+\n/g, "\n").replace(/\n[ \t]+/g, "\n");
-}
-
-function readTabPartial(slug) {
-  const html = TAB_PARTIALS[`./tabs/${slug}.html`];
-  if (!html) throw new Error(`Missing tab partial: ${slug}`);
-
-  const template = document.createElement("template");
-  template.innerHTML = html.trim();
-  const section = template.content.querySelector("[data-tab]");
-  const links = Object.fromEntries(
-    [...template.content.querySelectorAll("[data-link]")].map((link) => [
-      link.dataset.link,
-      link.getAttribute("href"),
-    ])
-  );
-
-  return {
-    slug,
-    label: section?.dataset.label || slug,
-    shortLabel: section?.dataset.short || section?.dataset.label || slug,
-    title: compactContentText(section?.querySelector("h1")?.textContent || slug),
-    description: compactContentText(section?.querySelector("p")?.textContent || ""),
-    links,
-  };
 }
 
 function withBasePath(path = "") {
@@ -89,59 +65,120 @@ function withBasePath(path = "") {
   return `${ASSET_BASE}${path.replace(/^\/+/, "")}`;
 }
 
+function parseFrontmatterValue(value) {
+  const trimmed = value.trim();
+
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+
+  if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed);
+  return trimmed;
+}
+
+function parseScalarFrontmatter(raw) {
+  const data = {};
+
+  for (const line of raw.split(/\r?\n/)) {
+    const colon = line.indexOf(":");
+    if (colon === -1) continue;
+
+    data[line.slice(0, colon).trim()] = parseFrontmatterValue(line.slice(colon + 1));
+  }
+
+  return data;
+}
+
 function parseFrontmatter(markdown) {
   const match = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
   if (!match) return { data: {}, body: markdown.trim() };
 
-  const data = {};
-  for (const line of match[1].split(/\r?\n/)) {
-    const colon = line.indexOf(":");
-    if (colon === -1) continue;
-
-    const key = line.slice(0, colon).trim();
-    let value = line.slice(colon + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-    data[key] = key === "order" ? Number(value) : value;
-  }
+  const raw = match[1].trim();
+  const data = raw.startsWith("{") ? JSON.parse(raw) : parseScalarFrontmatter(raw);
 
   return { data, body: match[2].trim() };
+}
+
+async function readMarkdown(path) {
+  const response = await fetch(withBasePath(path));
+  if (!response.ok) throw new Error(`Missing markdown: ${path}`);
+
+  return parseFrontmatter(await response.text());
+}
+
+async function loadTab(slug) {
+  const { data, body } = await readMarkdown(`content/tabs/${slug}.md`);
+
+  return {
+    slug,
+    label: data.label || data.title || slug,
+    shortLabel: data.shortLabel || data.short || data.label || data.title || slug,
+    title: compactContentText(data.title || slug),
+    description: compactContentText(body || data.description || ""),
+    links: data.links || {},
+    slugline: data.slugline || "",
+    accentColor: data.accentColor || "#FF5757",
+    trailColor: data.trailColor || data.accentColor || "#FF5757",
+    pathVariant: data.pathVariant || "underline-swoop",
+    order: Number.isFinite(data.order) ? data.order : TAB_ORDER.indexOf(slug) + 1,
+  };
+}
+
+async function loadSocialContent() {
+  const { data } = await readMarkdown(SOCIAL_CONTENT_PATH);
+  const socials = Array.isArray(data.socials) ? data.socials : [];
+
+  return socials
+    .map((social, index) => ({
+      label: social.label,
+      url: social.url,
+      texture: withBasePath(social.texture),
+      accent: social.accent || social.accentColor || "#FF5757",
+      music: social.music || null,
+      order: Number.isFinite(social.order) ? social.order : index + 1,
+    }))
+    .sort((a, b) => a.order - b.order);
 }
 
 async function loadCommitteeRows() {
   const manifestResponse = await fetch(withBasePath("content/roles/index.json"));
   const manifest = await manifestResponse.json();
   const membersByRole = new Map();
+  const roleSlugs = manifest.roles || [...new Set((manifest.rows || []).flat())];
 
-  for (const role of manifest.roles || []) {
-    const members = await Promise.all(
-      (role.members || []).map(async (memberPath) => {
-        const response = await fetch(withBasePath(memberPath));
-        const { data, body } = parseFrontmatter(await response.text());
+  await Promise.all(
+    roleSlugs.map(async (slug) => {
+      const { data: role, body } = await readMarkdown(`content/roles/${slug}.md`);
+      const roleColor = role.accentColor || role.accentColors?.[0] || "#FF5757";
+      const roleMusic = role.music || null;
+      const members = (role.members || [])
+        .map((member) => ({
+          image: withBasePath(member.photo),
+          url: member.linkedin,
+          name: member.name,
+          title: member.role || role.role || role.label,
+          shortBio: member.shortBio,
+          body: member.bio || body,
+          slugline: role.slugline || role.microcopy || role.label || role.role,
+          microcopy: role.microcopy || role.slugline || role.label || role.role,
+          accentColor: member.accentColor || roleColor,
+          trailColor: role.trailColor || roleColor,
+          pathVariant: member.pathVariant || role.pathVariant || "underline-swoop",
+          music: member.music || roleMusic,
+          order: Number.isFinite(member.order) ? member.order : 0,
+          roleSlug: role.slug || slug,
+          photoFocus: member.photoFocus || "50% 50%",
+          photoWidth: member.photoWidth,
+          photoHeight: member.photoHeight,
+        }))
+        .sort((a, b) => a.order - b.order);
 
-        return {
-          image: withBasePath(data.photo),
-          url: data.linkedin,
-          name: data.name,
-          title: data.role || role.label,
-          shortBio: data.shortBio,
-          body,
-          slugline: data.slugline || data.microcopy || role.label,
-          microcopy: data.microcopy || data.slugline || role.label,
-          accentColor: data.accentColor || role.accentColors?.[0] || "#FF5757",
-          pathVariant: data.pathVariant || role.pathVariant || "underline-swoop",
-          order: Number.isFinite(data.order) ? data.order : 0,
-          roleSlug: role.slug,
-        };
-      })
-    );
-
-    membersByRole.set(role.slug, members.sort((a, b) => a.order - b.order));
-  }
+      membersByRole.set(slug, members);
+    })
+  );
 
   const rows = (manifest.rows || []).map((row) =>
     row.flatMap((roleSlug) => membersByRole.get(roleSlug) || [])
@@ -150,19 +187,19 @@ async function loadCommitteeRows() {
   return rows.filter((row) => row.length > 0);
 }
 
-const TABS = TAB_ORDER.map(readTabPartial);
-const SECTION_INDEX = Object.fromEntries(TABS.map((tab, index) => [tab.slug, index]));
-const ABOUT_SECTION_INDEX = SECTION_INDEX.about;
+let TABS = [];
+let SECTION_INDEX = {};
+let ABOUT_SECTION_INDEX = 0;
 const RUBRIC_IMAGE_PATH = `${ASSET_BASE}Assets/images/rubric.png`;
 const ABOUT_IMAGE_Y_OFFSET = -5;
 const ABOUT_IMAGE_HEIGHT = 5.2;
-const JOIN_LINK = TABS[ABOUT_SECTION_INDEX].links.join;
+let JOIN_LINK = "";
 const NUAXION_LOGO_PATH = `${ASSET_BASE}Assets/images/nuaxion_logo.avif`;
-const SPONSOR_SECTION_INDEX = SECTION_INDEX.sponsors;
+let SPONSOR_SECTION_INDEX = 0;
 const SPONSOR_IMAGE_Y_OFFSET = -5;
 const SPONSOR_IMAGE_HEIGHT = 4.2;
 
-const COMMITTEE_SECTION_INDEX = SECTION_INDEX.committee;
+let COMMITTEE_SECTION_INDEX = 0;
 const COMMITTEE_BASE_POSITION = { x: 0, y: 4, z: -25 };
 const COMMITTEE_IMAGE_HEIGHT = 5.6;
 const COMMITTEE_IMAGE_SPACING = 11.4;
@@ -176,8 +213,10 @@ const LINKEDIN_LINK = "https://www.linkedin.com/company/uq-reality-labs";
 const DISCORD_LINK = "https://discord.com/invite/eN6v8R3fYD";
 const EMAIL_LINK = "mailto:uqrealitylabs@gmail.com";
 
-const CONTACT_SECTION_INDEX = SECTION_INDEX.contact;
+let CONTACT_SECTION_INDEX = 0;
 const SOCIAL_CUBE_SPACING = 6;
+const SOCIAL_CUBE_RADIUS = 0.18;
+const SOCIAL_CUBE_SEGMENTS = 4;
 const SOCIAL_CUBE_BASE = {
   x: 0,
   y: 4 + DESCRIPTION_Y_OFFSET,
@@ -195,46 +234,11 @@ const SOCIAL_CUBE_EXIT_DURATION = 0.5;
 const SOCIAL_CUBE_EXIT_EASE = "power3.in";
 const SOCIAL_CUBE_EXIT_OFFSET = 35;
 const SOCIAL_CARD_DEPTH = 0.42;
-
-const SOCIAL_CUBES = [
-  {
-    texture: `${ASSET_BASE}Assets/images/linkedin.png`,
-    url: LINKEDIN_LINK,
-    label: "LinkedIn",
-    accent: "#0A66C2",
-    xOffset: -SOCIAL_CUBE_SPACING * 1.5,
-  },
-  {
-    texture: `${ASSET_BASE}Assets/images/instagram.jpg`,
-    url: INSTAGRAM_LINK,
-    label: "Instagram",
-    accent: "#E1306C",
-    xOffset: -SOCIAL_CUBE_SPACING * 0.5,
-  },
-  {
-    texture: `${ASSET_BASE}Assets/images/discord.jpg`,
-    url: DISCORD_LINK,
-    label: "Discord",
-    accent: "#5865F2",
-    xOffset: SOCIAL_CUBE_SPACING * 0.5,
-  },
-  {
-    texture: `${ASSET_BASE}Assets/images/email.jpg`,
-    url: EMAIL_LINK,
-    label: "Email",
-    accent: "#F59E0B",
-    xOffset: SOCIAL_CUBE_SPACING * 1.5,
-  },
-];
+let SOCIAL_CUBES = [];
 
 
 // scroll down moves to the next section (model shifts down on Y)
-const MODEL_SECTIONS = TABS.map((tab, index) => ({
-  x: 0,
-  y: -SECTION_Y_STEP * index,
-  z: -20,
-  label: tab.label,
-}));
+let MODEL_SECTIONS = [];
 
 // these are relative to the camera
 const TEXT_LAYOUTS = [
@@ -253,15 +257,8 @@ const DESCRIPTION_LAYOUTS = [
   { x: -15, y: 13 + DESCRIPTION_Y_OFFSET, z: -20 },
 ];
 
-const TEXT_SECTIONS = TABS.map((tab, index) => ({
-  ...TEXT_LAYOUTS[index],
-  text: tab.title,
-}));
-
-const DESCRIPTION_SECTIONS = TABS.map((tab, index) => ({
-  ...DESCRIPTION_LAYOUTS[index],
-  text: tab.description,
-}));
+let TEXT_SECTIONS = [];
+let DESCRIPTION_SECTIONS = [];
 
 const COMPACT_TEXT_LAYOUTS = [
   { x: 0, y: 9.2, z: -18, textAlign: "center", anchorX: "center" },
@@ -278,6 +275,32 @@ const COMPACT_DESCRIPTION_LAYOUTS = [
   { x: 0, y: 5.6, z: -18, textAlign: "center", anchorX: "center" },
   { x: 0, y: 5.6, z: -18, textAlign: "center", anchorX: "center" },
 ];
+
+async function loadSiteContent() {
+  TABS = await Promise.all(TAB_ORDER.map(loadTab));
+  SECTION_INDEX = Object.fromEntries(TABS.map((tab, index) => [tab.slug, index]));
+  ABOUT_SECTION_INDEX = SECTION_INDEX.about;
+  JOIN_LINK = TABS[ABOUT_SECTION_INDEX].links.join;
+  SPONSOR_SECTION_INDEX = SECTION_INDEX.sponsors;
+  COMMITTEE_SECTION_INDEX = SECTION_INDEX.committee;
+  CONTACT_SECTION_INDEX = SECTION_INDEX.contact;
+  MODEL_SECTIONS = TABS.map((tab, index) => ({
+    x: 0,
+    y: -SECTION_Y_STEP * index,
+    z: -20,
+    label: tab.label,
+  }));
+  TEXT_SECTIONS = TABS.map((tab, index) => ({
+    ...TEXT_LAYOUTS[index],
+    text: tab.title,
+  }));
+  DESCRIPTION_SECTIONS = TABS.map((tab, index) => ({
+    ...DESCRIPTION_LAYOUTS[index],
+    text: tab.description,
+  }));
+
+  SOCIAL_CUBES = await loadSocialContent();
+}
 
 const SPONSOR_IMAGE_POS = { x: 0, y: 5, z: -20 };
 const ABOUT_IMAGE_POS = { x: 0, y: 0, z: -25 };
@@ -305,15 +328,7 @@ const statusLabel = document.querySelector("#status");
 const navbar = document.querySelector("#navbar");
 const navLogoImage = document.querySelector("#nav-logo-img");
 const navLinks = document.querySelector("#nav-links");
-
-if (navLinks) {
-  navLinks.innerHTML = TABS.map(
-    (tab, index) =>
-      `<button type="button" data-section="${index}" data-short="${tab.shortLabel}"><span>${tab.label}</span></button>`
-  ).join("");
-}
-
-const navSectionButtons = document.querySelectorAll("#navbar [data-section]");
+let navSectionButtons = [];
 const memberPopup = document.querySelector("#member-popup");
 const memberPopupCard = document.querySelector(".member-popup__card");
 const memberPopupImage = document.querySelector("#member-popup-image");
@@ -406,11 +421,11 @@ if (ENABLE_ORBIT_CONTROLS) {
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x2a2f45, 0.95);
 scene.add(hemiLight);
 
-const keyLight = new THREE.DirectionalLight(0xffffff, 1.25);
+const keyLight = new THREE.DirectionalLight(0xffffff, 1.45);
 scene.add(keyLight);
 scene.add(keyLight.target);
 
-const fillLight = new THREE.DirectionalLight(0xbfd2ff, 0.55);
+const fillLight = new THREE.DirectionalLight(0xbfd2ff, 0.62);
 scene.add(fillLight);
 scene.add(fillLight.target);
 
@@ -445,6 +460,15 @@ let beeStateTimer = 0;
 let committeeMembers = [];
 let hoveredCommitteeImage = null;
 let cachedViewportLayout = null;
+let hoveredSocialCube = null;
+let socialHoverKey = "";
+let audioContext = null;
+let activeSound = null;
+let audioUnlocked = localStorage.getItem(SOUND_UNLOCK_KEY) === "1";
+let audioMuted = localStorage.getItem(SOUND_PREF_KEY) === "1";
+let soundHintVisible = false;
+const soundHint = document.querySelector("#sound-hint");
+const soundToggle = document.querySelector("#sound-toggle");
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -470,8 +494,222 @@ function motionDuration(seconds) {
   return prefersReducedMotion.matches ? 0 : seconds;
 }
 
+function clamp01(value) {
+  return Math.min(Math.max(value, 0), 1);
+}
+
+function hashString(value = "") {
+  let hash = 0;
+
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(i);
+    hash |= 0;
+  }
+
+  return Math.abs(hash);
+}
+
+function updateSoundUI() {
+  if (soundToggle) {
+    soundToggle.dataset.muted = audioMuted ? "true" : "false";
+    soundToggle.setAttribute("aria-pressed", audioMuted ? "true" : "false");
+    soundToggle.setAttribute("aria-label", audioMuted ? "Enable sound" : "Mute sound");
+  }
+
+  if (soundHint) {
+    soundHint.hidden = !soundHintVisible;
+  }
+
+  document.body.dataset.audioMuted = audioMuted ? "true" : "false";
+}
+
+function showSoundHint() {
+  soundHintVisible = true;
+  if (soundHint) {
+    soundHint.textContent = SOUND_HINT_TEXT;
+  }
+  updateSoundUI();
+}
+
+function hideSoundHint() {
+  soundHintVisible = false;
+  updateSoundUI();
+}
+
+function setAudioMuted(muted) {
+  audioMuted = muted;
+  localStorage.setItem(SOUND_PREF_KEY, muted ? "1" : "0");
+  if (muted) {
+    stopActiveSound(true);
+    hideSoundHint();
+  }
+  updateSoundUI();
+}
+
+function ensureAudioContext() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  return audioContext;
+}
+
+function unlockAudio() {
+  if (audioUnlocked) return;
+
+  try {
+    const context = ensureAudioContext();
+    context.resume().catch(() => {});
+    audioUnlocked = true;
+    localStorage.setItem(SOUND_UNLOCK_KEY, "1");
+    hideSoundHint();
+    updateSoundUI();
+  } catch {
+    showSoundHint();
+  }
+}
+
+function stopActiveSound(immediate = false) {
+  if (!activeSound) return;
+
+  const { gain, nodes, cleanupTimer } = activeSound;
+  window.clearTimeout(cleanupTimer);
+
+  if (immediate) {
+    try {
+      gain.gain.cancelScheduledValues(audioContext?.currentTime || 0);
+      gain.gain.value = 0;
+    } catch {}
+    nodes.forEach((node) => {
+      try {
+        node.stop();
+      } catch {}
+      try {
+        node.disconnect();
+      } catch {}
+    });
+    try {
+      gain.disconnect();
+    } catch {}
+    activeSound = null;
+    return;
+  }
+
+  const context = audioContext;
+  const now = context?.currentTime || 0;
+
+  try {
+    gain.gain.cancelScheduledValues(now);
+    gain.gain.setValueAtTime(gain.gain.value || 0.0001, now);
+    gain.gain.linearRampToValueAtTime(0.0001, now + 0.09);
+  } catch {}
+
+  activeSound.cleanupTimer = window.setTimeout(() => {
+    nodes.forEach((node) => {
+      try {
+        node.stop();
+      } catch {}
+      try {
+        node.disconnect();
+      } catch {}
+    });
+    try {
+      gain.disconnect();
+    } catch {}
+    activeSound = null;
+  }, 120);
+}
+
+function playMusicCue(music, key = "") {
+  if (!music || audioMuted) return;
+  if (!audioUnlocked) {
+    showSoundHint();
+    return;
+  }
+  if (prefersReducedMotion.matches) return;
+
+  const context = ensureAudioContext();
+  if (!context) return;
+
+  if (context.state === "suspended") {
+    context.resume().catch(() => {});
+  }
+
+  if (activeSound?.key === key) return;
+  stopActiveSound(false);
+
+  const seed = hashString(`${music.label || ""}|${music.url || ""}|${key}`);
+  const baseFrequency = 164 + (seed % 6) * 18;
+  const scale = music.source === "youtube" ? [0, 5, 7, 12] : [0, 3, 7, 10];
+  const noteCount = Math.max(3, Math.min(4, scale.length));
+  const noteLength = Math.max(0.08, ((music.duration || 2.4) / (noteCount + 1)) * 0.5);
+  const gap = Math.max(0.06, noteLength * 0.75);
+  const gain = context.createGain();
+  const filter = context.createBiquadFilter();
+  const nodes = [];
+  const now = context.currentTime + 0.01;
+
+  filter.type = music.source === "youtube" ? "lowpass" : "bandpass";
+  filter.frequency.setValueAtTime(900 + (seed % 5) * 120, now);
+  filter.Q.setValueAtTime(0.8 + (seed % 3) * 0.18, now);
+
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.linearRampToValueAtTime(clamp01(music.volume || 0.3), now + 0.04);
+  gain.connect(filter);
+  filter.connect(context.destination);
+
+  const timbre = music.source === "youtube" ? "triangle" : seed % 2 === 0 ? "sine" : "triangle";
+
+  for (let i = 0; i < noteCount; i += 1) {
+    const oscillator = context.createOscillator();
+    const noteGain = context.createGain();
+    const octave = i === noteCount - 1 ? 12 : 0;
+    const note = scale[i % scale.length] + octave;
+    const frequency = baseFrequency * 2 ** (note / 12);
+    const startAt = now + i * gap;
+    const stopAt = startAt + noteLength;
+
+    oscillator.type = timbre;
+    oscillator.frequency.setValueAtTime(frequency, startAt);
+    oscillator.detune.setValueAtTime(((seed >> (i * 3)) % 9) - 4, startAt);
+    noteGain.gain.setValueAtTime(0.0001, startAt);
+    noteGain.gain.linearRampToValueAtTime(1, startAt + 0.02);
+    noteGain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
+    oscillator.connect(noteGain);
+    noteGain.connect(gain);
+    oscillator.start(startAt);
+    oscillator.stop(stopAt + 0.04);
+    nodes.push(oscillator, noteGain);
+  }
+
+  activeSound = {
+    key,
+    gain,
+    nodes,
+    cleanupTimer: 0,
+  };
+}
+
+function setupAudioUnlock() {
+  const unlockEvents = ["pointerdown", "touchstart", "keydown"];
+  unlockEvents.forEach((eventName) => {
+    window.addEventListener(eventName, unlockAudio, { capture: true });
+  });
+
+  soundToggle?.addEventListener("click", () => {
+    unlockAudio();
+    const nextMuted = !audioMuted;
+    setAudioMuted(nextMuted);
+    if (!nextMuted) {
+      hideSoundHint();
+    }
+  });
+
+  updateSoundUI();
+}
+
 function isCompactViewport() {
-  return viewportWidth <= COMPACT_VIEWPORT_WIDTH;
+  return viewportWidth <= COMPACT_VIEWPORT_WIDTH || viewportHeight <= 480;
 }
 
 function isShortViewport() {
@@ -480,7 +718,7 @@ function isShortViewport() {
 
 function getRenderPixelRatio() {
   const canvasPixels = viewportWidth * viewportHeight;
-  const maxRatio = canvasPixels <= 480_000 ? 2.5 : 2;
+  const maxRatio = canvasPixels <= 480_000 ? 3 : canvasPixels <= 1_100_000 ? 2.5 : 2;
 
   return Math.min(window.devicePixelRatio || 1, maxRatio);
 }
@@ -529,8 +767,8 @@ function applyPointerMotion() {
 
   const layout = getViewportLayout();
   const sectionPos = getCameraAnchorPos();
-  const parallaxX = reduced ? 0 : pointerCurrent.x * (layout.compact ? 0.16 : 0.34);
-  const parallaxY = reduced ? 0 : pointerCurrent.y * (layout.compact ? 0.12 : 0.22);
+  const parallaxX = reduced ? 0 : pointerCurrent.x * (layout.compact ? 0.24 : 0.48);
+  const parallaxY = reduced ? 0 : pointerCurrent.y * (layout.compact ? 0.18 : 0.3);
 
   camera.position.set(
     sectionPos.x - camLeftOffset + parallaxX,
@@ -545,13 +783,13 @@ function applyPointerMotion() {
   camera.lookAt(lookTarget);
 
   modelGroup.rotation.set(
-    THREE.MathUtils.degToRad(MODEL_ROTATION.x) + (reduced ? 0 : pointerCurrent.y * 0.045),
-    THREE.MathUtils.degToRad(MODEL_ROTATION.y) - (reduced ? 0 : pointerCurrent.x * 0.065),
+    THREE.MathUtils.degToRad(MODEL_ROTATION.x) - (reduced ? 0 : pointerCurrent.y * 0.075),
+    THREE.MathUtils.degToRad(MODEL_ROTATION.y) + (reduced ? 0 : pointerCurrent.x * 0.105),
     THREE.MathUtils.degToRad(MODEL_ROTATION.z)
   );
 
-  const tiltX = reduced ? 0 : -pointerCurrent.y * 0.075;
-  const tiltY = reduced ? 0 : pointerCurrent.x * 0.11;
+  const tiltX = reduced ? 0 : -pointerCurrent.y * 0.095;
+  const tiltY = reduced ? 0 : pointerCurrent.x * 0.14;
 
   for (const cube of socialCubes) {
     if (cube.visible) {
@@ -565,7 +803,7 @@ function applyPointerMotion() {
     }
   }
 
-  for (const mesh of [aboutJoinImage, sponsorImage]) {
+  for (const mesh of [aboutJoinImage]) {
     if (mesh?.visible) {
       mesh.rotation.set(tiltX * 0.5, tiltY * 0.5, mesh.userData.tiltZ || 0);
     }
@@ -588,36 +826,40 @@ function getViewportLayout() {
     tablet,
     landscape,
     wide,
-    cameraScale: narrow ? 1.32 : compact ? 1.22 : short ? 1.12 : wide ? 0.94 : 1,
+    cameraScale: narrow ? 1.18 : compact ? 1.12 : short ? 1.03 : wide ? 0.82 : 0.94,
     cameraYOffset: narrow ? 0.7 : compact ? 0.4 : 0,
-    titleFontSize: narrow ? 1.22 : compact ? 1.36 : short ? 1.55 : wide ? 2.15 : TEXT_FONT_SIZE,
-    descriptionFontSize: narrow ? 0.88 : compact ? 0.94 : short ? 1 : DESCRIPTION_FONT_SIZE,
-    textMaxWidth: narrow ? 18 : compact ? 22 : short ? 32 : wide ? 46 : TEXT_MAX_WIDTH,
-    sponsorImageHeight: compact ? 3.2 : SPONSOR_IMAGE_HEIGHT,
+    titleFontSize: narrow ? 1.34 : compact ? 1.46 : short ? 1.55 : wide ? 2.15 : TEXT_FONT_SIZE,
+    descriptionFontSize: narrow ? 0.98 : compact ? 1.04 : short ? 1 : DESCRIPTION_FONT_SIZE,
+    textMaxWidth: narrow ? 12 : compact ? 18 : tablet ? 30 : wide ? 40 : 36,
+    sponsorImageHeight: compact ? 3.5 : SPONSOR_IMAGE_HEIGHT,
     sponsorImageY: compact ? -0.8 : SPONSOR_IMAGE_POS.y + SPONSOR_IMAGE_Y_OFFSET,
-    aboutImageHeight: narrow ? 3.25 : compact ? 3.6 : ABOUT_IMAGE_HEIGHT,
+    aboutImageHeight: narrow ? 3.6 : compact ? 4 : ABOUT_IMAGE_HEIGHT,
     aboutImageY: narrow ? -1.75 : compact ? -2.05 : ABOUT_IMAGE_POS.y + ABOUT_IMAGE_Y_OFFSET,
-    socialCubeSpacing: narrow ? 2.9 : compact ? 3.2 : SOCIAL_CUBE_SPACING,
+    socialCubeSpacing: narrow ? 3.2 : compact ? 3.55 : SOCIAL_CUBE_SPACING,
     socialCubeY: compact ? -0.15 : SOCIAL_CUBE_BASE.y,
-    socialCardWidth: narrow ? 2.5 : compact ? 2.8 : 3.25,
-    socialCardHeight: narrow ? 2.5 : compact ? 2.8 : 3.25,
-    committeeImageHeight: narrow ? 2.8 : compact ? 2.75 : tablet ? 4.6 : wide ? 6.1 : COMMITTEE_IMAGE_HEIGHT,
-    committeeImageSpacing: narrow ? 3.85 : compact ? 4.65 : tablet ? 7.8 : wide ? 12.4 : COMMITTEE_IMAGE_SPACING,
-    committeeRowSpacing: narrow ? 4.35 : compact ? 4.15 : tablet ? 6.7 : wide ? 9.6 : COMMITTEE_ROW_SPACING,
+    socialCardWidth: narrow ? 2.75 : compact ? 3.05 : 3.25,
+    socialCardHeight: narrow ? 2.75 : compact ? 3.05 : 3.25,
+    committeeImageHeight: narrow ? 3 : compact ? 3.35 : tablet ? 4.8 : wide ? 6.3 : COMMITTEE_IMAGE_HEIGHT,
+    committeeImageSpacing: narrow ? 4.15 : compact ? 5.1 : tablet ? 8.1 : wide ? 12.9 : COMMITTEE_IMAGE_SPACING,
+    committeeRowSpacing: narrow ? 4.7 : compact ? 5 : tablet ? 6.9 : wide ? 9.8 : COMMITTEE_ROW_SPACING,
     committeeCaptionFontSize: narrow ? 0.65 : compact ? 0.7 : COMMITTEE_CAPTION_FONT_SIZE,
-    committeeBaseY: narrow ? 3.85 : compact ? 3.2 : COMMITTEE_BASE_POSITION.y,
-    committeeMobileRows: narrow ? [1, 2, 4] : null,
+    committeeBaseY: narrow ? 4.1 : compact ? 3.55 : COMMITTEE_BASE_POSITION.y,
+    committeeMobileRows: narrow ? [1, 2, 4] : compact ? [2, 2, 3] : null,
   };
 
   if (landscape) {
     cachedViewportLayout.titleFontSize = 1.08;
     cachedViewportLayout.descriptionFontSize = 0.78;
-    cachedViewportLayout.aboutImageHeight = 2.35;
-    cachedViewportLayout.sponsorImageHeight = 2.4;
-    cachedViewportLayout.socialCardWidth = 2.2;
-    cachedViewportLayout.socialCardHeight = 2.2;
-    cachedViewportLayout.committeeImageHeight = 1.85;
-    cachedViewportLayout.committeeCaptionFontSize = 0.6;
+    cachedViewportLayout.textMaxWidth = 16;
+    cachedViewportLayout.aboutImageHeight = 3.8;
+    cachedViewportLayout.sponsorImageHeight = 3;
+    cachedViewportLayout.socialCardWidth = 3;
+    cachedViewportLayout.socialCardHeight = 3;
+    cachedViewportLayout.committeeImageHeight = 3.7;
+    cachedViewportLayout.committeeImageSpacing = 5.35;
+    cachedViewportLayout.committeeRowSpacing = 4.8;
+    cachedViewportLayout.committeeCaptionFontSize = 0.62;
+    cachedViewportLayout.committeeMobileRows = [2, 2, 3];
   }
 
   return cachedViewportLayout;
@@ -652,8 +894,8 @@ function updatePointerFromEvent(event) {
   const rect = canvasRect.width ? canvasRect : canvas.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
 
-  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  mouse.x = THREE.MathUtils.clamp(((event.clientX - rect.left) / rect.width) * 2 - 1, -1, 1);
+  mouse.y = THREE.MathUtils.clamp(-((event.clientY - rect.top) / rect.height) * 2 + 1, -1, 1);
   pointerTarget.set(mouse.x, mouse.y);
   lastPointerAt = performance.now();
   parallaxActive = true;
@@ -799,7 +1041,7 @@ function createRoundedImageMaterial() {
 
 function polishTexture(texture) {
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  texture.anisotropy = Math.min(12, renderer.capabilities.getMaxAnisotropy());
   texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.magFilter = THREE.LinearFilter;
   texture.generateMipmaps = true;
@@ -807,16 +1049,25 @@ function polishTexture(texture) {
   return texture;
 }
 
-function coverSquareTexture(texture, aspect) {
+function parseTextureFocus(focus = "50% 50%") {
+  const [rawX = "50%", rawY = "50%"] = String(focus).split(/\s+/);
+  const read = (value) => THREE.MathUtils.clamp(Number.parseFloat(value) / 100, 0, 1);
+
+  return { x: read(rawX), y: read(rawY) };
+}
+
+function coverSquareTexture(texture, aspect, focus) {
+  const { x, y } = parseTextureFocus(focus);
+
   texture.wrapS = THREE.ClampToEdgeWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
 
   if (aspect > 1) {
     texture.repeat.set(1 / aspect, 1);
-    texture.offset.set((1 - texture.repeat.x) / 2, 0);
+    texture.offset.set(clamp(x - texture.repeat.x / 2, 0, 1 - texture.repeat.x), 0);
   } else {
     texture.repeat.set(1, aspect);
-    texture.offset.set(0, (1 - texture.repeat.y) / 2);
+    texture.offset.set(0, clamp(1 - y - texture.repeat.y / 2, 0, 1 - texture.repeat.y));
   }
 
   texture.needsUpdate = true;
@@ -829,36 +1080,45 @@ function createSocialTexture({ texture }) {
 function createRoundedIconMaterial(texture) {
   polishTexture(texture);
 
-  return new THREE.MeshStandardMaterial({
+  return new THREE.MeshPhysicalMaterial({
     map: texture,
     alphaMap: getRoundedAlphaTexture(),
     alphaTest: 0.02,
     transparent: true,
-    roughness: 0.72,
-    metalness: 0.04,
-    emissive: 0x111111,
-    emissiveIntensity: 0.18,
+    roughness: 0.48,
+    metalness: 0.02,
+    clearcoat: 0.42,
+    clearcoatRoughness: 0.18,
+    emissive: 0x111722,
+    emissiveIntensity: 0.08,
     side: THREE.DoubleSide,
   });
 }
 
 function createSocialCardMaterials(texture) {
   const faceMaterial = createRoundedIconMaterial(texture);
-  const edgeMaterial = new THREE.MeshStandardMaterial({
-    color: 0xff5757,
-    roughness: 0.82,
-    metalness: 0.03,
-    emissive: 0x210606,
-    emissiveIntensity: 0.18,
+  const sheetMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0x151a26,
+    roughness: 0.62,
+    metalness: 0.01,
+    clearcoat: 0.24,
+    clearcoatRoughness: 0.36,
+    emissive: 0x05070d,
+    emissiveIntensity: 0.06,
+    side: THREE.DoubleSide,
   });
-  const backMaterial = edgeMaterial.clone();
-  backMaterial.color.set(0x151823);
+  const topMaterial = sheetMaterial.clone();
+  topMaterial.color.set(0x1c2230);
+  const bottomMaterial = sheetMaterial.clone();
+  bottomMaterial.color.set(0x101521);
+  const backMaterial = sheetMaterial.clone();
+  backMaterial.color.set(0x161b28);
 
   return [
-    edgeMaterial,
-    edgeMaterial,
-    edgeMaterial,
-    edgeMaterial,
+    sheetMaterial,
+    sheetMaterial,
+    topMaterial,
+    bottomMaterial,
     faceMaterial,
     backMaterial,
   ];
@@ -1059,7 +1319,12 @@ function updateNavbarActive() {
 }
 
 function updateHudState() {
+  const tab = TABS[currentIndex];
+
   document.body.dataset.section = String(currentIndex);
+  document.body.dataset.contentVariant = tab?.pathVariant || "underline-swoop";
+  document.body.style.setProperty("--content-accent", tab?.accentColor || "#FF5757");
+  document.body.style.setProperty("--content-trail", tab?.trailColor || tab?.accentColor || "#FF5757");
   document.body.removeAttribute("data-trails-ready");
 
   if (currentIndex !== COMMITTEE_SECTION_INDEX) {
@@ -1067,14 +1332,18 @@ function updateHudState() {
   }
 }
 
-function restartChalkTrailMotion(selector = ".bee-trail animateMotion") {
+function restartChalkTrailMotion(selector = ".bee-trail") {
+  document.body.dataset.trailsReady = "true";
   if (prefersReducedMotion.matches) return;
 
   window.requestAnimationFrame(() => {
-    document.body.dataset.trailsReady = "true";
-    document
-      .querySelectorAll(selector)
-      .forEach((animation) => animation.beginElement?.());
+    document.querySelectorAll(selector).forEach((node) => {
+      const trail = node.closest?.(".bee-trail") || node;
+      trail.style.animation = "none";
+      trail.getBoundingClientRect();
+      trail.style.animation = "";
+      trail.querySelectorAll("animateMotion").forEach((animation) => animation.beginElement?.());
+    });
   });
 }
 
@@ -1222,6 +1491,11 @@ function openMemberPopup(index, originObject = null) {
       };
 
   memberPopupImage.src = member.image;
+  memberPopupImage.srcset = member.photoWidth ? `${member.image} ${member.photoWidth}w` : "";
+  memberPopupImage.sizes = "(max-width: 860px) min(64vw, 13rem), 9rem";
+  memberPopupImage.width = member.photoWidth || 900;
+  memberPopupImage.height = member.photoHeight || member.photoWidth || 900;
+  memberPopupImage.style.objectPosition = member.photoFocus || "50% 50%";
   memberPopupImage.alt = member.name;
   memberPopupTitle.textContent = member.name;
   memberPopupRole.textContent = member.title;
@@ -1229,10 +1503,12 @@ function openMemberPopup(index, originObject = null) {
   memberPopupLink.href = member.url;
   memberPopupCard?.style.setProperty("--member-accent", member.accentColor);
   memberPopupCard.dataset.microcopy = member.slugline || member.microcopy || member.title;
+  document.body.dataset.popupOpen = "true";
   currentPopupAnchorObject = originObject;
   memberPopup.classList.remove("is-open");
   memberPopup.hidden = false;
   positionMemberPopup(origin);
+  playMusicCue(member.music, `committee:${member.memberIndex}`);
 
   requestAnimationFrame(() => {
     refreshMemberPopupPosition();
@@ -1245,7 +1521,9 @@ function closeMemberPopup() {
   if (!memberPopup || memberPopup.hidden) return;
 
   memberPopup.classList.remove("is-open");
+  document.body.removeAttribute("data-popup-open");
   currentPopupAnchorObject = null;
+  stopActiveSound(false);
   window.setTimeout(() => {
     if (!memberPopup.classList.contains("is-open")) {
       memberPopup.hidden = true;
@@ -1323,6 +1601,15 @@ function goToSection(index) {
 }
 
 function setupNavbar() {
+  if (navLinks) {
+    navLinks.innerHTML = TABS.map(
+      (tab, index) =>
+        `<button type="button" data-section="${index}" data-short="${tab.shortLabel}"><span>${tab.label}</span></button>`
+    ).join("");
+  }
+
+  navSectionButtons = document.querySelectorAll("#navbar [data-section]");
+
   if (navLogoImage) {
     navLogoImage.src = LABS_LOGO_PATH;
   }
@@ -1775,9 +2062,9 @@ function setAboutJoinImageHovered(hovered) {
     document.body.dataset.beeState = "excited";
     document.body.dataset.contentHover = "join";
     gsap.to(aboutJoinImage.scale, {
-      x: 1.018,
-      y: 1.018,
-      z: 1.018,
+      x: 1.035,
+      y: 1.035,
+      z: 1.035,
       duration: motionDuration(0.12),
       ease: "back.out(2)",
     });
@@ -1789,13 +2076,18 @@ function setAboutJoinImageHovered(hovered) {
   } else {
     document.body.removeAttribute("data-content-hover");
     window.clearTimeout(beeStateTimer);
-    document.body.dataset.beeState = "sad";
-    restartChalkTrailMotion(".bee-trail--join-sad animateMotion");
     beeStateTimer = window.setTimeout(
       () => {
-        document.body.dataset.beeState = "idle";
+        document.body.dataset.beeState = "sad";
+        restartChalkTrailMotion(".bee-trail--join-sad");
+        beeStateTimer = window.setTimeout(
+          () => {
+            document.body.dataset.beeState = "idle";
+          },
+          prefersReducedMotion.matches ? 650 : 820
+        );
       },
-      prefersReducedMotion.matches ? 650 : 820
+      prefersReducedMotion.matches ? 0 : 90
     );
     aboutJoinImage.userData.tiltZ = 0;
     gsap.to(aboutJoinImage.scale, {
@@ -1944,6 +2236,9 @@ function createCommitteeMembers() {
         accentColor: config.accentColor,
         pathVariant: config.pathVariant,
         sourceImage: config.image,
+        photoFocus: config.photoFocus,
+        photoWidth: config.photoWidth,
+        photoHeight: config.photoHeight,
         rowIndex,
         colIndex,
         rowLength: row.length,
@@ -2005,7 +2300,7 @@ function loadCommitteeMemberTexture(member) {
         member.image.material.map = polishTexture(texture);
         member.image.material.needsUpdate = true;
         member.image.userData.aspect = texture.image.width / texture.image.height;
-        coverSquareTexture(texture, member.image.userData.aspect);
+        coverSquareTexture(texture, member.image.userData.aspect, member.photoFocus);
         applyCommitteeLayout();
         resolve();
       },
@@ -2130,6 +2425,12 @@ function setCommitteeImageHovered(image) {
       duration: motionDuration(0.16),
       ease: "power2.out",
     });
+    playMusicCue(
+      hoveredCommitteeImage.userData.music,
+      `committee:${hoveredCommitteeImage.userData.memberIndex}`
+    );
+  } else {
+    stopActiveSound(false);
   }
 }
 
@@ -2172,6 +2473,10 @@ function setupCommitteeInteraction() {
 
     if (intersects.length > 0) {
       lastMemberTrigger = canvas;
+      playMusicCue(
+        intersects[0].object.userData.music,
+        `committee:${intersects[0].object.userData.memberIndex}`
+      );
       openMemberPopup(intersects[0].object.userData.memberIndex, intersects[0].object);
     }
   });
@@ -2222,10 +2527,12 @@ function resizeSocialCard(card) {
   }
 
   card.geometry.dispose();
-  card.geometry = new THREE.BoxGeometry(
+  card.geometry = new RoundedBoxGeometry(
     layout.socialCardWidth,
     layout.socialCardHeight,
-    SOCIAL_CARD_DEPTH
+    SOCIAL_CARD_DEPTH,
+    SOCIAL_CUBE_SEGMENTS,
+    SOCIAL_CUBE_RADIUS
   );
   card.userData.width = layout.socialCardWidth;
   card.userData.height = layout.socialCardHeight;
@@ -2278,7 +2585,13 @@ function createSocialCubes() {
     const basePosition = getSocialCubeBasePosition(index);
     const layout = getViewportLayout();
     const cube = new THREE.Mesh(
-      new THREE.BoxGeometry(layout.socialCardWidth, layout.socialCardHeight, SOCIAL_CARD_DEPTH),
+      new RoundedBoxGeometry(
+        layout.socialCardWidth,
+        layout.socialCardHeight,
+        SOCIAL_CARD_DEPTH,
+        SOCIAL_CUBE_SEGMENTS,
+        SOCIAL_CUBE_RADIUS
+      ),
       createSocialCardMaterials(texture)
     );
     const caption = createSocialCaption(config.label);
@@ -2293,6 +2606,7 @@ function createSocialCubes() {
     cube.userData.baseX = cube.position.x;
     cube.userData.baseY = cube.position.y;
     cube.userData.hovered = false;
+    cube.userData.music = config.music || null;
     cube.userData.floatTween = null;
     cube.userData.growTween = null;
     cube.userData.entranceTween = null;
@@ -2364,9 +2678,9 @@ function setSocialCubeHovered(cube, hovered) {
 
   if (hovered) {
     cube.userData.growTween = gsap.to(cube.scale, {
-      x: SOCIAL_CUBE_SCALE_MAX,
-      y: SOCIAL_CUBE_SCALE_MAX,
-      z: SOCIAL_CUBE_SCALE_MAX,
+      x: SOCIAL_CUBE_SCALE_MAX + 0.01,
+      y: SOCIAL_CUBE_SCALE_MAX + 0.01,
+      z: SOCIAL_CUBE_SCALE_MAX - 0.01,
       duration: 0.18,
       ease: "power2.out",
     });
@@ -2434,11 +2748,15 @@ function stopSocialCubeAnimations() {
       SOCIAL_CUBE_SCALE_MIN
     );
   });
+  stopActiveSound(true);
 }
 
 function hideSocialCubes() {
   canvas.style.cursor = "default";
   document.body.removeAttribute("data-content-hover");
+  hoveredSocialCube = null;
+  socialHoverKey = "";
+  stopActiveSound(false);
 
   const visibleCubes = socialCubes.filter((cube) => cube.visible);
   if (visibleCubes.length === 0) {
@@ -2512,6 +2830,9 @@ function updateSocialCubeHover() {
   const intersects = raycaster.intersectObjects(visibleCubes);
   const hoveredCube = intersects[0]?.object ?? null;
   let pointerActive = false;
+  const hoveredKey = hoveredCube
+    ? `social:${hoveredCube.userData.socialIndex}:${hoveredCube.userData.url}`
+    : "";
 
   visibleCubes.forEach((cube) => {
     if (cube === hoveredCube) {
@@ -2526,6 +2847,16 @@ function updateSocialCubeHover() {
       resetSocialCubeHover(cube);
     }
   });
+
+  if (hoveredCube && hoveredKey !== socialHoverKey) {
+    socialHoverKey = hoveredKey;
+    hoveredSocialCube = hoveredCube;
+    playMusicCue(hoveredCube.userData.music, hoveredKey);
+  } else if (!hoveredCube && hoveredSocialCube) {
+    hoveredSocialCube = null;
+    socialHoverKey = "";
+    stopActiveSound(false);
+  }
 
   if (!pointerActive) {
     document.body.removeAttribute("data-content-hover");
@@ -2556,6 +2887,10 @@ function setupSocialCubeInteraction() {
 
     if (intersects.length > 0) {
       const url = intersects[0].object.userData.url;
+      playMusicCue(
+        intersects[0].object.userData.music,
+        `social:${intersects[0].object.userData.socialIndex}:${url}`
+      );
       window.open(url, "_blank", "noopener,noreferrer");
     }
   });
@@ -2724,50 +3059,79 @@ function animateModelEntrance(modelSize) {
   });
 }
 
-function loadSceneModel() {
-  loader.load(
-    MODEL_PATH,
-    (gltf) => {
-      modelGroup = new THREE.Group();
+function restoreLogoBoxMaterials(root, logoTexture) {
+  logoTexture.flipY = false;
+  polishTexture(logoTexture);
 
-      modelGroup.add(gltf.scene);
-      modelGroup.scale.setScalar(MODEL_SCALE);
-      scene.add(modelGroup);
+  const faceMaterial = new THREE.MeshPhysicalMaterial({
+    map: logoTexture,
+    color: 0xffffff,
+    roughness: 0.28,
+    metalness: 0.16,
+    clearcoat: 0.58,
+    clearcoatRoughness: 0.24,
+    emissive: 0x120404,
+    emissiveIntensity: 0.1,
+    side: THREE.DoubleSide,
+  });
+  const edgeMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0x151823,
+    roughness: 0.24,
+    metalness: 0.42,
+    clearcoat: 0.68,
+    clearcoatRoughness: 0.2,
+    emissive: 0x07090f,
+    emissiveIntensity: 0.08,
+    side: THREE.DoubleSide,
+  });
 
-      applyModelRotation();
+  root.traverse((child) => {
+    if (!child.isMesh) return;
 
-      const box = new THREE.Box3().setFromObject(modelGroup);
-      const size = box.getSize(new THREE.Vector3());
-      const maxSize = Math.max(size.x, size.y, size.z);
+    child.geometry.computeVertexNormals();
+    child.material = child.name === "Body1" ? edgeMaterial : faceMaterial;
+  });
+}
 
-      modelLookHeight = size.y * 0.35;
-      baseCamLeftOffset = maxSize * CAM_LEFT_FACTOR;
-      baseCamHeightOffset = maxSize * CAM_HEIGHT_FACTOR;
-      baseCameraZ = maxSize * CAM_DISTANCE_FACTOR;
-      camera.near = Math.max(maxSize / 100, 0.01);
-      camera.far = Math.max(maxSize * 100, CAM_FAR);
-      applyCameraLayout();
+async function loadSceneModel() {
+  try {
+    const [gltf, logoTexture] = await Promise.all([
+      loader.loadAsync(MODEL_PATH),
+      textureLoader.loadAsync(LABS_LOGO_PATH),
+    ]);
 
-      rainbowBackdrop = createRainbowBackdrop(maxSize);
+    modelGroup = new THREE.Group();
 
-      warmupSectionTexts().then(() => {
-        setCameraOnModel(getSectionPos(0));
-        animateModelEntrance(maxSize);
-        aimLightsAtModel();
-        updateStatus();
-        logModelPosition("Model (loaded)");
-      });
-    },
-    (xhr) => {
-      if (DEBUG && xhr.lengthComputable) {
-        const pct = ((xhr.loaded / xhr.total) * 100).toFixed(1);
-        debugLog(`Loading model: ${pct}%`);
-      }
-    },
-    (error) => {
-      console.error("Failed to load GLB:", error);
-    }
-  );
+    restoreLogoBoxMaterials(gltf.scene, logoTexture);
+    modelGroup.add(gltf.scene);
+    modelGroup.scale.setScalar(MODEL_SCALE);
+    scene.add(modelGroup);
+
+    applyModelRotation();
+
+    const box = new THREE.Box3().setFromObject(modelGroup);
+    const size = box.getSize(new THREE.Vector3());
+    const maxSize = Math.max(size.x, size.y, size.z);
+
+    modelLookHeight = size.y * 0.35;
+    baseCamLeftOffset = maxSize * CAM_LEFT_FACTOR;
+    baseCamHeightOffset = maxSize * CAM_HEIGHT_FACTOR;
+    baseCameraZ = maxSize * CAM_DISTANCE_FACTOR;
+    camera.near = Math.max(maxSize / 100, 0.01);
+    camera.far = Math.max(maxSize * 100, CAM_FAR);
+    applyCameraLayout();
+
+    rainbowBackdrop = createRainbowBackdrop(maxSize);
+
+    await warmupSectionTexts();
+    setCameraOnModel(getSectionPos(0));
+    animateModelEntrance(maxSize);
+    aimLightsAtModel();
+    updateStatus();
+    logModelPosition("Model (loaded)");
+  } catch (error) {
+    console.error("Failed to load GLB:", error);
+  }
 }
 
 let resizeFrame = 0;
@@ -2839,14 +3203,18 @@ function stopAnimationLoop() {
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     stopAnimationLoop();
+    stopActiveSound(true);
   } else {
     pointerDirty = true;
     startAnimationLoop();
   }
 });
 
-window.addEventListener("pagehide", () => {
+window.addEventListener("pagehide", (event) => {
+  if (event.persisted) return;
+
   stopAnimationLoop();
+  stopActiveSound(true);
   scrollObserver?.kill();
   resizeObserver?.disconnect();
 
@@ -2857,9 +3225,11 @@ window.addEventListener("pagehide", () => {
 });
 
 async function init() {
+  await loadSiteContent();
   COMMITTEE_ROWS = await loadCommitteeRows();
   setupScrollControl();
   setupKeyboardNavigation();
+  setupAudioUnlock();
   initSectionTexts();
   sponsorImage = createSponsorImage();
   aboutJoinImage = createAboutJoinImage();

@@ -1,72 +1,8 @@
 {
-  "_comment": "Committee content manifest. Roles and member Markdown files are listed in display order; rows preserve the current 3 + 4 layout.",
-  "groups": {
-    "t3": {
-      "label": "T3",
-      "roles": ["president", "secretary", "treasurer"],
-      "pathVariant": "loop-buzz",
-      "accentColors": ["#FF5757", "#F59E0B", "#38BDF8"]
-    },
-    "logistics": {
-      "label": "Logistics",
-      "roles": ["events", "workshop"],
-      "pathVariant": "ziggle",
-      "accentColors": ["#22C55E", "#84CC16"]
-    }
-  },
+  "_comment": "Committee row layout only; role/member data lives in roles/<role>.md.",
   "rows": [
     ["president", "secretary", "treasurer"],
     ["media", "events", "workshop", "industry"]
   ],
-  "roles": [
-    {
-      "slug": "president",
-      "label": "President",
-      "accentColors": ["#FF5757"],
-      "pathVariant": "underline-swoop",
-      "members": ["content/roles/president/cyrus-forudi.md"]
-    },
-    {
-      "slug": "secretary",
-      "label": "Secretary",
-      "accentColors": ["#F59E0B"],
-      "pathVariant": "loop-buzz",
-      "members": ["content/roles/secretary/navya.md"]
-    },
-    {
-      "slug": "treasurer",
-      "label": "Treasurer",
-      "accentColors": ["#38BDF8"],
-      "pathVariant": "hop-hop",
-      "members": ["content/roles/treasurer/amna.md"]
-    },
-    {
-      "slug": "media",
-      "label": "Media",
-      "accentColors": ["#A78BFA"],
-      "pathVariant": "spiral-pop",
-      "members": ["content/roles/media/chloe-lim.md"]
-    },
-    {
-      "slug": "events",
-      "label": "Events",
-      "accentColors": ["#22C55E"],
-      "pathVariant": "ziggle",
-      "members": ["content/roles/events/clare-johnston-koto.md"]
-    },
-    {
-      "slug": "workshop",
-      "label": "Workshop",
-      "accentColors": ["#84CC16"],
-      "pathVariant": "ziggle",
-      "members": ["content/roles/workshop/radhesh.md"]
-    },
-    {
-      "slug": "industry",
-      "label": "Industry",
-      "accentColors": ["#14B8A6"],
-      "pathVariant": "underline-swoop",
-      "members": ["content/roles/industry/doris-wei.md"]
-    }
-  ]
+  "roles": ["president", "secretary", "treasurer", "media", "events", "workshop", "industry"]
 }

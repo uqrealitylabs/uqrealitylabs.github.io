@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0f1118" />
     <title>UQ Reality Labs</title>
     <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -14,6 +14,17 @@
         <img id="nav-logo-img" src="" alt="UQ Reality Labs logo" />
       </a>
       <div id="nav-links" class="nav-links"></div>
+      <div class="nav-tools">
+        <button id="sound-toggle" class="nav-sound" type="button" aria-label="Enable sound" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path class="nav-sound__speaker" d="M5 10v4h4l5 4V6l-5 4H5z" />
+            <path class="nav-sound__wave nav-sound__wave--low" d="M16 9c1.1 1 1.7 2.2 1.7 3s-.6 2-1.7 3" />
+            <path class="nav-sound__wave nav-sound__wave--high" d="M18.3 6.7c1.8 1.5 2.7 3.2 2.7 5.3s-.9 3.8-2.7 5.3" />
+            <path class="nav-sound__slash" d="M4 4l16 16" />
+          </svg>
+        </button>
+        <span id="sound-hint" class="sound-hint" hidden>tap to enable sound</span>
+      </div>
     </nav>
     <canvas id="canvas" aria-label="Interactive UQ Reality Labs 3D scene"></canvas>
     <div id="chalk-layer" aria-hidden="true">
