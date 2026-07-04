@@ -37,13 +37,6 @@ const TEXT_HIDE_DURATION = 1;
 const DESCRIPTION_Y_OFFSET = -5;
 const DESCRIPTION_FONT_SIZE = 1.25;
 
-const MOBILE_BREAKPOINT = 768;
-const MOBILE_SCALE = 0.55;
-const MOBILE_TEXT_SCALE = 0.45;
-const MOBILE_TEXT_MAX_WIDTH = 12;
-const MOBILE_TEXT_X = 0;
-const MOBILE_DESCRIPTION_X = 0;
-
 const ASSET_BASE = import.meta.env.BASE_URL;
 //const TITLE_FONT = `${ASSET_BASE}Assets/fonts/PixelifySans/static/PixelifySans-Regular.ttf`;
 const TITLE_FONT = `${ASSET_BASE}Assets/fonts/Bitcount_Single/static/BitcountSingle_Roman-Medium.ttf`;
@@ -144,8 +137,6 @@ const COMMITTEE_ROWS = [
     },
   ],
 ];
-
-const COMMITTEE_MEMBERS = COMMITTEE_ROWS.flat();
 
 const INSTAGRAM_LINK = "https://www.instagram.com/uqrealitylabs/";
 const LINKEDIN_LINK = "https://www.linkedin.com/company/uq-reality-labs";
@@ -357,212 +348,11 @@ let socialCubes = [];
 let sponsorImage = null;
 let aboutJoinImage = null;
 let committeeMembers = [];
-let isMobileLayout = window.innerWidth <= MOBILE_BREAKPOINT;
-let layoutScale = isMobileLayout ? MOBILE_SCALE : 1;
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 let rainbowBackdrop = null;
 let rainbowHue = 0;
-
-
-function getCommitteeLayoutRows() {
-  if (isMobileLayout) {
-    const [cyrus, ...rest] = COMMITTEE_MEMBERS;
-    const rows = [[cyrus]];
-
-    for (let i = 0; i < rest.length; i += 2) {
-      rows.push(rest.slice(i, i + 2));
-    }
-
-    return rows;
-  }
-
-  return COMMITTEE_ROWS;
-}
-
-function getCommitteeMemberPosition(rowIndex, colIndex, rowLength) {
-  const spacing = COMMITTEE_IMAGE_SPACING * layoutScale;
-  const rowSpacing = COMMITTEE_ROW_SPACING * layoutScale;
-  const xOffset = (colIndex - (rowLength - 1) / 2) * spacing;
-  const y = COMMITTEE_BASE_POSITION.y - rowIndex * rowSpacing;
-
-  return {
-    x: COMMITTEE_BASE_POSITION.x + xOffset,
-    y,
-    z: COMMITTEE_BASE_POSITION.z,
-  };
-}
-
-function getSocialCubePosition(index) {
-  const spacing = SOCIAL_CUBE_SPACING * layoutScale;
-  const rowSpacing = SOCIAL_CUBE_SPACING * 0.75 * layoutScale;
-
-  if (isMobileLayout) {
-    const col = index % 2;
-    const row = Math.floor(index / 2);
-
-    return {
-      x: SOCIAL_CUBE_BASE.x + (col - 0.5) * spacing,
-      y: SOCIAL_CUBE_BASE.y - row * rowSpacing,
-      z: SOCIAL_CUBE_BASE.z,
-    };
-  }
-
-  const desktopOffsets = [-1.5, -0.5, 0.5, 1.5];
-
-  return {
-    x: SOCIAL_CUBE_BASE.x + desktopOffsets[index] * spacing,
-    y: SOCIAL_CUBE_BASE.y,
-    z: SOCIAL_CUBE_BASE.z,
-  };
-}
-
-function updatePlaneMeshSize(mesh, baseHeight, aspect) {
-  if (!mesh || !aspect) return;
-
-  const height = baseHeight * layoutScale;
-  const width = height * aspect;
-
-  mesh.geometry.dispose();
-  mesh.geometry = new THREE.PlaneGeometry(width, height);
-  mesh.userData.scaledHeight = height;
-}
-
-function updateTextMeshScale(textMesh) {
-  if (!textMesh?.userData.baseFontSize) return;
-
-  textMesh.fontSize =
-    textMesh.userData.baseFontSize *
-    (isMobileLayout ? MOBILE_TEXT_SCALE : 1);
-
-  if (textMesh.userData.baseMaxWidth) {
-    textMesh.maxWidth = isMobileLayout
-      ? MOBILE_TEXT_MAX_WIDTH
-      : textMesh.userData.baseMaxWidth;
-  }
-
-  textMesh.sync();
-}
-
-function updateTextMeshLayout(textMesh) {
-  if (!textMesh?.userData.basePosition) return;
-
-  const { x, y, z } = textMesh.userData.basePosition;
-
-  if (isMobileLayout) {
-    const mobileX = textMesh.userData.mobileX ?? MOBILE_TEXT_X;
-    textMesh.position.set(mobileX, y, z);
-    textMesh.anchorX = textMesh.userData.mobileAnchorX ?? "center";
-    textMesh.textAlign = textMesh.userData.mobileTextAlign ?? "center";
-  } else {
-    textMesh.position.set(x, y, z);
-    textMesh.anchorX = textMesh.userData.baseAnchorX;
-    textMesh.textAlign = textMesh.userData.baseTextAlign;
-  }
-
-  textMesh.sync();
-}
-
-function updateCommitteeMemberLayout(member) {
-  const rows = getCommitteeLayoutRows();
-  let memberRowIndex = -1;
-  let memberColIndex = -1;
-  let rowLength = 0;
-
-  rows.forEach((row, rowIndex) => {
-    row.forEach((config, colIndex) => {
-      if (config.url === member.url) {
-        memberRowIndex = rowIndex;
-        memberColIndex = colIndex;
-        rowLength = row.length;
-      }
-    });
-  });
-
-  if (memberRowIndex < 0) return;
-
-  const position = getCommitteeMemberPosition(
-    memberRowIndex,
-    memberColIndex,
-    rowLength
-  );
-  const imageHeight =
-    member.image.userData.scaledHeight ??
-    COMMITTEE_IMAGE_HEIGHT * layoutScale;
-
-  member.image.position.set(position.x, position.y, position.z);
-  member.caption.position.set(
-    position.x,
-    position.y - imageHeight / 2 - COMMITTEE_CAPTION_GAP * layoutScale,
-    position.z
-  );
-  member.caption.fontSize =
-    member.caption.userData.baseFontSize * layoutScale;
-  member.caption.sync();
-}
-
-function updateSocialCubeLayout(cube, index) {
-  const position = getSocialCubePosition(index);
-  const cubeSize = SOCIAL_CUBE_SIZE * layoutScale;
-
-  cube.geometry.dispose();
-  cube.geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-  cube.position.set(position.x, position.y, position.z);
-  cube.userData.baseX = position.x;
-  cube.userData.baseY = position.y;
-}
-
-function applyResponsiveLayout() {
-  isMobileLayout = window.innerWidth <= MOBILE_BREAKPOINT;
-  layoutScale = isMobileLayout ? MOBILE_SCALE : 1;
-  document.body.classList.toggle("is-mobile", isMobileLayout);
-
-  sectionTexts.forEach((textMesh) => {
-    updateTextMeshScale(textMesh);
-    updateTextMeshLayout(textMesh);
-  });
-  sectionDescriptionTexts.forEach((textMesh) => {
-    updateTextMeshScale(textMesh);
-    updateTextMeshLayout(textMesh);
-  });
-
-  if (sponsorImage?.userData.aspect) {
-    updatePlaneMeshSize(
-      sponsorImage,
-      SPONSOR_IMAGE_HEIGHT,
-      sponsorImage.userData.aspect
-    );
-    sponsorImage.position.y =
-      SPONSOR_IMAGE_POS.y + SPONSOR_IMAGE_Y_OFFSET * layoutScale;
-  }
-
-  if (aboutJoinImage?.userData.aspect) {
-    updatePlaneMeshSize(
-      aboutJoinImage,
-      ABOUT_IMAGE_HEIGHT,
-      aboutJoinImage.userData.aspect
-    );
-    aboutJoinImage.position.y =
-      ABOUT_IMAGE_POS.y + ABOUT_IMAGE_Y_OFFSET * layoutScale;
-  }
-
-  committeeMembers.forEach((member) => {
-    if (member.image.userData.aspect) {
-      updatePlaneMeshSize(
-        member.image,
-        COMMITTEE_IMAGE_HEIGHT,
-        member.image.userData.aspect
-      );
-    }
-
-    updateCommitteeMemberLayout(member);
-  });
-
-  socialCubes.forEach((cube, index) => {
-    updateSocialCubeLayout(cube, index);
-  });
-}
 
 function getSectionPos(index = currentIndex) {
   return MODEL_SECTIONS[index];
@@ -997,30 +787,16 @@ function createSectionText(section, options = {}) {
   const outText = new Text();
 
   outText.userData.fullText = section.text;
-  outText.userData.baseFontSize = fontSize;
-  outText.userData.baseMaxWidth = TEXT_MAX_WIDTH;
-  outText.userData.basePosition = {
-    x: section.x,
-    y: section.y,
-    z: section.z,
-  };
-  outText.userData.baseAnchorX = anchorX;
-  outText.userData.baseTextAlign = textAlign;
-  outText.userData.mobileX = section.mobileX;
-  outText.userData.mobileAnchorX = section.mobileAnchorX;
-  outText.userData.mobileTextAlign = section.mobileTextAlign;
   outText.text = "";
   outText.font = font;
-  outText.fontSize =
-    fontSize * (isMobileLayout ? MOBILE_TEXT_SCALE : 1);
+  outText.fontSize = fontSize;
   outText.color = 0xffffff;
-  outText.maxWidth = TEXT_MAX_WIDTH * layoutScale;
+  outText.maxWidth = TEXT_MAX_WIDTH;
   outText.position.set(section.x, section.y, section.z);
   outText.textAlign = textAlign;
   outText.anchorX = anchorX;
   outText.anchorY = anchorY;
   outText.visible = false;
-  updateTextMeshLayout(outText);
   outText.sync();
 
   scene.add(outText);
@@ -1034,22 +810,8 @@ function initSectionTexts() {
       font: DESCRIPTION_FONT,
       fontSize: DESCRIPTION_FONT_SIZE,
       anchorY: "top",
-      anchorX: section.anchorX ?? "left",
-      textAlign: section.textAlign ?? "left",
     })
   );
-
-  sectionTexts.forEach((textMesh) => {
-    textMesh.userData.mobileX = MOBILE_TEXT_X;
-    textMesh.userData.mobileAnchorX = "center";
-    textMesh.userData.mobileTextAlign = "center";
-  });
-
-  sectionDescriptionTexts.forEach((textMesh) => {
-    textMesh.userData.mobileX = MOBILE_DESCRIPTION_X;
-    textMesh.userData.mobileAnchorX = "center";
-    textMesh.userData.mobileTextAlign = "center";
-  });
 }
 
 function createSponsorImage() {
@@ -1075,8 +837,11 @@ function createSponsorImage() {
     material.needsUpdate = true;
 
     const aspect = texture.image.width / texture.image.height;
-    mesh.userData.aspect = aspect;
-    updatePlaneMeshSize(mesh, SPONSOR_IMAGE_HEIGHT, aspect);
+    const height = SPONSOR_IMAGE_HEIGHT;
+    const width = height * aspect;
+
+    mesh.geometry.dispose();
+    mesh.geometry = new THREE.PlaneGeometry(width, height);
   });
 
   return mesh;
@@ -1145,8 +910,11 @@ function createAboutJoinImage() {
     material.needsUpdate = true;
 
     const aspect = texture.image.width / texture.image.height;
-    mesh.userData.aspect = aspect;
-    updatePlaneMeshSize(mesh, ABOUT_IMAGE_HEIGHT, aspect);
+    const height = ABOUT_IMAGE_HEIGHT;
+    const width = height * aspect;
+
+    mesh.geometry.dispose();
+    mesh.geometry = new THREE.PlaneGeometry(width, height);
   });
 
   return mesh;
@@ -1230,13 +998,23 @@ function setupAboutJoinInteraction() {
   });
 }
 
+function getCommitteeMemberPosition(rowIndex, colIndex, rowLength) {
+  const xOffset = (colIndex - (rowLength - 1) / 2) * COMMITTEE_IMAGE_SPACING;
+  const y = COMMITTEE_BASE_POSITION.y - rowIndex * COMMITTEE_ROW_SPACING;
+
+  return {
+    x: COMMITTEE_BASE_POSITION.x + xOffset,
+    y,
+    z: COMMITTEE_BASE_POSITION.z,
+  };
+}
+
 function createCommitteeCaption(title, position, imageHeight) {
   const caption = new Text();
 
   caption.text = title;
   caption.font = DESCRIPTION_FONT;
-  caption.userData.baseFontSize = COMMITTEE_CAPTION_FONT_SIZE;
-  caption.fontSize = COMMITTEE_CAPTION_FONT_SIZE * layoutScale;
+  caption.fontSize = COMMITTEE_CAPTION_FONT_SIZE;
   caption.color = 0xffffff;
   caption.anchorX = "center";
   caption.anchorY = "top";
@@ -1244,7 +1022,7 @@ function createCommitteeCaption(title, position, imageHeight) {
   caption.fillOpacity = 0;
   caption.position.set(
     position.x,
-    position.y - imageHeight / 2 - COMMITTEE_CAPTION_GAP * layoutScale,
+    position.y - imageHeight / 2 - COMMITTEE_CAPTION_GAP,
     position.z
   );
   caption.visible = false;
@@ -1257,9 +1035,8 @@ function createCommitteeCaption(title, position, imageHeight) {
 function createCommitteeMembers() {
   const textureLoader = new THREE.TextureLoader();
   const members = [];
-  const rows = getCommitteeLayoutRows();
 
-  rows.forEach((row, rowIndex) => {
+  COMMITTEE_ROWS.forEach((row, rowIndex) => {
     row.forEach((config, colIndex) => {
       const position = getCommitteeMemberPosition(
         rowIndex,
@@ -1278,11 +1055,10 @@ function createCommitteeMembers() {
       image.visible = false;
       scene.add(image);
 
-      const initialHeight = COMMITTEE_IMAGE_HEIGHT * layoutScale;
       const caption = createCommitteeCaption(
         config.title,
         position,
-        initialHeight
+        COMMITTEE_IMAGE_HEIGHT
       );
       caption.userData.fadeTween = null;
 
@@ -1292,10 +1068,13 @@ function createCommitteeMembers() {
         material.needsUpdate = true;
 
         const aspect = texture.image.width / texture.image.height;
-        image.userData.aspect = aspect;
-        updatePlaneMeshSize(image, COMMITTEE_IMAGE_HEIGHT, aspect);
+        const height = COMMITTEE_IMAGE_HEIGHT;
+        const width = height * aspect;
+
+        image.geometry.dispose();
+        image.geometry = new THREE.PlaneGeometry(width, height);
         caption.position.y =
-          position.y - image.userData.scaledHeight / 2 - COMMITTEE_CAPTION_GAP * layoutScale;
+          position.y - height / 2 - COMMITTEE_CAPTION_GAP;
       });
 
       members.push({ image, caption, url: config.url });
@@ -1468,20 +1247,22 @@ function warmupSectionTexts() {
 
 function createSocialCubes() {
   const textureLoader = new THREE.TextureLoader();
-  const cubeSize = SOCIAL_CUBE_SIZE * layoutScale;
 
-  return SOCIAL_CUBES.map((config, index) => {
+  return SOCIAL_CUBES.map((config) => {
     const texture = textureLoader.load(config.texture);
-    const position = getSocialCubePosition(index);
     const cube = new THREE.Mesh(
-      new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize),
+      new THREE.BoxGeometry(SOCIAL_CUBE_SIZE, SOCIAL_CUBE_SIZE, SOCIAL_CUBE_SIZE),
       new THREE.MeshBasicMaterial({ map: texture })
     );
 
-    cube.position.set(position.x, position.y, position.z);
+    cube.position.set(
+      SOCIAL_CUBE_BASE.x + config.xOffset,
+      SOCIAL_CUBE_BASE.y,
+      SOCIAL_CUBE_BASE.z
+    );
     cube.userData.url = config.url;
-    cube.userData.baseX = position.x;
-    cube.userData.baseY = position.y;
+    cube.userData.baseX = cube.position.x;
+    cube.userData.baseY = cube.position.y;
     cube.userData.hovered = false;
     cube.userData.floatTween = null;
     cube.userData.growTween = null;
@@ -1832,7 +1613,6 @@ socialCubes = createSocialCubes();
 setupSocialCubeInteraction();
 setupAboutJoinInteraction();
 setupCommitteeInteraction();
-applyResponsiveLayout();
 
 function animateModelEntrance(modelSize) {
   if (!modelGroup) return;
@@ -1916,7 +1696,6 @@ function onResize() {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
-  applyResponsiveLayout();
 }
 
 window.addEventListener("resize", onResize);
