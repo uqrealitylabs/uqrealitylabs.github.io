@@ -4,8 +4,9 @@ role: "Workshop"
 photo: "/Assets/images/Radhesh.webp"
 linkedin: "https://www.linkedin.com/in/radhesh-g/"
 shortBio: "Lorem ipsum dolor sit amet."
+slugline: "Demo duct-tape specialist."
 microcopy: "Demo duct-tape specialist."
-accentColor: "#FF5757"
+accentColor: "#22C55E"
 order: 6
 ---
 Lorem ipsum dolor sit amet, consectetur adipiscing elit.

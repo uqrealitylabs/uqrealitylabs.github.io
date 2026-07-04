@@ -47,7 +47,7 @@ const CAMERA_ANCHOR_SECTION_INDEX = 0;
 const ASSET_BASE = import.meta.env.BASE_URL;
 const TITLE_FONT = `${ASSET_BASE}Assets/fonts/Bitcount_Single/static/BitcountSingle_Roman-Medium.ttf`;
 const DESCRIPTION_FONT = `${ASSET_BASE}Assets/fonts/Bitcount_Single/static/BitcountSingle_Roman-Regular.ttf`;
-const MODEL_PATH = `${ASSET_BASE}Assets/test-two.glb`;
+const MODEL_PATH = `${ASSET_BASE}Assets/keything.glb`;
 const LABS_LOGO_PATH = `${ASSET_BASE}Assets/images/labs_logo.png`;
 
 const TAB_ORDER = ["home", "about", "contact", "sponsors", "committee"];
@@ -131,7 +131,8 @@ async function loadCommitteeRows() {
           title: data.role || role.label,
           shortBio: data.shortBio,
           body,
-          microcopy: data.microcopy || role.label,
+          slugline: data.slugline || data.microcopy || role.label,
+          microcopy: data.microcopy || data.slugline || role.label,
           accentColor: data.accentColor || role.accentColors?.[0] || "#FF5757",
           order: Number.isFinite(data.order) ? data.order : 0,
           roleSlug: role.slug,
@@ -159,7 +160,7 @@ const JOIN_LINK = TABS[ABOUT_SECTION_INDEX].links.join;
 const NUAXION_LOGO_PATH = `${ASSET_BASE}Assets/images/nuaxion_logo.avif`;
 const SPONSOR_SECTION_INDEX = SECTION_INDEX.sponsors;
 const SPONSOR_IMAGE_Y_OFFSET = -5;
-const SPONSOR_IMAGE_HEIGHT = 8;
+const SPONSOR_IMAGE_HEIGHT = 4.2;
 
 const COMMITTEE_SECTION_INDEX = SECTION_INDEX.committee;
 const COMMITTEE_BASE_POSITION = { x: 0, y: 4, z: -25 };
@@ -200,24 +201,28 @@ const SOCIAL_CUBES = [
     texture: `${ASSET_BASE}Assets/images/linkedin.png`,
     url: LINKEDIN_LINK,
     label: "LinkedIn",
+    accent: "#0A66C2",
     xOffset: -SOCIAL_CUBE_SPACING * 1.5,
   },
   {
     texture: `${ASSET_BASE}Assets/images/instagram.jpg`,
     url: INSTAGRAM_LINK,
     label: "Instagram",
+    accent: "#E1306C",
     xOffset: -SOCIAL_CUBE_SPACING * 0.5,
   },
   {
     texture: `${ASSET_BASE}Assets/images/discord.jpg`,
     url: DISCORD_LINK,
     label: "Discord",
+    accent: "#5865F2",
     xOffset: SOCIAL_CUBE_SPACING * 0.5,
   },
   {
     texture: `${ASSET_BASE}Assets/images/email.jpg`,
     url: EMAIL_LINK,
     label: "Email",
+    accent: "#F59E0B",
     xOffset: SOCIAL_CUBE_SPACING * 1.5,
   },
 ];
@@ -233,7 +238,7 @@ const MODEL_SECTIONS = TABS.map((tab, index) => ({
 
 // these are relative to the camera
 const TEXT_LAYOUTS = [
-  { x: -15, y: 10, z: -20 },
+  { x: 0, y: 9.8, z: -20, textAlign: "center", anchorX: "center" },
   { x: -3, y: 10, z: -20 },
   { x: -5, y: 10, z: -20 },
   { x: -10, y: 10, z: -20 },
@@ -241,7 +246,7 @@ const TEXT_LAYOUTS = [
 ];
 
 const DESCRIPTION_LAYOUTS = [
-  { x: -8, y: 0 + DESCRIPTION_Y_OFFSET, z: -20 },
+  { x: 0, y: -1.2, z: -20, textAlign: "center", anchorX: "center" },
   { x: 0, y: 13 + DESCRIPTION_Y_OFFSET, z: -20, textAlign: "center", anchorX: "center" },
   { x: -15, y: 10 + DESCRIPTION_Y_OFFSET, z: -20 },
   { x: -16, y: 12 + DESCRIPTION_Y_OFFSET, z: -20 },
@@ -259,7 +264,7 @@ const DESCRIPTION_SECTIONS = TABS.map((tab, index) => ({
 }));
 
 const COMPACT_TEXT_LAYOUTS = [
-  { x: 0, y: 8.4, z: -18, textAlign: "center", anchorX: "center" },
+  { x: 0, y: 9.2, z: -18, textAlign: "center", anchorX: "center" },
   { x: 0, y: 8.6, z: -18, textAlign: "center", anchorX: "center" },
   { x: 0, y: 8.6, z: -18, textAlign: "center", anchorX: "center" },
   { x: 0, y: 8.6, z: -18, textAlign: "center", anchorX: "center" },
@@ -267,7 +272,7 @@ const COMPACT_TEXT_LAYOUTS = [
 ];
 
 const COMPACT_DESCRIPTION_LAYOUTS = [
-  { x: 0, y: 4.2, z: -18, textAlign: "center", anchorX: "center" },
+  { x: 0, y: -3.6, z: -18, textAlign: "center", anchorX: "center" },
   { x: 0, y: 5.8, z: -18, textAlign: "center", anchorX: "center" },
   { x: 0, y: 5.4, z: -18, textAlign: "center", anchorX: "center" },
   { x: 0, y: 5.6, z: -18, textAlign: "center", anchorX: "center" },
@@ -371,15 +376,16 @@ const camera = new THREE.PerspectiveCamera(
   CAM_FAR
 );
 
+const initialRenderPixelRatio = getRenderPixelRatio();
 const renderer = new THREE.WebGLRenderer({
   canvas,
-  antialias: window.devicePixelRatio <= 1.5,
+  antialias: initialRenderPixelRatio <= 2,
   powerPreference: "high-performance",
 });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.04;
-renderer.setPixelRatio(getRenderPixelRatio());
+renderer.setPixelRatio(initialRenderPixelRatio);
 renderer.setSize(viewportWidth, viewportHeight, false);
 
 let controls;
@@ -459,9 +465,14 @@ const pointerNeutral = new THREE.Vector2(0, 0);
 let lastPointerAt = 0;
 let parallaxActive = false;
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const coarsePointer = window.matchMedia("(pointer: coarse)");
 let animationFrame = 0;
 let resizeObserver = null;
 let scrollObserver = null;
+
+function motionDuration(seconds) {
+  return prefersReducedMotion.matches ? 0 : seconds;
+}
 
 function isCompactViewport() {
   return viewportWidth <= COMPACT_VIEWPORT_WIDTH;
@@ -472,7 +483,7 @@ function isShortViewport() {
 }
 
 function getRenderPixelRatio() {
-  const maxRatio = isCompactViewport() ? 1.35 : 1.5;
+  const maxRatio = 2;
 
   return Math.min(window.devicePixelRatio || 1, maxRatio);
 }
@@ -559,7 +570,7 @@ function applyPointerMotion() {
 
   for (const mesh of [aboutJoinImage, sponsorImage]) {
     if (mesh?.visible) {
-      mesh.rotation.set(tiltX * 0.5, tiltY * 0.5, 0);
+      mesh.rotation.set(tiltX * 0.5, tiltY * 0.5, mesh.userData.tiltZ || 0);
     }
   }
 }
@@ -571,33 +582,46 @@ function getViewportLayout() {
   const compact = isCompactViewport();
   const tablet = viewportWidth <= 1024;
   const short = isShortViewport();
+  const landscape = viewportWidth > viewportHeight && viewportHeight <= 480;
   const wide = viewportWidth >= 1600;
 
   cachedViewportLayout = {
     narrow,
     compact,
     tablet,
+    landscape,
     wide,
-    cameraScale: narrow ? 1.42 : compact ? 1.28 : short ? 1.12 : wide ? 0.94 : 1,
-    cameraYOffset: narrow ? 0.8 : compact ? 0.45 : 0,
-    titleFontSize: narrow ? 1.05 : compact ? 1.24 : short ? 1.55 : wide ? 2.15 : TEXT_FONT_SIZE,
-    descriptionFontSize: narrow ? 0.72 : compact ? 0.84 : short ? 1 : DESCRIPTION_FONT_SIZE,
-    textMaxWidth: narrow ? 16 : compact ? 20 : short ? 32 : wide ? 46 : TEXT_MAX_WIDTH,
-    sponsorImageHeight: compact ? 4.4 : SPONSOR_IMAGE_HEIGHT,
-    sponsorImageY: compact ? -1.5 : SPONSOR_IMAGE_POS.y + SPONSOR_IMAGE_Y_OFFSET,
-    aboutImageHeight: narrow ? 2.9 : compact ? 3.35 : ABOUT_IMAGE_HEIGHT,
-    aboutImageY: narrow ? -2.1 : compact ? -2.35 : ABOUT_IMAGE_POS.y + ABOUT_IMAGE_Y_OFFSET,
-    socialCubeSpacing: narrow ? 2.75 : compact ? 3.15 : SOCIAL_CUBE_SPACING,
-    socialCubeY: compact ? -0.1 : SOCIAL_CUBE_BASE.y,
-    socialCardWidth: narrow ? 2.4 : compact ? 2.75 : 3.25,
-    socialCardHeight: narrow ? 2.4 : compact ? 2.75 : 3.25,
-    committeeImageHeight: narrow ? 2.25 : compact ? 2.55 : tablet ? 4.2 : COMMITTEE_IMAGE_HEIGHT,
-    committeeImageSpacing: narrow ? 3.8 : compact ? 4.45 : tablet ? 7 : COMMITTEE_IMAGE_SPACING,
-    committeeRowSpacing: narrow ? 3.2 : compact ? 3.8 : tablet ? 6.2 : COMMITTEE_ROW_SPACING,
-    committeeCaptionFontSize: narrow ? 0.5 : compact ? 0.6 : COMMITTEE_CAPTION_FONT_SIZE,
-    committeeBaseY: narrow ? 2.8 : compact ? 3.1 : COMMITTEE_BASE_POSITION.y,
+    cameraScale: narrow ? 1.32 : compact ? 1.22 : short ? 1.12 : wide ? 0.94 : 1,
+    cameraYOffset: narrow ? 0.7 : compact ? 0.4 : 0,
+    titleFontSize: narrow ? 1.22 : compact ? 1.36 : short ? 1.55 : wide ? 2.15 : TEXT_FONT_SIZE,
+    descriptionFontSize: narrow ? 0.88 : compact ? 0.94 : short ? 1 : DESCRIPTION_FONT_SIZE,
+    textMaxWidth: narrow ? 18 : compact ? 22 : short ? 32 : wide ? 46 : TEXT_MAX_WIDTH,
+    sponsorImageHeight: compact ? 3.2 : SPONSOR_IMAGE_HEIGHT,
+    sponsorImageY: compact ? -0.8 : SPONSOR_IMAGE_POS.y + SPONSOR_IMAGE_Y_OFFSET,
+    aboutImageHeight: narrow ? 3.25 : compact ? 3.6 : ABOUT_IMAGE_HEIGHT,
+    aboutImageY: narrow ? -1.75 : compact ? -2.05 : ABOUT_IMAGE_POS.y + ABOUT_IMAGE_Y_OFFSET,
+    socialCubeSpacing: narrow ? 2.9 : compact ? 3.2 : SOCIAL_CUBE_SPACING,
+    socialCubeY: compact ? -0.15 : SOCIAL_CUBE_BASE.y,
+    socialCardWidth: narrow ? 2.5 : compact ? 2.8 : 3.25,
+    socialCardHeight: narrow ? 2.5 : compact ? 2.8 : 3.25,
+    committeeImageHeight: narrow ? 2.35 : compact ? 2.65 : tablet ? 4.2 : COMMITTEE_IMAGE_HEIGHT,
+    committeeImageSpacing: narrow ? 3.9 : compact ? 4.55 : tablet ? 7 : COMMITTEE_IMAGE_SPACING,
+    committeeRowSpacing: narrow ? 3 : compact ? 3.7 : tablet ? 6.2 : COMMITTEE_ROW_SPACING,
+    committeeCaptionFontSize: narrow ? 0.65 : compact ? 0.7 : COMMITTEE_CAPTION_FONT_SIZE,
+    committeeBaseY: narrow ? 4.4 : compact ? 3.5 : COMMITTEE_BASE_POSITION.y,
     committeeMobileRows: narrow ? [1, 2, 4] : null,
   };
+
+  if (landscape) {
+    cachedViewportLayout.titleFontSize = 1.08;
+    cachedViewportLayout.descriptionFontSize = 0.78;
+    cachedViewportLayout.aboutImageHeight = 2.35;
+    cachedViewportLayout.sponsorImageHeight = 2.4;
+    cachedViewportLayout.socialCardWidth = 2.2;
+    cachedViewportLayout.socialCardHeight = 2.2;
+    cachedViewportLayout.committeeImageHeight = 1.85;
+    cachedViewportLayout.committeeCaptionFontSize = 0.52;
+  }
 
   return cachedViewportLayout;
 }
@@ -776,8 +800,92 @@ function createRoundedImageMaterial() {
   });
 }
 
-function createRoundedIconMaterial(texture) {
+function polishTexture(texture) {
   texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function coverSquareTexture(texture, aspect) {
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+
+  if (aspect > 1) {
+    texture.repeat.set(1 / aspect, 1);
+    texture.offset.set((1 - texture.repeat.x) / 2, 0);
+  } else {
+    texture.repeat.set(1, aspect);
+    texture.offset.set(0, (1 - texture.repeat.y) / 2);
+  }
+
+  texture.needsUpdate = true;
+}
+
+function createSocialTexture({ label, accent }) {
+  const size = 1024;
+  const iconCanvas = document.createElement("canvas");
+  iconCanvas.width = size;
+  iconCanvas.height = size;
+  const ctx = iconCanvas.getContext("2d");
+  const lower = label.toLowerCase();
+
+  ctx.fillStyle = "#151823";
+  ctx.fillRect(0, 0, size, size);
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 34;
+  ctx.strokeRect(58, 58, size - 116, size - 116);
+  ctx.fillStyle = "#fff3d2";
+  ctx.strokeStyle = "#fff3d2";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  if (lower === "instagram") {
+    ctx.lineWidth = 52;
+    ctx.strokeRect(270, 270, 484, 484);
+    ctx.beginPath();
+    ctx.arc(512, 512, 132, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(670, 352, 34, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (lower === "discord") {
+    ctx.lineWidth = 48;
+    ctx.beginPath();
+    ctx.roundRect(260, 340, 504, 300, 120);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(420, 492, 34, 0, Math.PI * 2);
+    ctx.arc(604, 492, 34, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(384, 632);
+    ctx.quadraticCurveTo(512, 720, 640, 632);
+    ctx.stroke();
+  } else if (lower === "email") {
+    ctx.lineWidth = 54;
+    ctx.strokeRect(236, 330, 552, 364);
+    ctx.beginPath();
+    ctx.moveTo(236, 344);
+    ctx.lineTo(512, 552);
+    ctx.lineTo(788, 344);
+    ctx.stroke();
+  } else {
+    ctx.font = "700 360px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("in", 512, 520);
+  }
+
+  const texture = new THREE.CanvasTexture(iconCanvas);
+  return polishTexture(texture);
+}
+
+function createRoundedIconMaterial(texture) {
+  polishTexture(texture);
 
   return new THREE.MeshStandardMaterial({
     map: texture,
@@ -1021,9 +1129,25 @@ function getCommitteeCards() {
 }
 
 function getPopupViewport() {
+  const visual = window.visualViewport;
+
   return {
-    width: Math.max(window.innerWidth, 320),
-    height: Math.max(window.innerHeight, 240),
+    left: visual?.offsetLeft || 0,
+    top: visual?.offsetTop || 0,
+    width: Math.max(visual?.width || window.innerWidth, 320),
+    height: Math.max(visual?.height || window.innerHeight, 240),
+  };
+}
+
+function getSafeAreaInsets() {
+  const styles = getComputedStyle(document.documentElement);
+  const read = (name) => Number.parseFloat(styles.getPropertyValue(name)) || 0;
+
+  return {
+    top: read("--safe-top"),
+    right: read("--safe-right"),
+    bottom: read("--safe-bottom"),
+    left: read("--safe-left"),
   };
 }
 
@@ -1035,8 +1159,8 @@ function projectToScreen(point) {
   point.project(camera);
 
   return {
-    x: ((point.x + 1) / 2) * viewportWidth,
-    y: ((-point.y + 1) / 2) * viewportHeight,
+    x: canvasRect.left + ((point.x + 1) / 2) * viewportWidth,
+    y: canvasRect.top + ((-point.y + 1) / 2) * viewportHeight,
   };
 }
 
@@ -1085,21 +1209,26 @@ function getObjectScreenBounds(object) {
 function positionMemberPopup(anchor) {
   if (!memberPopupCard) return;
 
-  const { width: vw, height: vh } = getPopupViewport();
+  const viewport = getPopupViewport();
+  const safe = getSafeAreaInsets();
   const rect = memberPopupCard.getBoundingClientRect();
   const pad = 12;
   const gap = 14;
+  const minLeft = viewport.left + safe.left + pad;
+  const minTop = viewport.top + safe.top + pad;
+  const maxLeft = viewport.left + viewport.width - safe.right - rect.width - pad;
+  const maxTop = viewport.top + viewport.height - safe.bottom - rect.height - pad;
   let left = anchor.x - rect.width / 2;
   let top = anchor.y - rect.height / 2;
 
-  if (top < pad || top + rect.height > vh - pad) {
+  if (top < minTop || top > maxTop) {
     const above = anchor.y - rect.height - gap;
     const below = anchor.y + gap;
-    top = anchor.y > vh / 2 && above >= pad ? above : below;
+    top = anchor.y > viewport.top + viewport.height / 2 && above >= minTop ? above : below;
   }
 
-  left = clamp(left, pad, vw - rect.width - pad);
-  top = clamp(top, pad, vh - rect.height - pad);
+  left = clamp(left, minLeft, maxLeft);
+  top = clamp(top, minTop, maxTop);
 
   const originX = clamp(anchor.x - left, 0, rect.width);
   const originY = clamp(anchor.y - top, 0, rect.height);
@@ -1117,7 +1246,10 @@ function refreshMemberPopupPosition() {
 
   const anchor = currentPopupAnchorObject
     ? getObjectScreenBounds(currentPopupAnchorObject).center
-    : { x: getPopupViewport().width / 2, y: getPopupViewport().height / 2 };
+    : {
+        x: getPopupViewport().left + getPopupViewport().width / 2,
+        y: getPopupViewport().top + getPopupViewport().height / 2,
+      };
 
   positionMemberPopup(anchor);
 }
@@ -1127,7 +1259,10 @@ function openMemberPopup(index, originObject = null) {
   if (!member || !memberPopup) return;
   const origin = originObject
     ? getObjectScreenBounds(originObject).center
-    : { x: getPopupViewport().width / 2, y: getPopupViewport().height / 2 };
+    : {
+        x: getPopupViewport().left + getPopupViewport().width / 2,
+        y: getPopupViewport().top + getPopupViewport().height / 2,
+      };
 
   memberPopupImage.src = member.image;
   memberPopupImage.alt = member.name;
@@ -1136,7 +1271,7 @@ function openMemberPopup(index, originObject = null) {
   memberPopupCopy.textContent = member.shortBio || member.body || "";
   memberPopupLink.href = member.url;
   memberPopupCard?.style.setProperty("--member-accent", member.accentColor);
-  memberPopupCard.dataset.microcopy = member.microcopy || member.title;
+  memberPopupCard.dataset.microcopy = member.slugline || member.microcopy || member.title;
   currentPopupAnchorObject = originObject;
   memberPopup.classList.remove("is-open");
   memberPopup.hidden = false;
@@ -1188,6 +1323,8 @@ function setNavbarCondensed(condensed) {
 }
 
 function scheduleNavbarCondense(delay = 1200) {
+  if (coarsePointer.matches) return;
+
   window.clearTimeout(navCondenseTimer);
   navCondenseTimer = window.setTimeout(() => {
     if (!navbar?.matches(":hover") && !navbar?.contains(document.activeElement)) {
@@ -1465,6 +1602,20 @@ function resizePlane(mesh, height) {
   mesh.userData.height = height;
 }
 
+function resizeAvatarPlane(mesh, size) {
+  if (
+    Math.abs((mesh.userData.width ?? 0) - size) < 0.01 &&
+    Math.abs((mesh.userData.height ?? 0) - size) < 0.01
+  ) {
+    return;
+  }
+
+  mesh.geometry.dispose();
+  mesh.geometry = new THREE.PlaneGeometry(size, size);
+  mesh.userData.width = size;
+  mesh.userData.height = size;
+}
+
 function applySponsorImageLayout() {
   if (!sponsorImage) return;
 
@@ -1478,6 +1629,7 @@ function applyAboutJoinImageLayout() {
 
   const layout = getViewportLayout();
   aboutJoinImage.position.set(ABOUT_IMAGE_POS.x, layout.aboutImageY, ABOUT_IMAGE_POS.z);
+  aboutJoinImage.userData.baseY = layout.aboutImageY;
   resizePlane(aboutJoinImage, layout.aboutImageHeight);
 }
 
@@ -1505,8 +1657,7 @@ function createSponsorImage() {
   scene.add(mesh);
 
   textureLoader.load(NUAXION_LOGO_PATH, (texture) => {
-    texture.colorSpace = THREE.SRGBColorSpace;
-    material.map = texture;
+    material.map = polishTexture(texture);
     material.needsUpdate = true;
 
     mesh.userData.aspect = texture.image.width / texture.image.height;
@@ -1570,8 +1721,7 @@ function createAboutJoinImage() {
   scene.add(mesh);
 
   textureLoader.load(RUBRIC_IMAGE_PATH, (texture) => {
-    texture.colorSpace = THREE.SRGBColorSpace;
-    material.map = texture;
+    material.map = polishTexture(texture);
     material.needsUpdate = true;
 
     mesh.userData.aspect = texture.image.width / texture.image.height;
@@ -1585,6 +1735,18 @@ function stopAboutJoinImageFade() {
   if (!aboutJoinImage) return;
 
   gsap.killTweensOf(aboutJoinImage.material);
+}
+
+function stopAboutJoinHover() {
+  if (!aboutJoinImage) return;
+
+  gsap.killTweensOf(aboutJoinImage.position);
+  gsap.killTweensOf(aboutJoinImage.scale);
+  aboutJoinImage.userData.hovered = false;
+  aboutJoinImage.userData.tiltZ = 0;
+  aboutJoinImage.scale.set(1, 1, 1);
+  aboutJoinImage.position.y = aboutJoinImage.userData.baseY ?? aboutJoinImage.position.y;
+  document.body.removeAttribute("data-content-hover");
 }
 
 function revealAboutJoinImage() {
@@ -1607,6 +1769,7 @@ function hideAboutJoinImage() {
   if (!aboutJoinImage) return Promise.resolve();
 
   stopAboutJoinImageFade();
+  stopAboutJoinHover();
 
   return new Promise((resolve) => {
     gsap.to(aboutJoinImage.material, {
@@ -1632,8 +1795,68 @@ function updateAboutJoinHover() {
 
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObject(aboutJoinImage);
+  setAboutJoinImageHovered(intersects.length > 0);
 
   canvas.style.cursor = intersects.length > 0 ? "pointer" : "default";
+}
+
+function setAboutJoinImageHovered(hovered) {
+  if (!aboutJoinImage || aboutJoinImage.userData.hovered === hovered) return;
+
+  gsap.killTweensOf(aboutJoinImage.position);
+  gsap.killTweensOf(aboutJoinImage.scale);
+  aboutJoinImage.userData.hovered = hovered;
+  const baseY = aboutJoinImage.userData.baseY ?? aboutJoinImage.position.y;
+
+  if (hovered) {
+    document.body.dataset.contentHover = "join";
+    gsap.to(aboutJoinImage.scale, {
+      x: 1.06,
+      y: 1.06,
+      z: 1.06,
+      duration: motionDuration(0.12),
+      ease: "back.out(2)",
+    });
+    gsap.to(aboutJoinImage.position, {
+      y: baseY + 0.22,
+      duration: motionDuration(0.28),
+      ease: "sine.inOut",
+      yoyo: true,
+      repeat: prefersReducedMotion.matches ? 0 : -1,
+    });
+  } else {
+    document.body.removeAttribute("data-content-hover");
+    aboutJoinImage.userData.tiltZ = -0.12;
+    gsap.to(aboutJoinImage.scale, {
+      x: 1.08,
+      y: 0.92,
+      z: 1,
+      duration: motionDuration(0.12),
+      ease: "power2.out",
+      onComplete: () => {
+        aboutJoinImage.userData.tiltZ = 0;
+        gsap.to(aboutJoinImage.scale, {
+          x: 1,
+          y: 1,
+          z: 1,
+          duration: motionDuration(0.16),
+          ease: "back.out(1.7)",
+        });
+      },
+    });
+    gsap.to(aboutJoinImage.position, {
+      y: baseY - 0.16,
+      duration: motionDuration(0.12),
+      ease: "power2.in",
+      onComplete: () => {
+        gsap.to(aboutJoinImage.position, {
+          y: baseY,
+          duration: motionDuration(0.16),
+          ease: "back.out(1.7)",
+        });
+      },
+    });
+  }
 }
 
 function setupAboutJoinInteraction() {
@@ -1759,6 +1982,7 @@ function createCommitteeMembers() {
         url: config.url,
         name: config.name,
         title: config.title,
+        slugline: config.slugline,
         shortBio: config.shortBio,
         body: config.body,
         microcopy: config.microcopy,
@@ -1788,7 +2012,7 @@ function applyCommitteeLayout() {
     );
 
     member.image.position.set(position.x, position.y, position.z);
-    resizePlane(member.image, layout.committeeImageHeight);
+    resizeAvatarPlane(member.image, layout.committeeImageHeight);
 
     member.caption.fontSize = layout.committeeCaptionFontSize;
     member.caption.position.set(
@@ -1822,10 +2046,10 @@ function loadCommitteeMemberTexture(member) {
     textureLoader.load(
       member.image.userData.texturePath,
       (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        member.image.material.map = texture;
+        member.image.material.map = polishTexture(texture);
         member.image.material.needsUpdate = true;
         member.image.userData.aspect = texture.image.width / texture.image.height;
+        coverSquareTexture(texture, member.image.userData.aspect);
         applyCommitteeLayout();
         resolve();
       },
@@ -1905,6 +2129,7 @@ function setCommitteeImageHovered(image) {
 
   if (hoveredCommitteeImage) {
     gsap.killTweensOf(hoveredCommitteeImage.position, "z");
+    gsap.killTweensOf(hoveredCommitteeImage.scale);
     hoveredCommitteeImage.userData.caption.color = 0xffffff;
     hoveredCommitteeImage.userData.caption.sync();
     gsap.to(hoveredCommitteeImage.scale, {
@@ -1923,13 +2148,17 @@ function setCommitteeImageHovered(image) {
 
   hoveredCommitteeImage = image;
   document.body.style.removeProperty("--committee-accent");
+  document.body.removeAttribute("data-committee-group");
 
   if (hoveredCommitteeImage) {
     const accent = hoveredCommitteeImage.userData.accentColor || "#FF5757";
     document.body.style.setProperty("--committee-accent", accent);
+    document.body.dataset.committeeGroup =
+      hoveredCommitteeImage.userData.layout.rowIndex === 0 ? "role" : "content";
     hoveredCommitteeImage.userData.caption.color = accent;
     hoveredCommitteeImage.userData.caption.sync();
     gsap.killTweensOf(hoveredCommitteeImage.position, "z");
+    gsap.killTweensOf(hoveredCommitteeImage.scale);
     gsap.to(hoveredCommitteeImage.scale, {
       x: 1.04,
       y: 1.04,
@@ -2086,7 +2315,7 @@ function createSocialCaption(label) {
 
 function createSocialCubes() {
   return SOCIAL_CUBES.map((config, index) => {
-    const texture = textureLoader.load(config.texture);
+    const texture = createSocialTexture(config);
     const basePosition = getSocialCubeBasePosition(index);
     const layout = getViewportLayout();
     const cube = new THREE.Mesh(
@@ -2097,6 +2326,7 @@ function createSocialCubes() {
 
     cube.position.set(basePosition.x, basePosition.y, basePosition.z);
     cube.userData.url = config.url;
+    cube.userData.accent = config.accent;
     cube.userData.socialIndex = index;
     cube.userData.width = layout.socialCardWidth;
     cube.userData.height = layout.socialCardHeight;
@@ -2249,6 +2479,7 @@ function stopSocialCubeAnimations() {
 
 function hideSocialCubes() {
   canvas.style.cursor = "default";
+  document.body.removeAttribute("data-content-hover");
 
   const visibleCubes = socialCubes.filter((cube) => cube.visible);
   if (visibleCubes.length === 0) {
@@ -2300,6 +2531,7 @@ function setSocialCubesVisible(visible) {
   } else {
     stopSocialCubeAnimations();
     canvas.style.cursor = "default";
+    document.body.removeAttribute("data-content-hover");
   }
 }
 
@@ -2325,6 +2557,8 @@ function updateSocialCubeHover() {
   visibleCubes.forEach((cube) => {
     if (cube === hoveredCube) {
       pointerActive = true;
+      document.body.dataset.contentHover = "social";
+      document.body.style.setProperty("--content-accent", cube.userData.accent || "#ff5757");
 
       if (!cube.userData.hovered) {
         setSocialCubeHovered(cube, true);
@@ -2333,6 +2567,11 @@ function updateSocialCubeHover() {
       resetSocialCubeHover(cube);
     }
   });
+
+  if (!pointerActive) {
+    document.body.removeAttribute("data-content-hover");
+    document.body.style.removeProperty("--content-accent");
+  }
 
   canvas.style.cursor = pointerActive ? "pointer" : "default";
 }
@@ -2526,12 +2765,31 @@ function animateModelEntrance(modelSize) {
   });
 }
 
+function polishLogoModel(root) {
+  const logoMaterial = new THREE.MeshStandardMaterial({
+    color: 0xff5757,
+    roughness: 0.46,
+    metalness: 0.12,
+    emissive: 0x260505,
+    emissiveIntensity: 0.18,
+    side: THREE.DoubleSide,
+  });
+
+  root.traverse((child) => {
+    if (child.isMesh) {
+      child.material = logoMaterial;
+      child.geometry.computeVertexNormals();
+    }
+  });
+}
+
 function loadSceneModel() {
   loader.load(
     MODEL_PATH,
     (gltf) => {
       modelGroup = new THREE.Group();
 
+      polishLogoModel(gltf.scene);
       modelGroup.add(gltf.scene);
       modelGroup.scale.setScalar(MODEL_SCALE);
       scene.add(modelGroup);
@@ -2593,6 +2851,8 @@ function queueResize() {
 }
 
 window.addEventListener("resize", queueResize, { passive: true });
+window.visualViewport?.addEventListener("resize", queueResize, { passive: true });
+window.visualViewport?.addEventListener("scroll", refreshMemberPopupPosition, { passive: true });
 
 if ("ResizeObserver" in window) {
   resizeObserver = new ResizeObserver(queueResize);

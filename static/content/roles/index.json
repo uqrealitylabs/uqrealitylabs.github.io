@@ -5,6 +5,11 @@
       "label": "T3",
       "roles": ["president", "secretary", "treasurer"],
       "accentColors": ["#FF5757", "#F59E0B", "#38BDF8"]
+    },
+    "logistics": {
+      "label": "Logistics",
+      "roles": ["events", "workshop"],
+      "accentColors": ["#22C55E"]
     }
   },
   "rows": [
@@ -33,25 +38,25 @@
     {
       "slug": "media",
       "label": "Media",
-      "accentColors": ["#FF5757"],
+      "accentColors": ["#A78BFA"],
       "members": ["content/roles/media/chloe-lim.md"]
     },
     {
       "slug": "events",
       "label": "Events",
-      "accentColors": ["#FF5757"],
+      "accentColors": ["#22C55E"],
       "members": ["content/roles/events/clare-johnston-koto.md"]
     },
     {
       "slug": "workshop",
       "label": "Workshop",
-      "accentColors": ["#FF5757"],
+      "accentColors": ["#22C55E"],
       "members": ["content/roles/workshop/radhesh.md"]
     },
     {
       "slug": "industry",
       "label": "Industry",
-      "accentColors": ["#FF5757"],
+      "accentColors": ["#14B8A6"],
       "members": ["content/roles/industry/doris-wei.md"]
     }
   ]
