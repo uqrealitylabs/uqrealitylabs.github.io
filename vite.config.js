@@ -2,9 +2,10 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   base: "/",
+  publicDir: "static",
   build: {
     outDir: "dist",
-    // Avoid collision with public/Assets on case-insensitive filesystems.
+    // Avoid collision with static/Assets on case-insensitive filesystems.
     assetsDir: "bundled",
   },
 });

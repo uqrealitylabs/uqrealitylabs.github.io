@@ -5,20 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f1118" />
     <title>UQ Reality Labs</title>
-    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="stylesheet" href="/app/styles.css" />
   </head>
   <body>
     <nav id="navbar" aria-label="Main">
       <a href="#" class="nav-logo" data-section="0">
         <img id="nav-logo-img" src="" alt="UQ Reality Labs logo" />
       </a>
-      <div id="nav-links" class="nav-links">
-        <button type="button" data-section="0" data-short="Home"><span>Home</span></button>
-        <button type="button" data-section="1" data-short="Info"><span>About</span></button>
-        <button type="button" data-section="2" data-short="Contact"><span>Contact</span></button>
-        <button type="button" data-section="3" data-short="Sponsor"><span>Sponsors</span></button>
-        <button type="button" data-section="4" data-short="Team"><span>Committee</span></button>
-      </div>
+      <div id="nav-links" class="nav-links"></div>
     </nav>
     <canvas id="canvas" aria-label="Interactive UQ Reality Labs 3D scene"></canvas>
     <div id="chalk-layer" aria-hidden="true">
@@ -27,7 +22,7 @@
         <path id="bee-trail-join" class="bee-trail__path" d="M12 88 C36 18 72 104 94 58 C116 12 146 116 174 52 C190 20 204 38 214 70" />
         <text class="bee-trail__label" x="118" y="30">JOIN us</text>
         <circle class="bee-trail__dot" r="4">
-          <animateMotion dur="3.1s" repeatCount="indefinite" rotate="auto">
+          <animateMotion dur="3.1s" repeatCount="1" fill="freeze" rotate="auto">
             <mpath href="#bee-trail-join" />
           </animateMotion>
         </circle>
@@ -37,7 +32,7 @@
         <path id="bee-trail-social" class="bee-trail__path" d="M14 72 C42 18 82 92 104 48 C128 2 156 96 182 48 C204 10 222 18 232 36" />
         <text class="bee-trail__label" x="18" y="24">buzz buzz</text>
         <circle class="bee-trail__dot" r="3.8">
-          <animateMotion dur="3.4s" repeatCount="indefinite" rotate="auto">
+          <animateMotion dur="3.4s" repeatCount="1" fill="freeze" rotate="auto">
             <mpath href="#bee-trail-social" />
           </animateMotion>
         </circle>
@@ -47,7 +42,7 @@
         <path id="bee-trail-committee" class="bee-trail__path" d="M18 94 C48 18 92 122 122 62 C154 4 184 120 218 58 C238 20 250 34 254 54" />
         <text class="bee-trail__label" x="36" y="42">crew?</text>
         <circle class="bee-trail__dot" r="4">
-          <animateMotion dur="3.2s" repeatCount="indefinite" rotate="auto">
+          <animateMotion dur="3.2s" repeatCount="1" fill="freeze" rotate="auto">
             <mpath href="#bee-trail-committee" />
           </animateMotion>
         </circle>
@@ -67,6 +62,6 @@
       </article>
     </div>
     <div id="status" hidden></div>
-    <script type="module" src="/js/main.js"></script>
+    <script type="module" src="/app/main.js"></script>
   </body>
 </html>
