@@ -463,6 +463,7 @@ let audioContext = null;
 let activeSound = null;
 let audioUnlocked = false;
 let logoFallbackTexture = null;
+let clothTexture = null;
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -490,6 +491,50 @@ function motionDuration(seconds) {
 
 function clamp01(value) {
   return Math.min(Math.max(value, 0), 1);
+}
+
+function createClothTexture() {
+  if (clothTexture) return clothTexture;
+
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#8f93a0";
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.globalAlpha = 0.22;
+  for (let y = -size; y < size * 2; y += 18) {
+    ctx.strokeStyle = y % 36 === 0 ? "#f8efe0" : "#676d7e";
+    ctx.lineWidth = y % 36 === 0 ? 1.4 : 0.8;
+    ctx.beginPath();
+    ctx.moveTo(-size, y);
+    ctx.lineTo(size * 2, y + 8);
+    ctx.stroke();
+  }
+
+  ctx.globalAlpha = 0.1;
+  for (let i = 0; i < 280; i += 1) {
+    const x = (i * 37) % size;
+    const y = (i * 91) % size;
+    const radius = i % 2 === 0 ? 0.9 : 1.2;
+    ctx.fillStyle = i % 3 === 0 ? "#fff6ea" : "#5f6574";
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  clothTexture = new THREE.CanvasTexture(canvas);
+  clothTexture.wrapS = THREE.RepeatWrapping;
+  clothTexture.wrapT = THREE.RepeatWrapping;
+  clothTexture.repeat.set(1.6, 1.6);
+  clothTexture.minFilter = THREE.LinearMipmapLinearFilter;
+  clothTexture.magFilter = THREE.LinearFilter;
+  clothTexture.generateMipmaps = true;
+  clothTexture.needsUpdate = true;
+  return clothTexture;
 }
 
 function createLogoFallbackTexture() {
@@ -562,9 +607,31 @@ function unlockAudio() {
 
   try {
     const context = ensureAudioContext();
-    context.resume().catch(() => {});
     audioUnlocked = true;
+    playCurrentHoverAudio();
+    const resumePromise = context.resume();
+    if (resumePromise?.then) {
+      resumePromise.then(playCurrentHoverAudio).catch(() => {});
+    }
   } catch {}
+}
+
+function playCurrentHoverAudio() {
+  if (hoveredSocialCube?.visible) {
+    playMusicCue(
+      hoveredSocialCube.userData.music,
+      socialHoverKey ||
+        `social:${hoveredSocialCube.userData.socialIndex}:${hoveredSocialCube.userData.url}`
+    );
+    return;
+  }
+
+  if (hoveredCommitteeImage?.visible) {
+    playMusicCue(
+      hoveredCommitteeImage.userData.music,
+      `committee:${hoveredCommitteeImage.userData.memberIndex}`
+    );
+  }
 }
 
 function stopActiveSound(immediate = false) {
@@ -686,7 +753,7 @@ function playMusicCue(music, key = "") {
 }
 
 function setupAudioUnlock() {
-  const unlockEvents = ["pointerdown", "touchstart", "keydown"];
+  const unlockEvents = ["pointerdown", "touchstart", "keydown", "click"];
   unlockEvents.forEach((eventName) => {
     window.addEventListener(eventName, unlockAudio, { capture: true });
   });
@@ -1076,6 +1143,7 @@ function createRoundedIconMaterial(texture) {
     sheen: 0.34,
     sheenColor: new THREE.Color(0xf5e6d2),
     sheenRoughness: 0.78,
+    roughnessMap: createClothTexture(),
     emissive: 0x0f1420,
     emissiveIntensity: 0.05,
     side: THREE.DoubleSide,
@@ -1093,6 +1161,7 @@ function createSocialCardMaterials(texture) {
     sheen: 0.22,
     sheenColor: new THREE.Color(0xfff4df),
     sheenRoughness: 0.92,
+    roughnessMap: createClothTexture(),
     emissive: 0x05070d,
     emissiveIntensity: 0.04,
     side: THREE.DoubleSide,
@@ -1946,6 +2015,8 @@ function hideSponsorImage() {
 
 function createAboutJoinImage() {
   const material = createRoundedImageMaterial();
+  material.depthTest = false;
+  material.depthWrite = false;
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
 
   mesh.position.set(
@@ -1953,7 +2024,7 @@ function createAboutJoinImage() {
     ABOUT_IMAGE_POS.y + ABOUT_IMAGE_Y_OFFSET,
     ABOUT_IMAGE_POS.z
   );
-  mesh.renderOrder = 6;
+  mesh.renderOrder = 100;
   mesh.userData.url = JOIN_LINK;
   mesh.visible = false;
   scene.add(mesh);
@@ -3069,7 +3140,7 @@ function restoreLogoBoxMaterials(root, logoTexture) {
   const faceMaterial = new THREE.MeshPhysicalMaterial({
     map: logoTexture,
     color: 0xffffff,
-    roughness: 0.28,
+    roughness: 0.2,
     metalness: 0.16,
     clearcoat: 0.58,
     clearcoatRoughness: 0.24,
@@ -3092,7 +3163,7 @@ function restoreLogoBoxMaterials(root, logoTexture) {
     if (!child.isMesh) return;
 
     child.geometry.computeVertexNormals();
-    child.material = child.name === "Body1" ? edgeMaterial : faceMaterial;
+    child.material = child.name === "Body1" ? faceMaterial : edgeMaterial;
   });
 }
 

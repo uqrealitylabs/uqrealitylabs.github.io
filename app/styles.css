@@ -63,9 +63,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: min(58rem, calc(100% - var(--safe-left) - var(--safe-right) - clamp(0.75rem, 4vw, 2.5rem)));
-  gap: clamp(0.45rem, 1.5vw, 1rem);
-  padding: 0.46rem clamp(0.52rem, 1.6vw, 0.8rem);
+  width: min(58rem, calc(100% - var(--safe-left) - var(--safe-right) - clamp(0.5rem, 3vw, 2rem)));
+  gap: clamp(0.35rem, 1.1vw, 0.85rem);
+  padding: 0.38rem clamp(0.42rem, 1.25vw, 0.72rem);
   border: 2px solid rgba(255, 243, 210, 0.44);
   border-radius: 1.35rem 1rem 1.45rem 0.95rem;
   background:
@@ -86,7 +86,7 @@ body {
 
 #navbar.is-condensed {
   width: min(10.8rem, calc(100% - var(--safe-left) - var(--safe-right) - 0.8rem));
-  padding: 0.22rem 0.38rem;
+  padding: 0.2rem 0.32rem;
   opacity: 0.58;
   transform: translateX(-50%) translateY(-0.38rem) scale(0.88) rotate(-0.7deg);
 }
@@ -99,7 +99,7 @@ body {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
-  min-height: 2.2rem;
+  min-height: 2rem;
   border-radius: var(--radius-md);
   text-decoration: none;
 }
@@ -114,7 +114,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: clamp(0.18rem, 0.8vw, 0.42rem);
+  gap: clamp(0.14rem, 0.65vw, 0.35rem);
   min-width: 0;
 }
 
@@ -125,7 +125,7 @@ body {
   justify-content: center;
   min-width: 2.1rem;
   min-height: 2.1rem;
-  padding: 0.42rem clamp(0.46rem, 1.15vw, 0.68rem);
+  padding: 0.38rem clamp(0.42rem, 1vw, 0.62rem);
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -288,8 +288,9 @@ body[data-trails-ready="true"] .bee-trail__label {
 
 body[data-section="1"] .bee-trail--join {
   display: block;
-  right: calc(var(--safe-right) + clamp(0.9rem, 7vw, 8rem));
-  bottom: calc(var(--safe-bottom) + clamp(5.7rem, 16vh, 9.3rem));
+  right: calc(var(--safe-right) + clamp(1.1rem, 5.8vw, 6rem));
+  bottom: calc(var(--safe-bottom) + clamp(4.9rem, 13vh, 8.2rem));
+  width: min(14rem, calc(100vw - var(--safe-left) - var(--safe-right) - 2.2rem));
   color: var(--content-trail, var(--marker));
 }
 
@@ -314,15 +315,17 @@ body[data-section="1"][data-bee-state="sad"] .bee-trail--join {
 
 body[data-section="2"] .bee-trail--social {
   display: block;
-  left: calc(var(--safe-left) + clamp(0.8rem, 7vw, 7.5rem));
-  bottom: calc(var(--safe-bottom) + clamp(4.5rem, 13vh, 7.5rem));
-  transform: rotate(8deg);
+  left: calc(var(--safe-left) + clamp(1rem, 5.5vw, 6.2rem));
+  bottom: calc(var(--safe-bottom) + clamp(4rem, 12vh, 6.8rem));
+  transform: rotate(7deg);
+  width: min(13.2rem, calc(100vw - var(--safe-left) - var(--safe-right) - 2rem));
 }
 
 body[data-section="4"] .bee-trail--committee {
   display: block;
-  right: calc(var(--safe-right) + clamp(0.7rem, 5vw, 5.5rem));
-  bottom: calc(var(--safe-bottom) + clamp(5.7rem, 15vh, 9rem));
+  right: calc(var(--safe-right) + clamp(1rem, 4.8vw, 5rem));
+  bottom: calc(var(--safe-bottom) + clamp(5rem, 13vh, 8.2rem));
+  width: min(13.8rem, calc(100vw - var(--safe-left) - var(--safe-right) - 2rem));
   color: var(--committee-accent, var(--marker));
 }
 
@@ -354,9 +357,9 @@ body[data-content-variant="route-hop"] .bee-trail--social .bee-trail__path {
 
 body[data-section="1"][data-bee-state="sad"] .bee-trail--join-sad {
   display: block;
-  right: calc(var(--safe-right) + clamp(1rem, 12vw, 10rem));
-  bottom: calc(var(--safe-bottom) + clamp(4.8rem, 13vh, 7.4rem));
-  width: min(11rem, calc(100vw - var(--safe-left) - var(--safe-right) - 2rem));
+  right: calc(var(--safe-right) + clamp(1rem, 9vw, 8rem));
+  bottom: calc(var(--safe-bottom) + clamp(4.4rem, 12vh, 6.8rem));
+  width: min(10rem, calc(100vw - var(--safe-left) - var(--safe-right) - 1.8rem));
   color: #38bdf8;
   animation: bee-sad-drift 0.82s ease-out both;
 }
@@ -479,14 +482,14 @@ body[data-path-variant="underline-swoop"] .bee-trail--committee {
   top: var(--popup-top, 50%);
   left: var(--popup-left, 50%);
   display: grid;
-  grid-template-columns: minmax(7rem, 9.5rem) minmax(0, 1fr);
-  gap: 0.9rem;
-  width: min(23rem, calc(100vw - var(--safe-left) - var(--safe-right) - 1rem));
-  max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 1.25rem);
+  grid-template-columns: minmax(6.4rem, 8.4rem) minmax(0, 1fr);
+  gap: 0.75rem;
+  width: min(20.5rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.9rem));
+  max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 1rem);
   overflow: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: clamp(0.85rem, 2vw, 1.1rem) clamp(0.8rem, 1.8vw, 1rem) clamp(0.8rem, 1.6vw, 0.95rem);
+  padding: clamp(0.72rem, 1.7vw, 0.95rem) clamp(0.72rem, 1.7vw, 0.95rem) clamp(0.68rem, 1.45vw, 0.88rem);
   border: 2px solid var(--member-accent, rgba(255, 243, 210, 0.54));
   border-radius: 1.05rem 0.8rem 1.2rem 0.86rem;
   background:
@@ -517,7 +520,7 @@ body[data-path-variant="underline-swoop"] .bee-trail--committee {
   position: absolute;
   top: 0.42rem;
   left: 0.9rem;
-  max-width: min(17rem, calc(100% - 4rem));
+  max-width: min(13.8rem, calc(100% - 3.5rem));
   padding: 0.16rem 0.42rem;
   border: 2px solid var(--member-accent, var(--marker));
   border-radius: 999px;
@@ -531,12 +534,12 @@ body[data-path-variant="underline-swoop"] .bee-trail--committee {
 }
 
 .member-popup__card img {
-  width: min(100%, clamp(6.25rem, 16vw, 8rem));
+  width: min(100%, clamp(5.9rem, 14vw, 7.4rem));
   justify-self: center;
-  aspect-ratio: auto;
-  border-radius: 0.9rem;
+  aspect-ratio: 4 / 5;
+  border-radius: 0.84rem;
   object-fit: cover;
-  max-height: clamp(7.6rem, 28vw, 9.8rem);
+  max-height: clamp(7rem, 26vw, 8.6rem);
 }
 
 .member-popup__card h2 {
@@ -745,16 +748,16 @@ body[data-path-variant="underline-swoop"] .bee-trail--committee {
 
   .member-popup__card {
     grid-template-columns: 1fr;
-    width: min(18.75rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.75rem));
-    padding: 1rem 0.75rem 0.8rem;
+    width: min(17.25rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.65rem));
+    padding: 0.9rem 0.7rem 0.75rem;
     box-shadow:
       0.28rem 0.32rem 0 var(--member-accent, var(--marker)),
       0 0.7rem 1.4rem rgba(0, 0, 0, 0.25);
   }
 
   .member-popup__card img {
-    width: clamp(6.8rem, 44vw, 9rem);
-    max-height: 9rem;
+    width: clamp(6.2rem, 42vw, 8.1rem);
+    max-height: 8.1rem;
   }
 }
 
@@ -764,21 +767,21 @@ body[data-path-variant="underline-swoop"] .bee-trail--committee {
   }
 
   .nav-links button {
-    min-width: 2.75rem;
-    min-height: 2.75rem;
-    padding-inline: 0.32rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    padding-inline: 0.26rem;
     font-size: 0.72rem;
   }
 
   #navbar:not(.is-condensed) {
     width: calc(100% - var(--safe-left) - var(--safe-right) - 0.55rem);
-    padding: 0.28rem;
+    padding: 0.24rem;
   }
 
   body[data-section="1"] .bee-trail--join,
   body[data-section="2"] .bee-trail--social,
   body[data-section="4"] .bee-trail--committee {
-    width: min(11.5rem, calc(100vw - var(--safe-left) - var(--safe-right) - 1rem));
+    width: min(10.5rem, calc(100vw - var(--safe-left) - var(--safe-right) - 1rem));
   }
 }
 
