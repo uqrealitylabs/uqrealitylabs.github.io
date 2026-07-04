@@ -284,6 +284,26 @@ body[data-section="1"] .bee-trail--join {
   bottom: calc(var(--safe-bottom) + clamp(5.7rem, 16vh, 9.3rem));
 }
 
+body[data-section="1"][data-bee-state="excited"] .bee-trail--join {
+  color: #f59e0b;
+  animation: bee-line-hop 0.42s ease-in-out infinite alternate;
+}
+
+body[data-section="1"][data-bee-state="excited"] .bee-trail--join .bee-trail__path {
+  stroke-width: 4;
+  stroke-dasharray: 4 8;
+  animation-duration: 0.38s, 0.46s;
+}
+
+body[data-section="1"][data-bee-state="excited"] .bee-trail--join .bee-trail__dot {
+  transform-origin: center;
+  animation: bee-dot-pop 0.38s ease-in-out infinite alternate;
+}
+
+body[data-section="1"][data-bee-state="sad"] .bee-trail--join {
+  display: none;
+}
+
 body[data-section="2"] .bee-trail--social {
   display: block;
   left: calc(var(--safe-left) + clamp(0.8rem, 7vw, 7.5rem));
@@ -312,13 +332,13 @@ body[data-content-hover="social"] .bee-trail--social .bee-trail__path {
   animation-duration: 0.7s, 0.9s;
 }
 
-body[data-section="1"][data-rubric-mood="sad"] .bee-trail--rubric-sad {
+body[data-section="1"][data-bee-state="sad"] .bee-trail--join-sad {
   display: block;
   right: calc(var(--safe-right) + clamp(1rem, 12vw, 10rem));
   bottom: calc(var(--safe-bottom) + clamp(4.8rem, 13vh, 7.4rem));
   width: min(11rem, calc(100vw - var(--safe-left) - var(--safe-right) - 2rem));
   color: #38bdf8;
-  animation: rubric-sad-drift 0.82s ease-out both;
+  animation: bee-sad-drift 0.82s ease-out both;
 }
 
 .bee-trail__sad-eye {
@@ -589,7 +609,27 @@ body[data-path-variant="underline-swoop"] .bee-trail--committee {
   }
 }
 
-@keyframes rubric-sad-drift {
+@keyframes bee-line-hop {
+  from {
+    transform: translateY(0) rotate(-1deg);
+  }
+  to {
+    transform: translateY(-0.42rem) rotate(2deg);
+  }
+}
+
+@keyframes bee-dot-pop {
+  from {
+    opacity: 0.86;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.24);
+  }
+}
+
+@keyframes bee-sad-drift {
   0% {
     opacity: 0;
     transform: translateY(-0.4rem) rotate(-4deg) scale(0.92);
@@ -704,7 +744,7 @@ body[data-path-variant="underline-swoop"] .bee-trail--committee {
     stroke-dashoffset: 0;
   }
 
-  body[data-rubric-mood="sad"] .bee-trail--rubric-sad {
+  body[data-bee-state="sad"] .bee-trail--join-sad {
     animation: none !important;
     opacity: 0.9;
     transform: none;

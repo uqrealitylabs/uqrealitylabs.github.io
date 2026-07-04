@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { gsap } from "gsap";
 import { Observer } from "gsap/all";
@@ -47,7 +46,7 @@ const CAMERA_ANCHOR_SECTION_INDEX = 0;
 const ASSET_BASE = import.meta.env.BASE_URL;
 const TITLE_FONT = `${ASSET_BASE}Assets/fonts/Bitcount_Single/static/BitcountSingle_Roman-Medium.ttf`;
 const DESCRIPTION_FONT = `${ASSET_BASE}Assets/fonts/Bitcount_Single/static/BitcountSingle_Roman-Regular.ttf`;
-const MODEL_PATH = `${ASSET_BASE}Assets/keything.glb`;
+const MODEL_PATH = `${ASSET_BASE}Assets/test-two.glb`;
 const LABS_LOGO_PATH = `${ASSET_BASE}Assets/images/labs_logo.png`;
 
 const TAB_ORDER = ["home", "about", "contact", "sponsors", "committee"];
@@ -165,9 +164,9 @@ const SPONSOR_IMAGE_HEIGHT = 4.2;
 
 const COMMITTEE_SECTION_INDEX = SECTION_INDEX.committee;
 const COMMITTEE_BASE_POSITION = { x: 0, y: 4, z: -25 };
-const COMMITTEE_IMAGE_HEIGHT = 5;
-const COMMITTEE_IMAGE_SPACING = 10;
-const COMMITTEE_ROW_SPACING = 8;
+const COMMITTEE_IMAGE_HEIGHT = 5.6;
+const COMMITTEE_IMAGE_SPACING = 11.4;
+const COMMITTEE_ROW_SPACING = 8.9;
 const COMMITTEE_CAPTION_GAP = 0.5;
 const COMMITTEE_CAPTION_FONT_SIZE = 0.85;
 let COMMITTEE_ROWS = [];
@@ -331,6 +330,7 @@ if (DEBUG && statusLabel) {
 }
 
 document.body.dataset.section = "0";
+document.body.dataset.beeState = "idle";
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(CLEAR_COLOUR);
@@ -424,13 +424,7 @@ if (ENABLE_LIGHT_DEBUG) {
   lightHelpers.forEach((helper) => scene.add(helper));
 }
 
-const dracoLoader = new DRACOLoader();
-dracoLoader.setDecoderPath(
-  "https://www.gstatic.com/draco/versioned/decoders/1.5.7/"
-);
-
 const loader = new GLTFLoader();
-loader.setDRACOLoader(dracoLoader);
 const textureLoader = new THREE.TextureLoader();
 
 const lookTarget = new THREE.Vector3();
@@ -447,7 +441,7 @@ let sectionDescriptionTexts = [];
 let socialCubes = [];
 let sponsorImage = null;
 let aboutJoinImage = null;
-let rubricMoodTimer = 0;
+let beeStateTimer = 0;
 let committeeMembers = [];
 let hoveredCommitteeImage = null;
 let cachedViewportLayout = null;
@@ -551,13 +545,13 @@ function applyPointerMotion() {
   camera.lookAt(lookTarget);
 
   modelGroup.rotation.set(
-    THREE.MathUtils.degToRad(MODEL_ROTATION.x) + pointerCurrent.y * 0.025,
-    THREE.MathUtils.degToRad(MODEL_ROTATION.y) + pointerCurrent.x * 0.04,
+    THREE.MathUtils.degToRad(MODEL_ROTATION.x) + (reduced ? 0 : pointerCurrent.y * 0.045),
+    THREE.MathUtils.degToRad(MODEL_ROTATION.y) - (reduced ? 0 : pointerCurrent.x * 0.065),
     THREE.MathUtils.degToRad(MODEL_ROTATION.z)
   );
 
-  const tiltX = -pointerCurrent.y * (reduced ? 0.015 : 0.075);
-  const tiltY = pointerCurrent.x * (reduced ? 0.02 : 0.11);
+  const tiltX = reduced ? 0 : -pointerCurrent.y * 0.075;
+  const tiltY = reduced ? 0 : pointerCurrent.x * 0.11;
 
   for (const cube of socialCubes) {
     if (cube.visible) {
@@ -607,11 +601,11 @@ function getViewportLayout() {
     socialCubeY: compact ? -0.15 : SOCIAL_CUBE_BASE.y,
     socialCardWidth: narrow ? 2.5 : compact ? 2.8 : 3.25,
     socialCardHeight: narrow ? 2.5 : compact ? 2.8 : 3.25,
-    committeeImageHeight: narrow ? 2.35 : compact ? 2.65 : tablet ? 4.2 : COMMITTEE_IMAGE_HEIGHT,
-    committeeImageSpacing: narrow ? 3.9 : compact ? 4.55 : tablet ? 7 : COMMITTEE_IMAGE_SPACING,
-    committeeRowSpacing: narrow ? 3 : compact ? 3.7 : tablet ? 6.2 : COMMITTEE_ROW_SPACING,
+    committeeImageHeight: narrow ? 2.8 : compact ? 2.75 : tablet ? 4.6 : wide ? 6.1 : COMMITTEE_IMAGE_HEIGHT,
+    committeeImageSpacing: narrow ? 3.85 : compact ? 4.65 : tablet ? 7.8 : wide ? 12.4 : COMMITTEE_IMAGE_SPACING,
+    committeeRowSpacing: narrow ? 4.35 : compact ? 4.15 : tablet ? 6.7 : wide ? 9.6 : COMMITTEE_ROW_SPACING,
     committeeCaptionFontSize: narrow ? 0.65 : compact ? 0.7 : COMMITTEE_CAPTION_FONT_SIZE,
-    committeeBaseY: narrow ? 4.4 : compact ? 3.5 : COMMITTEE_BASE_POSITION.y,
+    committeeBaseY: narrow ? 3.85 : compact ? 3.2 : COMMITTEE_BASE_POSITION.y,
     committeeMobileRows: narrow ? [1, 2, 4] : null,
   };
 
@@ -828,60 +822,8 @@ function coverSquareTexture(texture, aspect) {
   texture.needsUpdate = true;
 }
 
-function createSocialTexture({ label, accent }) {
-  const size = 1024;
-  const iconCanvas = document.createElement("canvas");
-  iconCanvas.width = size;
-  iconCanvas.height = size;
-  const ctx = iconCanvas.getContext("2d");
-  const lower = label.toLowerCase();
-
-  ctx.fillStyle = "#151823";
-  ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = "#fff3d2";
-  ctx.strokeStyle = "#fff3d2";
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-
-  if (lower === "instagram") {
-    ctx.lineWidth = 52;
-    ctx.strokeRect(270, 270, 484, 484);
-    ctx.beginPath();
-    ctx.arc(512, 512, 132, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(670, 352, 34, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (lower === "discord") {
-    ctx.lineWidth = 48;
-    ctx.beginPath();
-    ctx.roundRect(260, 340, 504, 300, 120);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(420, 492, 34, 0, Math.PI * 2);
-    ctx.arc(604, 492, 34, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(384, 632);
-    ctx.quadraticCurveTo(512, 720, 640, 632);
-    ctx.stroke();
-  } else if (lower === "email") {
-    ctx.lineWidth = 54;
-    ctx.strokeRect(236, 330, 552, 364);
-    ctx.beginPath();
-    ctx.moveTo(236, 344);
-    ctx.lineTo(512, 552);
-    ctx.lineTo(788, 344);
-    ctx.stroke();
-  } else {
-    ctx.font = "700 360px system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("in", 512, 520);
-  }
-
-  const texture = new THREE.CanvasTexture(iconCanvas);
-  return polishTexture(texture);
+function createSocialTexture({ texture }) {
+  return polishTexture(textureLoader.load(texture));
 }
 
 function createRoundedIconMaterial(texture) {
@@ -1125,13 +1067,13 @@ function updateHudState() {
   }
 }
 
-function restartChalkTrailMotion() {
+function restartChalkTrailMotion(selector = ".bee-trail animateMotion") {
   if (prefersReducedMotion.matches) return;
 
   window.requestAnimationFrame(() => {
     document.body.dataset.trailsReady = "true";
     document
-      .querySelectorAll(".bee-trail animateMotion")
+      .querySelectorAll(selector)
       .forEach((animation) => animation.beginElement?.());
   });
 }
@@ -1758,6 +1700,8 @@ function stopAboutJoinImageFade() {
 function stopAboutJoinHover() {
   if (!aboutJoinImage) return;
 
+  window.clearTimeout(beeStateTimer);
+  document.body.dataset.beeState = "idle";
   gsap.killTweensOf(aboutJoinImage.position);
   gsap.killTweensOf(aboutJoinImage.scale);
   aboutJoinImage.userData.hovered = false;
@@ -1827,60 +1771,44 @@ function setAboutJoinImageHovered(hovered) {
   const baseY = aboutJoinImage.userData.baseY ?? aboutJoinImage.position.y;
 
   if (hovered) {
-    window.clearTimeout(rubricMoodTimer);
-    document.body.removeAttribute("data-rubric-mood");
+    window.clearTimeout(beeStateTimer);
+    document.body.dataset.beeState = "excited";
     document.body.dataset.contentHover = "join";
     gsap.to(aboutJoinImage.scale, {
-      x: 1.06,
-      y: 1.06,
-      z: 1.06,
+      x: 1.018,
+      y: 1.018,
+      z: 1.018,
       duration: motionDuration(0.12),
       ease: "back.out(2)",
     });
     gsap.to(aboutJoinImage.position, {
-      y: baseY + 0.22,
-      duration: motionDuration(0.28),
-      ease: "sine.inOut",
-      yoyo: true,
-      repeat: prefersReducedMotion.matches ? 0 : -1,
+      y: baseY,
+      duration: motionDuration(0.12),
+      ease: "power2.out",
     });
   } else {
     document.body.removeAttribute("data-content-hover");
-    window.clearTimeout(rubricMoodTimer);
-    document.body.dataset.rubricMood = "sad";
-    rubricMoodTimer = window.setTimeout(
-      () => document.body.removeAttribute("data-rubric-mood"),
+    window.clearTimeout(beeStateTimer);
+    document.body.dataset.beeState = "sad";
+    restartChalkTrailMotion(".bee-trail--join-sad animateMotion");
+    beeStateTimer = window.setTimeout(
+      () => {
+        document.body.dataset.beeState = "idle";
+      },
       prefersReducedMotion.matches ? 650 : 820
     );
-    aboutJoinImage.userData.tiltZ = -0.12;
+    aboutJoinImage.userData.tiltZ = 0;
     gsap.to(aboutJoinImage.scale, {
-      x: 1.08,
-      y: 0.92,
+      x: 1,
+      y: 1,
       z: 1,
       duration: motionDuration(0.12),
       ease: "power2.out",
-      onComplete: () => {
-        aboutJoinImage.userData.tiltZ = 0;
-        gsap.to(aboutJoinImage.scale, {
-          x: 1,
-          y: 1,
-          z: 1,
-          duration: motionDuration(0.16),
-          ease: "back.out(1.7)",
-        });
-      },
     });
     gsap.to(aboutJoinImage.position, {
-      y: baseY - 0.16,
+      y: baseY,
       duration: motionDuration(0.12),
-      ease: "power2.in",
-      onComplete: () => {
-        gsap.to(aboutJoinImage.position, {
-          y: baseY,
-          duration: motionDuration(0.16),
-          ease: "back.out(1.7)",
-        });
-      },
+      ease: "power2.out",
     });
   }
 }
@@ -2796,31 +2724,12 @@ function animateModelEntrance(modelSize) {
   });
 }
 
-function polishLogoModel(root) {
-  const logoMaterial = new THREE.MeshStandardMaterial({
-    color: 0xff5757,
-    roughness: 0.46,
-    metalness: 0.12,
-    emissive: 0x260505,
-    emissiveIntensity: 0.18,
-    side: THREE.DoubleSide,
-  });
-
-  root.traverse((child) => {
-    if (child.isMesh) {
-      child.material = logoMaterial;
-      child.geometry.computeVertexNormals();
-    }
-  });
-}
-
 function loadSceneModel() {
   loader.load(
     MODEL_PATH,
     (gltf) => {
       modelGroup = new THREE.Group();
 
-      polishLogoModel(gltf.scene);
       modelGroup.add(gltf.scene);
       modelGroup.scale.setScalar(MODEL_SCALE);
       scene.add(modelGroup);
