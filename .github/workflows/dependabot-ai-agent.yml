@@ -1,0 +1,39 @@
+name: Dependabot AI review
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: dependabot-ai-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Run Dependabot AI review
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AI_LABELER_API_KEY: ${{ secrets.AI_LABELER_API_KEY }}
+          AI_LABELER_BASE_URL: ${{ vars.AI_LABELER_BASE_URL }}
+          AI_LABELER_MODEL: ${{ vars.AI_LABELER_MODEL }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: npx --yes tsx tools/agents/dependabot-ai-agent.ts

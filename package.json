@@ -8,16 +8,16 @@
     "node": ">=20.18.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "format": "biome format --write .",
-    "format:check": "biome format .",
-    "lint": "biome lint .",
-    "lint:fix": "biome lint --write .",
+    "dev": "vite --config config/vite.config.ts",
+    "build": "vite build --config config/vite.config.ts",
+    "preview": "vite preview --config config/vite.config.ts",
+    "format": "biome format --config-path config/biome.json --write .",
+    "format:check": "biome format --config-path config/biome.json .",
+    "lint": "biome lint --config-path config/biome.json .",
+    "lint:fix": "biome lint --config-path config/biome.json --write .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test:unit": "vitest run",
-    "test": "vitest run",
+    "test:unit": "vitest run --config config/vitest.config.ts",
+    "test": "vitest run --config config/vitest.config.ts",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:unit && npm run build"
   },
   "devDependencies": {
