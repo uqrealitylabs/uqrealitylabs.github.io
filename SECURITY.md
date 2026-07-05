@@ -2,15 +2,19 @@
 
 ## Reporting a Vulnerability
 
-If you find a security issue, open a GitHub Security Advisory or contact the maintainers through GitHub first.
-Please include enough detail to reproduce the issue, but do not share exploit code publicly before a fix is available.
+Please do not open a public issue for a sensitive security bug.
+Use GitHub Security Advisories or contact the maintainers privately instead.
 
-## Defense in Depth
+Include:
 
-This repository uses locked installs, dependency review, OSV scanning, Scorecard, CodeQL, actionlint, zizmor, and Dependabot.
-Those checks reduce risk, but they do not eliminate supply-chain compromise or unknown zero-days.
+- a short summary
+- the affected page, file, workflow, or dependency
+- steps to reproduce
+- the impact you observed
+- any sample payloads or logs that help explain the issue
 
-## Production Deploys
+## Notes
 
-Production deploys only run from the `prod` branch into the `production` environment.
-Secrets and deploy permissions stay scoped to that environment.
+This repository uses standard defense-in-depth checks, but no project can promise the absence of supply-chain zero-days.
+Keep reports practical and direct.
+

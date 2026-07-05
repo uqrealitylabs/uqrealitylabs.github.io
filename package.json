@@ -2,6 +2,7 @@
   "name": "uqrealitylabs",
   "private": true,
   "version": "0.0.0",
+  "description": "Website for the University of Queensland Reality Labs society.",
   "type": "module",
   "engines": {
     "node": ">=20.18.0"
