@@ -314,10 +314,10 @@ const KEY_LIGHT_OFFSET = { x: 2, y: 10, z: 40 };
 const FILL_LIGHT_OFFSET = { x: -12, y: 4, z: 25 };
 const RAINBOW_Z_OFFSET = -80; // behind model (home model z -20 → light z -100)
 const RAINBOW_FADE_DURATION = 0.6;
-const RAINBOW_GLOW_SCALE = 7.8;
-const RAINBOW_OUTER_GLOW_SCALE = 11.4;
+const RAINBOW_GLOW_SCALE = 8.8;
+const RAINBOW_OUTER_GLOW_SCALE = 13.1;
 const RAINBOW_LIGHT_INTENSITY = 2.2;
-const RAINBOW_LIGHT_DISTANCE = 64;
+const RAINBOW_LIGHT_DISTANCE = 78;
 const RAINBOW_LIGHT_DECAY = 0.7;
 
 const canvas = document.querySelector("#canvas");
@@ -595,6 +595,8 @@ function bakeLogoTexture(sourceTexture) {
   ctx.fillStyle = "#050608";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(image, 0, 0);
+  ctx.fillStyle = "#050608";
+  ctx.fillRect(0, canvas.height * 0.77, canvas.width, canvas.height * 0.23);
 
   const bakedTexture = new THREE.CanvasTexture(canvas);
   bakedTexture.colorSpace = THREE.SRGBColorSpace;
