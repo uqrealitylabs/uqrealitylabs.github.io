@@ -549,29 +549,23 @@ function createLogoFallbackTexture() {
   ctx.fillStyle = "#10131b";
   ctx.fillRect(0, 0, size, size);
 
-  const gradient = ctx.createLinearGradient(0, 0, size, size);
-  gradient.addColorStop(0, "#f6e7c5");
-  gradient.addColorStop(0.45, "#ff5757");
-  gradient.addColorStop(1, "#10131b");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, size, size);
+  const stroke = size * 0.14;
+  const center = size * 0.5;
+  const ringRadius = size * 0.22;
 
-  ctx.fillStyle = "rgba(16, 19, 27, 0.82)";
-  for (let i = -size; i < size * 2; i += 42) {
-    ctx.save();
-    ctx.translate(i, 0);
-    ctx.rotate(-Math.PI / 6);
-    ctx.fillRect(0, 0, 18, size * 2);
-    ctx.restore();
-  }
+  ctx.strokeStyle = "#f6f2ea";
+  ctx.lineWidth = stroke;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.arc(center, center + size * 0.02, ringRadius, Math.PI * 0.07, Math.PI * 0.93);
+  ctx.stroke();
 
-  ctx.fillStyle = "#f6e7c5";
-  ctx.font = "700 120px Pixelify Sans, system-ui, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("UQ", size / 2, size / 2 - 24);
-  ctx.font = "700 54px Pixelify Sans, system-ui, sans-serif";
-  ctx.fillText("Reality Labs", size / 2, size / 2 + 62);
+  ctx.fillStyle = "#f6f2ea";
+  ctx.fillRect(center - stroke * 0.33, size * 0.17, stroke * 0.66, size * 0.26);
+
+  ctx.fillStyle = "#10131b";
+  ctx.fillRect(size * 0.17, size * 0.69, size * 0.66, size * 0.16);
+  ctx.fillRect(size * 0.12, size * 0.76, size * 0.76, size * 0.08);
 
   logoFallbackTexture = new THREE.CanvasTexture(canvas);
   logoFallbackTexture.colorSpace = THREE.SRGBColorSpace;
@@ -585,6 +579,31 @@ function createLogoFallbackTexture() {
 
 function bakeLogoTexture(sourceTexture) {
   if (!sourceTexture) return sourceTexture;
+
+  const image = sourceTexture.image;
+
+  if (image?.width && image?.height) {
+    const size = Math.max(image.width, image.height);
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#10131b";
+    ctx.fillRect(0, 0, size, size);
+    ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, size, size);
+    ctx.fillStyle = "#10131b";
+    ctx.fillRect(size * 0.14, size * 0.68, size * 0.72, size * 0.18);
+
+    const bakedTexture = new THREE.CanvasTexture(canvas);
+    bakedTexture.colorSpace = THREE.SRGBColorSpace;
+    bakedTexture.flipY = false;
+    bakedTexture.minFilter = THREE.LinearMipmapLinearFilter;
+    bakedTexture.magFilter = THREE.LinearFilter;
+    bakedTexture.generateMipmaps = true;
+    bakedTexture.needsUpdate = true;
+    return bakedTexture;
+  }
 
   sourceTexture.colorSpace = THREE.SRGBColorSpace;
   sourceTexture.flipY = false;
