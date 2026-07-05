@@ -608,15 +608,8 @@ function unlockAudio() {
   try {
     const context = ensureAudioContext();
     audioUnlocked = true;
-    const resumePromise =
-      context.state === "suspended" ? context.resume() : Promise.resolve();
-    if (resumePromise?.then) {
-      resumePromise.then(() => {
-        playCurrentHoverAudio();
-      }).catch(() => {});
-    } else {
-      playCurrentHoverAudio();
-    }
+    playCurrentHoverAudio();
+    context.resume().catch(() => {});
   } catch {}
 }
 
@@ -698,8 +691,7 @@ function playMusicCue(music, key = "") {
   if (!context) return;
 
   if (context.state === "suspended") {
-    context.resume().then(() => playMusicCue(music, key)).catch(() => {});
-    return;
+    context.resume().catch(() => {});
   }
 
   if (activeSound?.key === key) return;
