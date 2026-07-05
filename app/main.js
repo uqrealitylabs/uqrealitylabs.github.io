@@ -634,6 +634,9 @@ function unlockAudio() {
     const context = ensureAudioContext();
     audioUnlocked = true;
     pointerDirty = true;
+    updateSocialCubeHover();
+    updateAboutJoinHover();
+    updateCommitteeHover();
     playCurrentHoverAudio();
     context.resume().catch(() => {});
   } catch {}
@@ -711,7 +714,6 @@ function stopActiveSound(immediate = false) {
 function playMusicCue(music, key = "") {
   if (!music) return;
   if (!audioUnlocked) return;
-  if (prefersReducedMotion.matches) return;
 
   const context = ensureAudioContext();
   if (!context) return;
@@ -985,6 +987,28 @@ function getCommitteeHoverProfile(roleSlug = "") {
   }
 
   return { scale: 1.04, z: 1.15, driftX: 0.01, driftY: 0.01, bob: 0.04, rotate: 0.01 };
+}
+
+function getSocialHoverProfile(label = "") {
+  const name = label.toLowerCase();
+
+  if (name.includes("discord")) {
+    return { scaleX: 1.08, scaleY: 1.03, scaleZ: 1.04, z: 1.2, rotate: 0.02, lift: 0.13 };
+  }
+
+  if (name.includes("email")) {
+    return { scaleX: 1.03, scaleY: 1.08, scaleZ: 1.03, z: 1.05, rotate: -0.015, lift: 0.1 };
+  }
+
+  if (name.includes("instagram")) {
+    return { scaleX: 1.05, scaleY: 1.05, scaleZ: 1.05, z: 1.15, rotate: -0.022, lift: 0.12 };
+  }
+
+  if (name.includes("linkedin")) {
+    return { scaleX: 1.06, scaleY: 1.04, scaleZ: 1.03, z: 1.1, rotate: 0.016, lift: 0.09 };
+  }
+
+  return { scaleX: 1.05, scaleY: 1.05, scaleZ: 1.04, z: 1.1, rotate: 0.02, lift: 0.11 };
 }
 
 function getResponsiveSection(section, index, compactLayouts) {
@@ -2640,11 +2664,13 @@ function setCommitteeImageHovered(image) {
   document.body.style.removeProperty("--committee-accent");
   document.body.removeAttribute("data-committee-group");
   document.body.removeAttribute("data-path-variant");
+  document.body.removeAttribute("data-content-hover");
 
   if (hoveredCommitteeImage) {
     const profile = getCommitteeHoverProfile(hoveredCommitteeImage.userData.roleSlug);
     const accent = hoveredCommitteeImage.userData.accentColor || "#FF5757";
     document.body.style.setProperty("--committee-accent", accent);
+    document.body.dataset.contentHover = "committee";
     document.body.dataset.committeeGroup =
       hoveredCommitteeImage.userData.layout.rowIndex === 0 ? "role" : "content";
     document.body.dataset.pathVariant =
@@ -2840,6 +2866,7 @@ function createSocialCubes() {
 
     cube.position.set(basePosition.x, basePosition.y, basePosition.z);
     cube.userData.url = config.url;
+    cube.userData.label = config.label;
     cube.userData.accent = config.accent;
     cube.userData.socialIndex = index;
     cube.userData.width = layout.socialCardWidth;
@@ -2918,23 +2945,25 @@ function stopSocialCubeGrow(cube) {
 
 function setSocialCubeHovered(cube, hovered) {
   stopSocialCubeGrow(cube);
+  const profile = getSocialHoverProfile(cube.userData.label || "");
 
   if (hovered) {
     cube.userData.growTween = gsap.to(cube.scale, {
-      x: SOCIAL_CUBE_SCALE_MAX + 0.01,
-      y: SOCIAL_CUBE_SCALE_MAX + 0.01,
-      z: SOCIAL_CUBE_SCALE_MAX - 0.01,
-      duration: 0.18,
-      ease: "power2.out",
+      x: SOCIAL_CUBE_SCALE_MAX * profile.scaleX,
+      y: SOCIAL_CUBE_SCALE_MAX * profile.scaleY,
+      z: SOCIAL_CUBE_SCALE_MAX * profile.scaleZ,
+      duration: 0.2,
+      ease: "back.out(1.8)",
     });
     gsap.to(cube.position, {
-      z: SOCIAL_CUBE_BASE.z + 1.1,
-      duration: 0.18,
+      z: SOCIAL_CUBE_BASE.z + profile.z,
+      y: cube.userData.baseY + profile.lift,
+      duration: 0.2,
       ease: "power2.out",
     });
     gsap.to(cube.rotation, {
-      z: cube.userData.socialIndex % 2 === 0 ? 0.04 : -0.04,
-      duration: 0.18,
+      z: (cube.userData.socialIndex % 2 === 0 ? 0.04 : -0.04) + profile.rotate,
+      duration: 0.2,
       ease: "power2.out",
     });
   } else {
@@ -2947,6 +2976,7 @@ function setSocialCubeHovered(cube, hovered) {
     });
     gsap.to(cube.position, {
       z: SOCIAL_CUBE_BASE.z,
+      y: cube.userData.baseY,
       duration: 0.22,
       ease: "power2.out",
     });

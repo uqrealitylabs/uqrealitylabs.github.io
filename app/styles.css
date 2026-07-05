@@ -458,6 +458,25 @@ body[data-path-variant="underline-swoop"] .bee-trail--committee {
   transform: rotate(-1deg);
 }
 
+body[data-content-hover="committee"] .bee-trail--committee {
+  color: var(--committee-accent, var(--marker));
+}
+
+body[data-content-hover="committee"] .bee-trail--committee .bee-trail__path {
+  stroke-dasharray: 6 6 2 8;
+  animation-duration: 0.48s, 0.66s;
+}
+
+body[data-content-hover="committee"] .bee-trail--committee .bee-trail__dot {
+  animation:
+    bee-dot-pop 0.38s ease-in-out infinite alternate,
+    bee-flight 0.5s ease-in-out infinite alternate;
+}
+
+body[data-content-hover="committee"] .bee-trail--committee .bee-trail__label {
+  transform: translateY(-1px) rotate(1deg) scale(1.03);
+}
+
 .member-popup {
   position: fixed;
   inset: 0;
