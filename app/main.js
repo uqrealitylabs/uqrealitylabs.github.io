@@ -31,12 +31,12 @@ const STAR_COUNT = 90;
 const STAR_RADIUS = 0.16;
 const STAR_DRIFT_DISTANCE = 200;
 const SECTION_Y_STEP = 200;
-const TEXT_FONT_SIZE = 2;
+const TEXT_FONT_SIZE = 1.84;
 const TEXT_MAX_WIDTH = 40;
 const TEXT_REVEAL_DURATION = 0.42;
 const TEXT_HIDE_DURATION = 0.22;
 const DESCRIPTION_Y_OFFSET = -5;
-const DESCRIPTION_FONT_SIZE = 1.25;
+const DESCRIPTION_FONT_SIZE = 1.12;
 const COMPACT_VIEWPORT_WIDTH = 860;
 const SHORT_VIEWPORT_HEIGHT = 680;
 const POINTER_IDLE_MS = 1200;
@@ -314,10 +314,10 @@ const KEY_LIGHT_OFFSET = { x: 2, y: 10, z: 40 };
 const FILL_LIGHT_OFFSET = { x: -12, y: 4, z: 25 };
 const RAINBOW_Z_OFFSET = -80; // behind model (home model z -20 → light z -100)
 const RAINBOW_FADE_DURATION = 0.6;
-const RAINBOW_GLOW_SCALE = 8.8;
-const RAINBOW_OUTER_GLOW_SCALE = 13.1;
-const RAINBOW_LIGHT_INTENSITY = 2.2;
-const RAINBOW_LIGHT_DISTANCE = 78;
+const RAINBOW_GLOW_SCALE = 9.8;
+const RAINBOW_OUTER_GLOW_SCALE = 14.8;
+const RAINBOW_LIGHT_INTENSITY = 2.55;
+const RAINBOW_LIGHT_DISTANCE = 92;
 const RAINBOW_LIGHT_DECAY = 0.7;
 
 const canvas = document.querySelector("#canvas");
@@ -901,9 +901,9 @@ function getViewportLayout() {
     wide,
     cameraScale: narrow ? 1.18 : compact ? 1.12 : short ? 1.03 : wide ? 0.82 : 0.94,
     cameraYOffset: narrow ? 0.7 : compact ? 0.4 : 0,
-    titleFontSize: narrow ? 1.34 : compact ? 1.46 : short ? 1.55 : wide ? 2.15 : TEXT_FONT_SIZE,
+    titleFontSize: narrow ? 1.34 : compact ? 1.46 : short ? 1.55 : wide ? 1.9 : TEXT_FONT_SIZE,
     descriptionFontSize: narrow ? 0.98 : compact ? 1.04 : short ? 1 : DESCRIPTION_FONT_SIZE,
-    textMaxWidth: narrow ? 12 : compact ? 18 : tablet ? 30 : wide ? 40 : 36,
+    textMaxWidth: narrow ? 12 : compact ? 18 : tablet ? 30 : wide ? 34 : 36,
     sponsorImageHeight: compact ? 3.5 : SPONSOR_IMAGE_HEIGHT,
     sponsorImageY: compact ? -0.8 : SPONSOR_IMAGE_POS.y + SPONSOR_IMAGE_Y_OFFSET,
     aboutImageHeight: narrow ? 3.2 : compact ? 3.65 : ABOUT_IMAGE_HEIGHT,
@@ -917,7 +917,7 @@ function getViewportLayout() {
     committeeRowSpacing: narrow ? 4.7 : compact ? 5 : tablet ? 6.9 : wide ? 9.8 : COMMITTEE_ROW_SPACING,
     committeeCaptionFontSize: narrow ? 0.65 : compact ? 0.7 : COMMITTEE_CAPTION_FONT_SIZE,
     committeeBaseY: narrow ? 4.1 : compact ? 3.55 : COMMITTEE_BASE_POSITION.y,
-    committeeMobileRows: narrow ? [1, 2, 4] : compact ? [2, 2, 3] : null,
+    committeeMobileRows: narrow ? [1, 2, 4] : compact ? [1, 2, 4] : null,
   };
 
   if (landscape) {
@@ -932,7 +932,7 @@ function getViewportLayout() {
     cachedViewportLayout.committeeImageSpacing = 5.35;
     cachedViewportLayout.committeeRowSpacing = 4.8;
     cachedViewportLayout.committeeCaptionFontSize = 0.62;
-    cachedViewportLayout.committeeMobileRows = [2, 2, 3];
+    cachedViewportLayout.committeeMobileRows = [1, 2, 4];
   }
 
   return cachedViewportLayout;
@@ -3174,17 +3174,19 @@ function restoreLogoBoxMaterials(root, logoTexture) {
       child.material.color.set(0xffffff);
       child.material.transparent = false;
       child.material.alphaTest = 0;
-      child.material.roughness = 0.26;
-      child.material.metalness = 0.14;
-      child.material.clearcoat = 0.62;
-      child.material.clearcoatRoughness = 0.18;
+      child.material.roughness = 0.2;
+      child.material.metalness = 0.1;
+      child.material.clearcoat = 0.82;
+      child.material.clearcoatRoughness = 0.08;
+      child.material.envMapIntensity = 1.08;
       child.material.emissive.set(0x000000);
       child.material.emissiveIntensity = 0;
     } else {
-      child.material.roughness = 0.22;
-      child.material.metalness = 0.46;
-      child.material.clearcoat = 0.7;
-      child.material.clearcoatRoughness = 0.16;
+      child.material.roughness = 0.18;
+      child.material.metalness = 0.5;
+      child.material.clearcoat = 0.78;
+      child.material.clearcoatRoughness = 0.1;
+      child.material.envMapIntensity = 1.04;
       child.material.emissive.set(0x07090f);
       child.material.emissiveIntensity = 0.1;
     }
