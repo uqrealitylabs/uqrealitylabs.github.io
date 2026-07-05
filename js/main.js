@@ -359,6 +359,7 @@ let aboutJoinImage = null;
 let committeeMembers = [];
 let isMobileLayout = window.innerWidth <= MOBILE_BREAKPOINT;
 let layoutScale = isMobileLayout ? MOBILE_SCALE : 1;
+let mobileTouchScrollObserver = null;
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -517,6 +518,14 @@ function applyResponsiveLayout() {
     isMobileLayout = window.innerWidth <= MOBILE_BREAKPOINT;
     layoutScale = isMobileLayout ? MOBILE_SCALE : 1;
     document.body.classList.toggle("is-mobile", isMobileLayout);
+
+    if (mobileTouchScrollObserver) {
+        if (isMobileLayout) {
+            mobileTouchScrollObserver.enable();
+        } else {
+            mobileTouchScrollObserver.disable();
+        }
+    }
 
     sectionTexts.forEach((textMesh) => {
         updateTextMeshScale(textMesh);
@@ -1814,12 +1823,25 @@ function goToPrevSection() {
 function setupScrollControl() {
     Observer.create({
         target: window,
-        type: "wheel,touch,pointer",
+        type: "wheel,pointer",
         preventDefault: true,
         onDown: () => goToNextSection(),
         onUp: () => goToPrevSection(),
         tolerance: SCROLL_TOLERANCE,
     });
+
+    mobileTouchScrollObserver = Observer.create({
+        target: window,
+        type: "touch",
+        preventDefault: true,
+        onDown: () => goToPrevSection(),
+        onUp: () => goToNextSection(),
+        tolerance: SCROLL_TOLERANCE,
+    });
+
+    if (!isMobileLayout) {
+        mobileTouchScrollObserver.disable();
+    }
 }
 
 setupScrollControl();
