@@ -314,11 +314,11 @@ const KEY_LIGHT_OFFSET = { x: 2, y: 10, z: 40 };
 const FILL_LIGHT_OFFSET = { x: -12, y: 4, z: 25 };
 const RAINBOW_Z_OFFSET = -80; // behind model (home model z -20 → light z -100)
 const RAINBOW_FADE_DURATION = 0.6;
-const RAINBOW_GLOW_SCALE = 5.8;
-const RAINBOW_OUTER_GLOW_SCALE = 8;
-const RAINBOW_LIGHT_INTENSITY = 1.5;
-const RAINBOW_LIGHT_DISTANCE = 40;
-const RAINBOW_LIGHT_DECAY = 0.75;
+const RAINBOW_GLOW_SCALE = 6.7;
+const RAINBOW_OUTER_GLOW_SCALE = 9.4;
+const RAINBOW_LIGHT_INTENSITY = 2.2;
+const RAINBOW_LIGHT_DISTANCE = 52;
+const RAINBOW_LIGHT_DECAY = 0.7;
 
 const canvas = document.querySelector("#canvas");
 const statusLabel = document.querySelector("#status");
@@ -1322,7 +1322,12 @@ function animateRainbowBackdrop() {
   }
 
   rainbowHue = (rainbowHue + 0.003) % 1;
-  rainbowBackdrop.userData.pointLight.color.setHSL(rainbowHue, 1, 0.55);
+  const pulse = 1 + Math.sin(rainbowHue * Math.PI * 2) * 0.14;
+  rainbowBackdrop.userData.pointLight.color.setHSL(rainbowHue, 1, 0.62);
+  rainbowBackdrop.userData.pointLight.intensity = RAINBOW_LIGHT_INTENSITY * pulse;
+  rainbowBackdrop.userData.glowMeshes.forEach((mesh, index) => {
+    mesh.material.opacity = rainbowBackdrop.userData.glowOpacities[index] * pulse;
+  });
   updateRainbowBackdropRotation();
 }
 
@@ -3134,33 +3139,32 @@ function restoreLogoBoxMaterials(root, logoTexture) {
   logoTexture.flipY = false;
   polishTexture(logoTexture);
 
-  const faceMaterial = new THREE.MeshPhysicalMaterial({
-    map: logoTexture,
-    color: 0xffffff,
-    roughness: 0.2,
-    metalness: 0.16,
-    clearcoat: 0.58,
-    clearcoatRoughness: 0.24,
-    emissive: 0x120404,
-    emissiveIntensity: 0.1,
-    side: THREE.DoubleSide,
-  });
-  const edgeMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0x151823,
-    roughness: 0.24,
-    metalness: 0.42,
-    clearcoat: 0.68,
-    clearcoatRoughness: 0.2,
-    emissive: 0x07090f,
-    emissiveIntensity: 0.08,
-    side: THREE.DoubleSide,
-  });
-
   root.traverse((child) => {
     if (!child.isMesh) return;
 
     child.geometry.computeVertexNormals();
-    child.material = child.name === "Body1" ? faceMaterial : edgeMaterial;
+
+    if (child.name === "Body1") {
+      child.material.map = logoTexture;
+      child.material.color.set(0xffffff);
+      child.material.transparent = true;
+      child.material.alphaTest = 0.08;
+      child.material.roughness = 0.26;
+      child.material.metalness = 0.14;
+      child.material.clearcoat = 0.62;
+      child.material.clearcoatRoughness = 0.18;
+      child.material.emissive.set(0x000000);
+      child.material.emissiveIntensity = 0;
+    } else {
+      child.material.roughness = 0.22;
+      child.material.metalness = 0.46;
+      child.material.clearcoat = 0.7;
+      child.material.clearcoatRoughness = 0.16;
+      child.material.emissive.set(0x07090f);
+      child.material.emissiveIntensity = 0.1;
+    }
+
+    child.material.needsUpdate = true;
   });
 }
 
