@@ -314,10 +314,10 @@ const KEY_LIGHT_OFFSET = { x: 2, y: 10, z: 40 };
 const FILL_LIGHT_OFFSET = { x: -12, y: 4, z: 25 };
 const RAINBOW_Z_OFFSET = -80; // behind model (home model z -20 → light z -100)
 const RAINBOW_FADE_DURATION = 0.6;
-const RAINBOW_GLOW_SCALE = 6.7;
-const RAINBOW_OUTER_GLOW_SCALE = 9.4;
+const RAINBOW_GLOW_SCALE = 7.8;
+const RAINBOW_OUTER_GLOW_SCALE = 11.4;
 const RAINBOW_LIGHT_INTENSITY = 2.2;
-const RAINBOW_LIGHT_DISTANCE = 52;
+const RAINBOW_LIGHT_DISTANCE = 64;
 const RAINBOW_LIGHT_DECAY = 0.7;
 
 const canvas = document.querySelector("#canvas");
@@ -581,6 +581,29 @@ function createLogoFallbackTexture() {
   logoFallbackTexture.generateMipmaps = true;
   logoFallbackTexture.needsUpdate = true;
   return logoFallbackTexture;
+}
+
+function bakeLogoTexture(sourceTexture) {
+  const image = sourceTexture?.image;
+  if (!image?.width || !image?.height) return sourceTexture;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = image.width;
+  canvas.height = image.height;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#050608";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(image, 0, 0);
+
+  const bakedTexture = new THREE.CanvasTexture(canvas);
+  bakedTexture.colorSpace = THREE.SRGBColorSpace;
+  bakedTexture.flipY = false;
+  bakedTexture.minFilter = THREE.LinearMipmapLinearFilter;
+  bakedTexture.magFilter = THREE.LinearFilter;
+  bakedTexture.generateMipmaps = true;
+  bakedTexture.needsUpdate = true;
+  return bakedTexture;
 }
 
 function hashString(value = "") {
@@ -3136,8 +3159,8 @@ function animateModelEntrance(modelSize) {
 }
 
 function restoreLogoBoxMaterials(root, logoTexture) {
-  logoTexture.flipY = false;
-  polishTexture(logoTexture);
+  const bakedTexture = bakeLogoTexture(logoTexture);
+  polishTexture(bakedTexture);
 
   root.traverse((child) => {
     if (!child.isMesh) return;
@@ -3145,10 +3168,10 @@ function restoreLogoBoxMaterials(root, logoTexture) {
     child.geometry.computeVertexNormals();
 
     if (child.name === "Body1") {
-      child.material.map = logoTexture;
+      child.material.map = bakedTexture;
       child.material.color.set(0xffffff);
-      child.material.transparent = true;
-      child.material.alphaTest = 0.08;
+      child.material.transparent = false;
+      child.material.alphaTest = 0;
       child.material.roughness = 0.26;
       child.material.metalness = 0.14;
       child.material.clearcoat = 0.62;
