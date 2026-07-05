@@ -633,6 +633,7 @@ function unlockAudio() {
   try {
     const context = ensureAudioContext();
     audioUnlocked = true;
+    pointerDirty = true;
     playCurrentHoverAudio();
     context.resume().catch(() => {});
   } catch {}
@@ -872,7 +873,21 @@ function applyPointerMotion() {
 
   for (const member of committeeMembers) {
     if (member.image.visible) {
-      member.image.rotation.set(tiltX * 0.65, tiltY * 0.65, 0);
+      const profile = getCommitteeHoverProfile(member.roleSlug);
+      const hoverBoost = member.image === hoveredCommitteeImage ? 1.35 : 1;
+      const bob = member.image === hoveredCommitteeImage ? profile.bob : 0;
+      const baseY = member.image.userData.baseY ?? member.image.position.y;
+      member.image.rotation.set(
+        tiltX * (0.65 + profile.driftY * hoverBoost) + (member.image === hoveredCommitteeImage ? profile.rotate : 0),
+        tiltY * (0.65 + profile.driftX * hoverBoost),
+        0
+      );
+      if (member.image === hoveredCommitteeImage) {
+        member.image.position.z = COMMITTEE_BASE_POSITION.z + profile.z;
+        member.image.position.y = baseY + bob * Math.sin(performance.now() * 0.004);
+      } else {
+        member.image.position.y = baseY;
+      }
     }
   }
 
@@ -936,6 +951,40 @@ function getViewportLayout() {
   }
 
   return cachedViewportLayout;
+}
+
+function getCommitteeHoverProfile(roleSlug = "") {
+  const role = roleSlug.toLowerCase();
+
+  if (role.includes("president")) {
+    return { scale: 1.06, z: 1.35, driftX: 0.015, driftY: 0.012, bob: 0.03, rotate: 0.008 };
+  }
+
+  if (role.includes("secretary")) {
+    return { scale: 1.045, z: 1.2, driftX: -0.014, driftY: 0.01, bob: 0.04, rotate: -0.01 };
+  }
+
+  if (role.includes("treasurer")) {
+    return { scale: 1.05, z: 1.25, driftX: 0.01, driftY: -0.015, bob: 0.05, rotate: 0.012 };
+  }
+
+  if (role.includes("media")) {
+    return { scale: 1.055, z: 1.18, driftX: -0.018, driftY: 0.008, bob: 0.06, rotate: -0.012 };
+  }
+
+  if (role.includes("events")) {
+    return { scale: 1.05, z: 1.22, driftX: 0.012, driftY: 0.014, bob: 0.045, rotate: 0.014 };
+  }
+
+  if (role.includes("workshop")) {
+    return { scale: 1.04, z: 1.16, driftX: -0.012, driftY: -0.01, bob: 0.035, rotate: -0.009 };
+  }
+
+  if (role.includes("industry")) {
+    return { scale: 1.045, z: 1.18, driftX: 0.016, driftY: 0.008, bob: 0.03, rotate: 0.01 };
+  }
+
+  return { scale: 1.04, z: 1.15, driftX: 0.01, driftY: 0.01, bob: 0.04, rotate: 0.01 };
 }
 
 function getResponsiveSection(section, index, compactLayouts) {
@@ -1172,10 +1221,82 @@ function createRoundedIconMaterial(texture) {
   });
 }
 
-function createSocialCardMaterials(texture) {
-  const faceMaterial = createRoundedIconMaterial(texture);
-  const sheetMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0x191f2d,
+function getSocialMaterialProfile(label = "") {
+  const name = label.toLowerCase();
+
+  if (name.includes("discord")) {
+    return {
+      base: 0x1f232d,
+      top: 0x252b38,
+      bottom: 0x151a22,
+      back: 0x1a1f29,
+      roughness: 0.92,
+      metalness: 0.02,
+      clearcoat: 0.08,
+      clearcoatRoughness: 0.82,
+      sheen: 0.05,
+      sheenColor: new THREE.Color(0xd4d9e8),
+      sheenRoughness: 0.95,
+      roughnessMap: null,
+    };
+  }
+
+  if (name.includes("email")) {
+    return {
+      base: 0x33412a,
+      top: 0x3f5132,
+      bottom: 0x24311d,
+      back: 0x2e3926,
+      roughness: 0.98,
+      metalness: 0.01,
+      clearcoat: 0.03,
+      clearcoatRoughness: 0.9,
+      sheen: 0.18,
+      sheenColor: new THREE.Color(0xcfe7a8),
+      sheenRoughness: 0.82,
+      roughnessMap: null,
+    };
+  }
+
+  if (name.includes("instagram")) {
+    return {
+      base: 0x1d2230,
+      top: 0x263044,
+      bottom: 0x111723,
+      back: 0x181d2c,
+      roughness: 0.7,
+      metalness: 0.02,
+      clearcoat: 0.18,
+      clearcoatRoughness: 0.42,
+      sheen: 0.34,
+      sheenColor: new THREE.Color(0xf5e6d2),
+      sheenRoughness: 0.9,
+      roughnessMap: createClothTexture(),
+    };
+  }
+
+  if (name.includes("linkedin")) {
+    return {
+      base: 0x5f6b78,
+      top: 0x758291,
+      bottom: 0x434d59,
+      back: 0x525d69,
+      roughness: 0.25,
+      metalness: 0.34,
+      clearcoat: 0.82,
+      clearcoatRoughness: 0.12,
+      sheen: 0.04,
+      sheenColor: new THREE.Color(0xcfd5dd),
+      sheenRoughness: 0.72,
+      roughnessMap: null,
+    };
+  }
+
+  return {
+    base: 0x191f2d,
+    top: 0x202638,
+    bottom: 0x0f141e,
+    back: 0x171d2a,
     roughness: 0.7,
     metalness: 0.01,
     clearcoat: 0.14,
@@ -1184,16 +1305,41 @@ function createSocialCardMaterials(texture) {
     sheenColor: new THREE.Color(0xfff4df),
     sheenRoughness: 0.92,
     roughnessMap: createClothTexture(),
+  };
+}
+
+function createSocialCardMaterials(texture, label = "") {
+  const profile = getSocialMaterialProfile(label);
+  const faceMaterial = createRoundedIconMaterial(texture);
+  faceMaterial.roughness = profile.roughness;
+  faceMaterial.metalness = profile.metalness;
+  faceMaterial.clearcoat = profile.clearcoat;
+  faceMaterial.clearcoatRoughness = profile.clearcoatRoughness;
+  faceMaterial.sheen = profile.sheen;
+  faceMaterial.sheenColor = profile.sheenColor;
+  faceMaterial.sheenRoughness = profile.sheenRoughness;
+  faceMaterial.roughnessMap = profile.roughnessMap;
+
+  const sheetMaterial = new THREE.MeshPhysicalMaterial({
+    color: profile.base,
+    roughness: profile.roughness,
+    metalness: profile.metalness,
+    clearcoat: profile.clearcoat,
+    clearcoatRoughness: profile.clearcoatRoughness,
+    sheen: profile.sheen,
+    sheenColor: profile.sheenColor,
+    sheenRoughness: profile.sheenRoughness,
+    roughnessMap: profile.roughnessMap,
     emissive: 0x05070d,
     emissiveIntensity: 0.04,
     side: THREE.DoubleSide,
   });
   const topMaterial = sheetMaterial.clone();
-  topMaterial.color.set(0x202638);
+  topMaterial.color.set(profile.top);
   const bottomMaterial = sheetMaterial.clone();
-  bottomMaterial.color.set(0x0f141e);
+  bottomMaterial.color.set(profile.bottom);
   const backMaterial = sheetMaterial.clone();
-  backMaterial.color.set(0x171d2a);
+  backMaterial.color.set(profile.back);
 
   return [
     sheetMaterial,
@@ -2295,9 +2441,11 @@ function createCommitteeMembers() {
       image.userData.image = config.image;
       image.userData.accentColor = config.accentColor;
       image.userData.pathVariant = config.pathVariant;
+      image.userData.roleSlug = config.roleSlug;
       image.userData.memberIndex = memberIndex;
       image.userData.texturePath = config.image;
       image.userData.layout = { rowIndex, colIndex, rowLength: row.length, memberIndex };
+      image.userData.baseY = position.y;
       image.userData.fadeTween = null;
       image.visible = false;
       scene.add(image);
@@ -2324,6 +2472,7 @@ function createCommitteeMembers() {
         microcopy: config.microcopy,
         accentColor: config.accentColor,
         pathVariant: config.pathVariant,
+        roleSlug: config.roleSlug,
         sourceImage: config.image,
         photoFocus: config.photoFocus,
         photoWidth: config.photoWidth,
@@ -2352,6 +2501,7 @@ function applyCommitteeLayout() {
     );
 
     member.image.position.set(position.x, position.y, position.z);
+    member.image.userData.baseY = position.y;
     resizeAvatarPlane(member.image, layout.committeeImageHeight);
 
     member.caption.fontSize = layout.committeeCaptionFontSize;
@@ -2492,6 +2642,7 @@ function setCommitteeImageHovered(image) {
   document.body.removeAttribute("data-path-variant");
 
   if (hoveredCommitteeImage) {
+    const profile = getCommitteeHoverProfile(hoveredCommitteeImage.userData.roleSlug);
     const accent = hoveredCommitteeImage.userData.accentColor || "#FF5757";
     document.body.style.setProperty("--committee-accent", accent);
     document.body.dataset.committeeGroup =
@@ -2501,17 +2652,19 @@ function setCommitteeImageHovered(image) {
     hoveredCommitteeImage.userData.caption.color = accent;
     hoveredCommitteeImage.userData.caption.sync();
     gsap.killTweensOf(hoveredCommitteeImage.position, "z");
+    gsap.killTweensOf(hoveredCommitteeImage.position, "y");
     gsap.killTweensOf(hoveredCommitteeImage.scale);
     gsap.to(hoveredCommitteeImage.scale, {
-      x: 1.04,
-      y: 1.04,
-      z: 1.04,
-      duration: motionDuration(0.16),
+      x: profile.scale,
+      y: profile.scale,
+      z: profile.scale,
+      duration: motionDuration(0.18),
       ease: "power2.out",
     });
     gsap.to(hoveredCommitteeImage.position, {
-      z: COMMITTEE_BASE_POSITION.z + 1,
-      duration: motionDuration(0.16),
+      z: COMMITTEE_BASE_POSITION.z + profile.z,
+      y: (hoveredCommitteeImage.userData.baseY ?? hoveredCommitteeImage.position.y) + profile.bob * 0.2,
+      duration: motionDuration(0.18),
       ease: "power2.out",
     });
     playMusicCue(
@@ -2681,7 +2834,7 @@ function createSocialCubes() {
         SOCIAL_CUBE_SEGMENTS,
         SOCIAL_CUBE_RADIUS
       ),
-      createSocialCardMaterials(texture)
+      createSocialCardMaterials(texture, config.label)
     );
     const caption = createSocialCaption(config.label);
 
@@ -3275,13 +3428,10 @@ function animate() {
 
   animateRainbowBackdrop();
   applyPointerMotion();
-
-  if (pointerDirty) {
-    updateSocialCubeHover();
-    updateAboutJoinHover();
-    updateCommitteeHover();
-    pointerDirty = false;
-  }
+  updateSocialCubeHover();
+  updateAboutJoinHover();
+  updateCommitteeHover();
+  pointerDirty = false;
 
   if (ENABLE_ORBIT_CONTROLS && controls) {
     controls.update();
