@@ -34,7 +34,7 @@ jobs:
         run: npm run build
 
       - name: Compile Lighthouse config
-        run: npx tsc --module NodeNext --moduleResolution NodeNext --target ES2022 --outDir "$RUNNER_TEMP/lhci-config" config/lighthouserc.cts
+        run: npx tsc --module NodeNext --moduleResolution NodeNext --target ES2022 --outDir "$RUNNER_TEMP/lhci-config" tools/config/lighthouserc.cts
 
       - name: Run Lighthouse CI
         run: npx --yes @lhci/cli autorun --config="$RUNNER_TEMP/lhci-config/lighthouserc.cjs"

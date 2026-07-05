@@ -18,6 +18,12 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["app/**/*.ts", "config/**/*.ts", "config/**/*.cts", "tests/**/*.ts", "tools/**/*.ts"],
+  "include": [
+    "app/**/*.ts",
+    "tools/config/**/*.ts",
+    "tools/config/**/*.cts",
+    "tests/**/*.ts",
+    "tools/**/*.ts"
+  ],
   "exclude": ["dist", "node_modules"]
 }
