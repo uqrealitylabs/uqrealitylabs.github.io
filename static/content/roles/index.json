@@ -1,8 +1,5 @@
 {
   "_comment": "Committee row layout only; role/member data lives in roles/<role>.md.",
-  "rows": [
-    ["president", "secretary", "treasurer"],
-    ["media", "events", "workshop", "industry"]
-  ],
+  "rows": [["president", "secretary", "treasurer"], ["media", "events", "workshop", "industry"]],
   "roles": ["president", "secretary", "treasurer", "media", "events", "workshop", "industry"]
 }

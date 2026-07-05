@@ -3,12 +3,33 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20.18.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:unit": "vitest run",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test --grep @smoke",
+    "test:a11y": "playwright test --grep @a11y",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:unit && npm run build"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@biomejs/biome": "^1.9.4",
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^22.15.18",
+    "jsdom": "^26.1.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
     "vite": "^6.3.5"
   },
   "dependencies": {
