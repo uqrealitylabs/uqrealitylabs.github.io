@@ -63,9 +63,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: min(62rem, calc(100% - var(--safe-left) - var(--safe-right) - clamp(0.5rem, 2.8vw, 1.8rem)));
-  gap: clamp(0.42rem, 1.2vw, 0.92rem);
-  padding: 0.34rem clamp(0.5rem, 1.35vw, 0.82rem);
+  width: min(66rem, calc(100% - var(--safe-left) - var(--safe-right) - clamp(0.5rem, 2.8vw, 1.8rem)));
+  gap: clamp(0.5rem, 1.35vw, 1rem);
+  padding: 0.42rem clamp(0.56rem, 1.5vw, 0.94rem);
   border: 2px solid rgba(255, 243, 210, 0.44);
   border-radius: 1.35rem 1rem 1.45rem 0.95rem;
   background:
@@ -85,10 +85,10 @@ body {
 }
 
 #navbar.is-condensed {
-  width: min(10.4rem, calc(100% - var(--safe-left) - var(--safe-right) - 0.7rem));
-  padding: 0.18rem 0.3rem;
+  width: min(11.2rem, calc(100% - var(--safe-left) - var(--safe-right) - 0.7rem));
+  padding: 0.18rem 0.36rem;
   opacity: 0.58;
-  transform: translateX(-50%) translateY(-0.38rem) scale(0.9) rotate(-0.7deg);
+  transform: translateX(-50%) translateY(-0.38rem) scale(0.92) rotate(-0.7deg);
 }
 
 #navbar.is-condensed .nav-logo img {
@@ -107,7 +107,7 @@ body {
 .nav-logo img {
   display: block;
   width: auto;
-  height: clamp(1.95rem, 4.15vw, 2.55rem);
+  height: clamp(2.1rem, 4.55vw, 2.8rem);
 }
 
 .nav-links {
@@ -123,15 +123,15 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.25rem;
-  min-height: 2.25rem;
-  padding: 0.34rem clamp(0.46rem, 1vw, 0.68rem);
+  min-width: 2.35rem;
+  min-height: 2.35rem;
+  padding: 0.38rem clamp(0.5rem, 1.1vw, 0.72rem);
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: rgba(255, 255, 255, 0.78);
   cursor: pointer;
-  font: clamp(0.84rem, 1.35vw, 1rem)/1 "Pixelify Sans", system-ui, sans-serif;
+  font: clamp(0.88rem, 1.45vw, 1.05rem)/1 "Pixelify Sans", system-ui, sans-serif;
   white-space: nowrap;
   transition:
     background-color 0.16s ease,
@@ -264,10 +264,37 @@ body[data-trails-ready="true"] .bee-trail__path {
 }
 
 .bee-trail__dot {
+  filter: drop-shadow(0 0 0.22rem rgba(255, 87, 87, 0.32));
+}
+
+.bee-trail__bee-body {
   fill: var(--chalk);
   stroke: currentColor;
-  stroke-width: 2;
-  filter: drop-shadow(0 0 0.22rem rgba(255, 87, 87, 0.32));
+  stroke-width: 1.8;
+}
+
+.bee-trail__bee-stripe {
+  fill: none;
+  stroke: #1b2231;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+
+.bee-trail__bee-wing {
+  fill: rgba(255, 255, 255, 0.82);
+  stroke: rgba(27, 34, 49, 0.26);
+  stroke-width: 0.8;
+  transform-origin: center;
+}
+
+.bee-trail__bee-wing--left {
+  transform: translate(-1.5px, -3px) rotate(-18deg);
+  animation: bee-wing-flutter-left 0.24s ease-in-out infinite alternate;
+}
+
+.bee-trail__bee-wing--right {
+  transform: translate(1.4px, -3px) rotate(18deg);
+  animation: bee-wing-flutter-right 0.24s ease-in-out infinite alternate;
 }
 
 .bee-trail__label {
@@ -290,7 +317,7 @@ body[data-section="1"] .bee-trail--join {
   display: block;
   right: calc(var(--safe-right) + clamp(1.1rem, 5.8vw, 6rem));
   bottom: calc(var(--safe-bottom) + clamp(4.9rem, 13vh, 8.2rem));
-  width: min(14rem, calc(100vw - var(--safe-left) - var(--safe-right) - 2.2rem));
+  width: min(15rem, calc(100vw - var(--safe-left) - var(--safe-right) - 2.2rem));
   color: var(--content-trail, var(--marker));
 }
 
@@ -312,7 +339,9 @@ body[data-section="1"][data-bee-state="excited"] .bee-trail--join .bee-trail__do
 }
 
 body[data-section="1"][data-bee-state="sad"] .bee-trail--join {
-  display: none;
+  display: block;
+  opacity: 0.34;
+  transform: translateY(0.2rem) rotate(-2deg);
 }
 
 body[data-section="2"] .bee-trail--social {
@@ -320,20 +349,28 @@ body[data-section="2"] .bee-trail--social {
   left: calc(var(--safe-left) + clamp(1rem, 5.5vw, 6.2rem));
   bottom: calc(var(--safe-bottom) + clamp(4rem, 12vh, 6.8rem));
   transform: rotate(7deg);
-  width: min(13.2rem, calc(100vw - var(--safe-left) - var(--safe-right) - 2rem));
+  width: min(14rem, calc(100vw - var(--safe-left) - var(--safe-right) - 2rem));
 }
 
 body[data-section="4"] .bee-trail--committee {
   display: block;
   right: calc(var(--safe-right) + clamp(2.4rem, 7vw, 7.6rem));
   bottom: calc(var(--safe-bottom) + clamp(6rem, 15vh, 9.2rem));
-  width: min(12.4rem, calc(100vw - var(--safe-left) - var(--safe-right) - 2rem));
+  width: min(13.4rem, calc(100vw - var(--safe-left) - var(--safe-right) - 2rem));
   color: var(--committee-accent, var(--marker));
 }
 
 body[data-content-hover="join"] .bee-trail--join .bee-trail__path {
   stroke-dasharray: 5 10;
   animation-duration: 0.58s, 0.7s;
+}
+
+body[data-content-hover="join"] .bee-trail--join .bee-trail__label {
+  transform: translateY(-1px) rotate(-4deg) scale(1.02);
+}
+
+body[data-content-hover="join"] .bee-trail--join {
+  transform: rotate(-6deg) translateY(-0.25rem) translateX(0.15rem);
 }
 
 body[data-content-variant="excited-loop"] .bee-trail--join .bee-trail__path {
@@ -349,8 +386,16 @@ body[data-content-hover="social"] .bee-trail--social .bee-trail__path {
   animation-duration: 0.7s, 0.9s;
 }
 
+body[data-content-hover="social"] .bee-trail--social .bee-trail__label {
+  transform: translateY(-1px) rotate(2deg) scale(1.03);
+}
+
 body[data-content-variant="route-hop"] .bee-trail--social {
   transform: rotate(5deg) translateY(-0.2rem);
+}
+
+body[data-content-hover="social"] .bee-trail--social {
+  transform: rotate(10deg) translateY(-0.35rem) translateX(-0.1rem);
 }
 
 body[data-content-variant="route-hop"] .bee-trail--social .bee-trail__path {
@@ -477,6 +522,10 @@ body[data-content-hover="committee"] .bee-trail--committee .bee-trail__label {
   transform: translateY(-1px) rotate(1deg) scale(1.03);
 }
 
+body[data-content-hover="committee"] .bee-trail--committee {
+  transform: rotate(4deg) translateX(0.35rem) translateY(-0.45rem);
+}
+
 .member-popup {
   position: fixed;
   inset: 0;
@@ -503,21 +552,21 @@ body[data-content-hover="committee"] .bee-trail--committee .bee-trail__label {
   top: var(--popup-top, 50%);
   left: var(--popup-left, 50%);
   display: grid;
-  grid-template-columns: minmax(6.4rem, 8.4rem) minmax(0, 1fr);
-  gap: 0.75rem;
-  width: min(20.5rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.9rem));
+  grid-template-columns: minmax(5.8rem, 7.6rem) minmax(0, 1fr);
+  gap: 0.62rem;
+  width: min(18.6rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.8rem));
   max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 1rem);
   overflow: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: clamp(0.62rem, 1.45vw, 0.88rem) clamp(0.66rem, 1.55vw, 0.9rem) clamp(0.58rem, 1.35vw, 0.82rem);
+  padding: clamp(0.52rem, 1.15vw, 0.72rem) clamp(0.58rem, 1.25vw, 0.78rem) clamp(0.5rem, 1.1vw, 0.68rem);
   border: 2px solid var(--member-accent, rgba(255, 243, 210, 0.54));
   border-radius: 1.05rem 0.8rem 1.2rem 0.86rem;
   background:
     linear-gradient(135deg, rgba(255, 243, 210, 0.13), rgba(255, 87, 87, 0.08)),
     rgba(18, 22, 34, 0.94);
   box-shadow:
-    0.5rem 0.55rem 0 var(--member-accent, var(--marker)),
+    0.4rem 0.45rem 0 var(--member-accent, var(--marker)),
     0 1rem 2.2rem rgba(0, 0, 0, 0.28);
   color: #fff;
   transform-origin: var(--popup-origin-x, 50%) var(--popup-origin-y, 50%);
@@ -540,8 +589,8 @@ body[data-content-hover="committee"] .bee-trail--committee .bee-trail__label {
   content: attr(data-microcopy);
   position: absolute;
   top: 0.42rem;
-  left: 0.9rem;
-  max-width: min(13.8rem, calc(100% - 3.5rem));
+  left: 0.72rem;
+  max-width: min(12.6rem, calc(100% - 3.2rem));
   padding: 0.16rem 0.42rem;
   border: 2px solid var(--member-accent, var(--marker));
   border-radius: 999px;
@@ -555,12 +604,12 @@ body[data-content-hover="committee"] .bee-trail--committee .bee-trail__label {
 }
 
 .member-popup__card img {
-  width: min(100%, clamp(5.9rem, 14vw, 7.4rem));
+  width: min(100%, clamp(5.4rem, 12vw, 7rem));
   justify-self: center;
   aspect-ratio: 4 / 5;
   border-radius: 0.84rem;
   object-fit: cover;
-  max-height: clamp(7rem, 26vw, 8.6rem);
+  max-height: clamp(6.5rem, 24vw, 8.1rem);
 }
 
 .member-popup__card h2 {
@@ -703,6 +752,24 @@ body[data-content-hover="committee"] .bee-trail--committee .bee-trail__label {
   }
 }
 
+@keyframes bee-wing-flutter-left {
+  from {
+    transform: translate(-1.5px, -3px) rotate(-20deg) scaleY(0.92);
+  }
+  to {
+    transform: translate(-1.5px, -3px) rotate(-14deg) scaleY(1.08);
+  }
+}
+
+@keyframes bee-wing-flutter-right {
+  from {
+    transform: translate(1.4px, -3px) rotate(16deg) scaleY(0.92);
+  }
+  to {
+    transform: translate(1.4px, -3px) rotate(22deg) scaleY(1.08);
+  }
+}
+
 @keyframes bee-sad-drift {
   0% {
     opacity: 0;
@@ -778,16 +845,16 @@ body[data-content-hover="committee"] .bee-trail--committee .bee-trail__label {
 
   .member-popup__card {
     grid-template-columns: 1fr;
-    width: min(17.25rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.65rem));
-    padding: 0.9rem 0.7rem 0.75rem;
+    width: min(15.95rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.5rem));
+    padding: 0.72rem 0.62rem 0.64rem;
     box-shadow:
-      0.28rem 0.32rem 0 var(--member-accent, var(--marker)),
+      0.22rem 0.26rem 0 var(--member-accent, var(--marker)),
       0 0.7rem 1.4rem rgba(0, 0, 0, 0.25);
   }
 
   .member-popup__card img {
-    width: clamp(6.2rem, 42vw, 8.1rem);
-    max-height: 8.1rem;
+    width: clamp(5.4rem, 34vw, 6.7rem);
+    max-height: 7.4rem;
   }
 }
 
@@ -811,7 +878,7 @@ body[data-content-hover="committee"] .bee-trail--committee .bee-trail__label {
   body[data-section="1"] .bee-trail--join,
   body[data-section="2"] .bee-trail--social,
   body[data-section="4"] .bee-trail--committee {
-    width: min(10.5rem, calc(100vw - var(--safe-left) - var(--safe-right) - 1rem));
+    width: min(9.8rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.95rem));
   }
 }
 
@@ -819,25 +886,25 @@ body[data-content-hover="committee"] .bee-trail--committee .bee-trail__label {
   body[data-section="1"] .bee-trail--join {
     right: calc(var(--safe-right) + 0.35rem);
     bottom: calc(var(--safe-bottom) + 3.8rem);
-    width: min(9rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.8rem));
+    width: min(8.2rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.7rem));
   }
 
   body[data-section="2"] .bee-trail--social {
     left: calc(var(--safe-left) + 0.35rem);
     bottom: calc(var(--safe-bottom) + 3.1rem);
-    width: min(9rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.8rem));
+    width: min(8.2rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.7rem));
   }
 
   body[data-section="4"] .bee-trail--committee {
     right: calc(var(--safe-right) + 0.45rem);
     bottom: calc(var(--safe-bottom) + 4rem);
-    width: min(9.2rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.8rem));
+    width: min(8.4rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.7rem));
   }
 
   body[data-section="1"] .bee-trail--join-sad {
     right: calc(var(--safe-right) + 0.45rem);
     bottom: calc(var(--safe-bottom) + 3.2rem);
-    width: min(8rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.8rem));
+    width: min(7.2rem, calc(100vw - var(--safe-left) - var(--safe-right) - 0.7rem));
   }
 }
 

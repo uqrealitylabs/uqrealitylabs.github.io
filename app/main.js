@@ -314,11 +314,11 @@ const KEY_LIGHT_OFFSET = { x: 2, y: 10, z: 40 };
 const FILL_LIGHT_OFFSET = { x: -12, y: 4, z: 25 };
 const RAINBOW_Z_OFFSET = -80; // behind model (home model z -20 → light z -100)
 const RAINBOW_FADE_DURATION = 0.6;
-const RAINBOW_GLOW_SCALE = 9.8;
-const RAINBOW_OUTER_GLOW_SCALE = 14.8;
-const RAINBOW_LIGHT_INTENSITY = 2.55;
-const RAINBOW_LIGHT_DISTANCE = 92;
-const RAINBOW_LIGHT_DECAY = 0.7;
+const RAINBOW_GLOW_SCALE = 11.8;
+const RAINBOW_OUTER_GLOW_SCALE = 17.6;
+const RAINBOW_LIGHT_INTENSITY = 3.1;
+const RAINBOW_LIGHT_DISTANCE = 114;
+const RAINBOW_LIGHT_DECAY = 0.62;
 
 const canvas = document.querySelector("#canvas");
 const statusLabel = document.querySelector("#status");
@@ -584,28 +584,15 @@ function createLogoFallbackTexture() {
 }
 
 function bakeLogoTexture(sourceTexture) {
-  const image = sourceTexture?.image;
-  if (!image?.width || !image?.height) return sourceTexture;
+  if (!sourceTexture) return sourceTexture;
 
-  const canvas = document.createElement("canvas");
-  canvas.width = image.width;
-  canvas.height = image.height;
-  const ctx = canvas.getContext("2d");
-
-  ctx.fillStyle = "#050608";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(image, 0, 0);
-  ctx.fillStyle = "#050608";
-  ctx.fillRect(0, canvas.height * 0.77, canvas.width, canvas.height * 0.23);
-
-  const bakedTexture = new THREE.CanvasTexture(canvas);
-  bakedTexture.colorSpace = THREE.SRGBColorSpace;
-  bakedTexture.flipY = false;
-  bakedTexture.minFilter = THREE.LinearMipmapLinearFilter;
-  bakedTexture.magFilter = THREE.LinearFilter;
-  bakedTexture.generateMipmaps = true;
-  bakedTexture.needsUpdate = true;
-  return bakedTexture;
+  sourceTexture.colorSpace = THREE.SRGBColorSpace;
+  sourceTexture.flipY = false;
+  sourceTexture.minFilter = THREE.LinearMipmapLinearFilter;
+  sourceTexture.magFilter = THREE.LinearFilter;
+  sourceTexture.generateMipmaps = true;
+  sourceTexture.needsUpdate = true;
+  return sourceTexture;
 }
 
 function hashString(value = "") {
@@ -627,6 +614,29 @@ function ensureAudioContext() {
   return audioContext;
 }
 
+function primeAudioContext(context) {
+  try {
+    const buffer = context.createBuffer(1, 1, context.sampleRate || 44100);
+    const source = context.createBufferSource();
+    const gain = context.createGain();
+
+    gain.gain.value = 0;
+    source.buffer = buffer;
+    source.connect(gain);
+    gain.connect(context.destination);
+    source.onended = () => {
+      try {
+        source.disconnect();
+      } catch {}
+      try {
+        gain.disconnect();
+      } catch {}
+    };
+    source.start();
+    source.stop(context.currentTime + 0.01);
+  } catch {}
+}
+
 function unlockAudio() {
   if (audioUnlocked) return;
 
@@ -637,8 +647,16 @@ function unlockAudio() {
     updateSocialCubeHover();
     updateAboutJoinHover();
     updateCommitteeHover();
-    playCurrentHoverAudio();
-    context.resume().catch(() => {});
+    const resumePromise = context.state === "suspended" ? context.resume() : Promise.resolve();
+    resumePromise
+      .then(() => {
+        primeAudioContext(context);
+        playCurrentHoverAudio();
+      })
+      .catch(() => {
+        primeAudioContext(context);
+        playCurrentHoverAudio();
+      });
   } catch {}
 }
 
@@ -719,7 +737,16 @@ function playMusicCue(music, key = "") {
   if (!context) return;
 
   if (context.state === "suspended") {
-    context.resume().catch(() => {});
+    context
+      .resume()
+      .then(() => {
+        primeAudioContext(context);
+        if (context.state === "running") {
+          playMusicCue(music, key);
+        }
+      })
+      .catch(() => {});
+    return;
   }
 
   if (activeSound?.key === key) return;
@@ -737,15 +764,15 @@ function playMusicCue(music, key = "") {
   const now = context.currentTime + 0.01;
 
   filter.type = music.source === "youtube" ? "lowpass" : "bandpass";
-  filter.frequency.setValueAtTime(900 + (seed % 5) * 120, now);
+  filter.frequency.setValueAtTime(1200 + (seed % 5) * 220, now);
   filter.Q.setValueAtTime(0.8 + (seed % 3) * 0.18, now);
 
   gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.linearRampToValueAtTime(clamp01(music.volume || 0.3), now + 0.04);
+  gain.gain.linearRampToValueAtTime(clamp01(Math.min(0.46, (music.volume || 0.3) + 0.12)), now + 0.04);
   gain.connect(filter);
   filter.connect(context.destination);
 
-  const timbre = music.source === "youtube" ? "triangle" : seed % 2 === 0 ? "sine" : "triangle";
+  const timbre = music.source === "youtube" ? "square" : seed % 2 === 0 ? "sawtooth" : "triangle";
 
   for (let i = 0; i < noteCount; i += 1) {
     const oscillator = context.createOscillator();
@@ -878,17 +905,24 @@ function applyPointerMotion() {
       const profile = getCommitteeHoverProfile(member.roleSlug);
       const hoverBoost = member.image === hoveredCommitteeImage ? 1.35 : 1;
       const bob = member.image === hoveredCommitteeImage ? profile.bob : 0;
+      const baseX = member.image.userData.baseX ?? member.image.position.x;
       const baseY = member.image.userData.baseY ?? member.image.position.y;
+      const driftX = reduced ? 0 : pointerCurrent.x * profile.driftX * 0.28 * hoverBoost;
+      const driftY = reduced ? 0 : pointerCurrent.y * profile.driftY * 0.18 * hoverBoost;
       member.image.rotation.set(
         tiltX * (0.65 + profile.driftY * hoverBoost) + (member.image === hoveredCommitteeImage ? profile.rotate : 0),
         tiltY * (0.65 + profile.driftX * hoverBoost),
         0
       );
+      member.image.position.x = baseX + driftX;
       if (member.image === hoveredCommitteeImage) {
         member.image.position.z = COMMITTEE_BASE_POSITION.z + profile.z;
-        member.image.position.y = baseY + bob * Math.sin(performance.now() * 0.004);
+        member.image.position.y = baseY + driftY + bob * Math.sin(performance.now() * 0.004);
       } else {
-        member.image.position.y = baseY;
+        member.image.position.y = baseY + driftY;
+      }
+      if (member.caption.visible) {
+        member.caption.position.x = member.image.position.x;
       }
     }
   }
@@ -959,34 +993,34 @@ function getCommitteeHoverProfile(roleSlug = "") {
   const role = roleSlug.toLowerCase();
 
   if (role.includes("president")) {
-    return { scale: 1.06, z: 1.35, driftX: 0.015, driftY: 0.012, bob: 0.03, rotate: 0.008 };
+    return { scale: 1.08, z: 1.45, driftX: 0.02, driftY: 0.014, bob: 0.04, rotate: 0.012 };
   }
 
   if (role.includes("secretary")) {
-    return { scale: 1.045, z: 1.2, driftX: -0.014, driftY: 0.01, bob: 0.04, rotate: -0.01 };
+    return { scale: 1.05, z: 1.26, driftX: -0.018, driftY: 0.012, bob: 0.05, rotate: -0.012 };
   }
 
   if (role.includes("treasurer")) {
-    return { scale: 1.05, z: 1.25, driftX: 0.01, driftY: -0.015, bob: 0.05, rotate: 0.012 };
+    return { scale: 1.06, z: 1.34, driftX: 0.016, driftY: -0.02, bob: 0.055, rotate: 0.016 };
   }
 
   if (role.includes("media")) {
-    return { scale: 1.055, z: 1.18, driftX: -0.018, driftY: 0.008, bob: 0.06, rotate: -0.012 };
+    return { scale: 1.065, z: 1.2, driftX: -0.024, driftY: 0.01, bob: 0.07, rotate: -0.018 };
   }
 
   if (role.includes("events")) {
-    return { scale: 1.05, z: 1.22, driftX: 0.012, driftY: 0.014, bob: 0.045, rotate: 0.014 };
+    return { scale: 1.06, z: 1.28, driftX: 0.018, driftY: 0.016, bob: 0.055, rotate: 0.018 };
   }
 
   if (role.includes("workshop")) {
-    return { scale: 1.04, z: 1.16, driftX: -0.012, driftY: -0.01, bob: 0.035, rotate: -0.009 };
+    return { scale: 1.045, z: 1.2, driftX: -0.016, driftY: -0.012, bob: 0.04, rotate: -0.012 };
   }
 
   if (role.includes("industry")) {
-    return { scale: 1.045, z: 1.18, driftX: 0.016, driftY: 0.008, bob: 0.03, rotate: 0.01 };
+    return { scale: 1.05, z: 1.22, driftX: 0.02, driftY: 0.01, bob: 0.035, rotate: 0.014 };
   }
 
-  return { scale: 1.04, z: 1.15, driftX: 0.01, driftY: 0.01, bob: 0.04, rotate: 0.01 };
+  return { scale: 1.045, z: 1.18, driftX: 0.014, driftY: 0.012, bob: 0.045, rotate: 0.012 };
 }
 
 function getSocialHoverProfile(label = "") {
@@ -1250,68 +1284,68 @@ function getSocialMaterialProfile(label = "") {
 
   if (name.includes("discord")) {
     return {
-      base: 0x1f232d,
-      top: 0x252b38,
-      bottom: 0x151a22,
-      back: 0x1a1f29,
-      roughness: 0.92,
-      metalness: 0.02,
-      clearcoat: 0.08,
-      clearcoatRoughness: 0.82,
-      sheen: 0.05,
+      base: 0x1a1f29,
+      top: 0x222838,
+      bottom: 0x131824,
+      back: 0x171c25,
+      roughness: 0.98,
+      metalness: 0.01,
+      clearcoat: 0.04,
+      clearcoatRoughness: 0.92,
+      sheen: 0.02,
       sheenColor: new THREE.Color(0xd4d9e8),
-      sheenRoughness: 0.95,
+      sheenRoughness: 0.98,
       roughnessMap: null,
     };
   }
 
   if (name.includes("email")) {
     return {
-      base: 0x33412a,
-      top: 0x3f5132,
-      bottom: 0x24311d,
-      back: 0x2e3926,
-      roughness: 0.98,
+      base: 0x314628,
+      top: 0x40582f,
+      bottom: 0x24321c,
+      back: 0x2d3a24,
+      roughness: 0.99,
       metalness: 0.01,
-      clearcoat: 0.03,
-      clearcoatRoughness: 0.9,
-      sheen: 0.18,
-      sheenColor: new THREE.Color(0xcfe7a8),
-      sheenRoughness: 0.82,
-      roughnessMap: null,
+      clearcoat: 0.02,
+      clearcoatRoughness: 0.96,
+      sheen: 0.2,
+      sheenColor: new THREE.Color(0xd8efb0),
+      sheenRoughness: 0.84,
+      roughnessMap: createClothTexture(),
     };
   }
 
   if (name.includes("instagram")) {
     return {
       base: 0x1d2230,
-      top: 0x263044,
-      bottom: 0x111723,
-      back: 0x181d2c,
-      roughness: 0.7,
+      top: 0x273248,
+      bottom: 0x101521,
+      back: 0x181d2a,
+      roughness: 0.78,
       metalness: 0.02,
-      clearcoat: 0.18,
-      clearcoatRoughness: 0.42,
-      sheen: 0.34,
+      clearcoat: 0.12,
+      clearcoatRoughness: 0.56,
+      sheen: 0.4,
       sheenColor: new THREE.Color(0xf5e6d2),
-      sheenRoughness: 0.9,
+      sheenRoughness: 0.88,
       roughnessMap: createClothTexture(),
     };
   }
 
   if (name.includes("linkedin")) {
     return {
-      base: 0x5f6b78,
-      top: 0x758291,
-      bottom: 0x434d59,
-      back: 0x525d69,
-      roughness: 0.25,
-      metalness: 0.34,
-      clearcoat: 0.82,
-      clearcoatRoughness: 0.12,
-      sheen: 0.04,
-      sheenColor: new THREE.Color(0xcfd5dd),
-      sheenRoughness: 0.72,
+      base: 0x647381,
+      top: 0x7a8796,
+      bottom: 0x44515d,
+      back: 0x56616d,
+      roughness: 0.16,
+      metalness: 0.42,
+      clearcoat: 0.94,
+      clearcoatRoughness: 0.06,
+      sheen: 0.03,
+      sheenColor: new THREE.Color(0xd8dde4),
+      sheenRoughness: 0.66,
       roughnessMap: null,
     };
   }
@@ -1748,7 +1782,7 @@ function openMemberPopup(index, originObject = null) {
 
   memberPopupImage.src = member.image;
   memberPopupImage.srcset = member.photoWidth ? `${member.image} ${member.photoWidth}w` : "";
-  memberPopupImage.sizes = "(max-width: 860px) min(46vw, 9rem), 8rem";
+  memberPopupImage.sizes = "(max-width: 860px) min(38vw, 7.2rem), 7.2rem";
   memberPopupImage.width = member.photoWidth || 900;
   memberPopupImage.height = member.photoHeight || member.photoWidth || 900;
   memberPopupImage.style.objectPosition = member.photoFocus || "50% 50%";
@@ -2459,6 +2493,7 @@ function createCommitteeMembers() {
       const image = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
 
       image.position.set(position.x, position.y, position.z);
+      image.userData.baseX = position.x;
       image.userData.url = config.url;
       image.userData.name = config.name;
       image.userData.title = config.title;
@@ -2466,6 +2501,7 @@ function createCommitteeMembers() {
       image.userData.accentColor = config.accentColor;
       image.userData.pathVariant = config.pathVariant;
       image.userData.roleSlug = config.roleSlug;
+      image.userData.music = config.music || null;
       image.userData.memberIndex = memberIndex;
       image.userData.texturePath = config.image;
       image.userData.layout = { rowIndex, colIndex, rowLength: row.length, memberIndex };
@@ -2525,6 +2561,7 @@ function applyCommitteeLayout() {
     );
 
     member.image.position.set(position.x, position.y, position.z);
+    member.image.userData.baseX = position.x;
     member.image.userData.baseY = position.y;
     resizeAvatarPlane(member.image, layout.committeeImageHeight);
 
@@ -2643,6 +2680,7 @@ function setCommitteeImageHovered(image) {
 
   if (hoveredCommitteeImage) {
     gsap.killTweensOf(hoveredCommitteeImage.position, "z");
+    gsap.killTweensOf(hoveredCommitteeImage.position, "x");
     gsap.killTweensOf(hoveredCommitteeImage.scale);
     hoveredCommitteeImage.userData.caption.color = 0xffffff;
     hoveredCommitteeImage.userData.caption.sync();
@@ -2655,6 +2693,7 @@ function setCommitteeImageHovered(image) {
     });
     gsap.to(hoveredCommitteeImage.position, {
       z: COMMITTEE_BASE_POSITION.z,
+      x: hoveredCommitteeImage.userData.baseX ?? hoveredCommitteeImage.position.x,
       duration: motionDuration(0.16),
       ease: "power2.out",
     });
@@ -2678,6 +2717,7 @@ function setCommitteeImageHovered(image) {
     hoveredCommitteeImage.userData.caption.color = accent;
     hoveredCommitteeImage.userData.caption.sync();
     gsap.killTweensOf(hoveredCommitteeImage.position, "z");
+    gsap.killTweensOf(hoveredCommitteeImage.position, "x");
     gsap.killTweensOf(hoveredCommitteeImage.position, "y");
     gsap.killTweensOf(hoveredCommitteeImage.scale);
     gsap.to(hoveredCommitteeImage.scale, {
@@ -2689,6 +2729,9 @@ function setCommitteeImageHovered(image) {
     });
     gsap.to(hoveredCommitteeImage.position, {
       z: COMMITTEE_BASE_POSITION.z + profile.z,
+      x:
+        (hoveredCommitteeImage.userData.baseX ?? hoveredCommitteeImage.position.x) +
+        profile.driftX * 2.6,
       y: (hoveredCommitteeImage.userData.baseY ?? hoveredCommitteeImage.position.y) + profile.bob * 0.2,
       duration: motionDuration(0.18),
       ease: "power2.out",
@@ -3357,21 +3400,23 @@ function restoreLogoBoxMaterials(root, logoTexture) {
       child.material.color.set(0xffffff);
       child.material.transparent = false;
       child.material.alphaTest = 0;
-      child.material.roughness = 0.2;
-      child.material.metalness = 0.1;
-      child.material.clearcoat = 0.82;
-      child.material.clearcoatRoughness = 0.08;
-      child.material.envMapIntensity = 1.08;
+      child.material.roughness = 0.14;
+      child.material.metalness = 0.18;
+      child.material.clearcoat = 0.94;
+      child.material.clearcoatRoughness = 0.04;
+      child.material.envMapIntensity = 1.24;
       child.material.emissive.set(0x000000);
-      child.material.emissiveIntensity = 0;
+      child.material.emissiveIntensity = 0.02;
     } else {
+      child.material.map = null;
+      child.material.emissiveMap = null;
       child.material.roughness = 0.18;
-      child.material.metalness = 0.5;
-      child.material.clearcoat = 0.78;
-      child.material.clearcoatRoughness = 0.1;
-      child.material.envMapIntensity = 1.04;
+      child.material.metalness = 0.58;
+      child.material.clearcoat = 0.86;
+      child.material.clearcoatRoughness = 0.08;
+      child.material.envMapIntensity = 1.1;
       child.material.emissive.set(0x07090f);
-      child.material.emissiveIntensity = 0.1;
+      child.material.emissiveIntensity = 0.12;
     }
 
     child.material.needsUpdate = true;
