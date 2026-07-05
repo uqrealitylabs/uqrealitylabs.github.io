@@ -4,9 +4,9 @@ Website for the University of Queensland Reality Labs society. It covers the com
 
 ## Links
 
-- [Code of Conduct](./CODE_OF_CONDUCT.md)
-- [Contributing](./CONTRIBUTING.md)
-- [Security](./SECURITY.md)
+- [Code of Conduct](./docs/CODE_OF_CONDUCT.md)
+- [Contributing](./docs/CONTRIBUTING.md)
+- [Security](./docs/SECURITY.md)
 - [License](./LICENSE)
 - Constitution: add the official text here when it is published.
 
