@@ -70,14 +70,20 @@ const CONTACT_DESCRIPTION = "Here are some ways to get in touch with us";
 
 const SPONSOR_TITLE = "Sponsors";
 const SPONSOR_DESCRIPTION = "Here are some of the companies that support us!\n Send us an email to sponsor us.";
-const NUAXION_LOGO_PATH = `${ASSET_BASE}Assets/images/nuaxion_logo.avif`;
+const NUAXION_LOGO_PATH = `${ASSET_BASE}Assets/images/Nuaxion Logo White on Transparent.png`;
+const TALK_ALL_SPORT_LOGO_PATH = `${ASSET_BASE}Assets/images/talk-all-sport.png`;
+const NUAXION_LINK = "https://www.nuaxion.com.au/";
+const TALK_ALL_SPORT_LINK = "https://talkallsport.com/";
 const SPONSOR_SECTION_INDEX = 3;
 const SPONSOR_IMAGE_Y_OFFSET = -5;
 const SPONSOR_IMAGE_HEIGHT = 8;
+const SPONSOR_LOGO_SPACING = 14;
 
 
 const COMMITTEE_TITLE = "Committee";
 const COMMITTEE_DESCRIPTION = "Meet the UQ Reality Labs committee.";
+const GENERAL_COMMITTEE_TITLE = "General Committee";
+const GENERAL_COMMITTEE_DESCRIPTION = "Meet the UQ Reality Labs general committee.";
 
 const CYRUS_LINK = "https://www.linkedin.com/in/cyrus-forudi/";
 const NAVYA_LINK = "https://www.linkedin.com/in/navpas/"
@@ -102,6 +108,10 @@ const COMMITTEE_IMAGE_SPACING = 10;
 const COMMITTEE_ROW_SPACING = 8;
 const COMMITTEE_CAPTION_GAP = 0.5;
 const COMMITTEE_CAPTION_FONT_SIZE = 0.85;
+
+const GENERAL_SECTION_INDEX = 5;
+const GENERAL_COMMITTEE_BASE_POSITION = { x: 0, y: 4, z: -25 };
+const GENERAL_COMMITTEE_IMAGE_HEIGHT = 5;
 
 const COMMITTEE_ROWS = [
     [
@@ -138,7 +148,7 @@ const COMMITTEE_ROWS = [
             title: RADHESH_TITLE,
         },
         {
-            image: `${ASSET_BASE}Assets/images/doris.jpg`,
+            image: `${ASSET_BASE}Assets/images/doris-2.jpg`,
             url: DORIS_LINK,
             title: DORIS_TITLE,
         },
@@ -146,6 +156,51 @@ const COMMITTEE_ROWS = [
 ];
 
 const COMMITTEE_MEMBERS = COMMITTEE_ROWS.flat();
+
+const GENERAL_RYAN_LINK = "https://www.linkedin.com/in/ryan-wang-287909266/";
+const GENERAL_WILLIAM_LINK = "https://www.linkedin.com/in/william-o-driscoll-979725378/";
+const GENERAL_KEERTHANA_LINK = "https://www.linkedin.com/in/kselvam/";
+const GENERAL_ANTRA_LINK = "https://www.linkedin.com/in/antraagrawal25/";
+const GENERAL_CAPTION = "General";
+
+const GENERAL_COMMITTEE_ROWS = [
+    [
+        {
+            id: "ryan",
+            image: `${ASSET_BASE}Assets/images/ryan.jpg`,
+            url: GENERAL_RYAN_LINK,
+            title: GENERAL_CAPTION,
+        },
+        {
+            id: "william",
+            image: `${ASSET_BASE}Assets/images/william.png`,
+            url: GENERAL_WILLIAM_LINK,
+            title: GENERAL_CAPTION,
+        },
+        {
+            id: "keerthana",
+            image: `${ASSET_BASE}Assets/images/keerthana.png`,
+            url: GENERAL_KEERTHANA_LINK,
+            title: GENERAL_CAPTION,
+        },
+    ],
+    [
+        {
+            id: "connor",
+            image: `${ASSET_BASE}Assets/images/connor.png`,
+            url: null,
+            title: GENERAL_CAPTION,
+        },
+        {
+            id: "antra",
+            image: `${ASSET_BASE}Assets/images/antra.png`,
+            url: GENERAL_ANTRA_LINK,
+            title: GENERAL_CAPTION,
+        },
+    ],
+];
+
+const GENERAL_COMMITTEE_MEMBERS = GENERAL_COMMITTEE_ROWS.flat();
 
 const INSTAGRAM_LINK = "https://www.instagram.com/uqrealitylabs/";
 const LINKEDIN_LINK = "https://www.linkedin.com/company/uq-reality-labs";
@@ -203,6 +258,7 @@ const MODEL_SECTIONS = [
     { x: 0, y: -SECTION_Y_STEP * 2, z: -20, label: "Contact" },
     { x: 0, y: -SECTION_Y_STEP * 3, z: -20, label: "Sponsors" },
     { x: 0, y: -SECTION_Y_STEP * 4, z: -20, label: "Committee" },
+    { x: 0, y: -SECTION_Y_STEP * 5, z: -20, label: "General Committee" },
 ];
 
 // these are relative to the camera
@@ -212,6 +268,7 @@ const TEXT_SECTIONS = [
     { x: -5, y: 10, z: -20, text: CONTACT_TITLE },
     { x: -10, y: 10, z: -20, text: SPONSOR_TITLE },
     { x: -10, y: 10, z: -20, text: COMMITTEE_TITLE },
+    { x: -10, y: 10, z: -20, text: GENERAL_COMMITTEE_TITLE },
 ];
 
 const DESCRIPTION_SECTIONS = [
@@ -220,6 +277,7 @@ const DESCRIPTION_SECTIONS = [
     { x: -15, y: 10 + DESCRIPTION_Y_OFFSET, z: -20, text: CONTACT_DESCRIPTION },
     { x: -16, y: 12 + DESCRIPTION_Y_OFFSET, z: -20, text: SPONSOR_DESCRIPTION },
     { x: -15, y: 13 + DESCRIPTION_Y_OFFSET, z: -20, text: COMMITTEE_DESCRIPTION },
+    { x: -15, y: 13 + DESCRIPTION_Y_OFFSET, z: -20, text: GENERAL_COMMITTEE_DESCRIPTION },
 ];
 
 const SPONSOR_IMAGE_POS = { x: 0, y: 5, z: -20 };
@@ -354,9 +412,10 @@ let entranceComplete = false;
 let sectionTexts = [];
 let sectionDescriptionTexts = [];
 let socialCubes = [];
-let sponsorImage = null;
+let sponsorLogos = [];
 let aboutJoinImage = null;
 let committeeMembers = [];
+let generalCommitteeMembers = [];
 let isMobileLayout = window.innerWidth <= MOBILE_BREAKPOINT;
 let layoutScale = isMobileLayout ? MOBILE_SCALE : 1;
 let mobileTouchScrollObserver = null;
@@ -382,6 +441,21 @@ function getCommitteeLayoutRows() {
     return COMMITTEE_ROWS;
 }
 
+function getGeneralCommitteeLayoutRows() {
+    if (isMobileLayout) {
+        const [first, ...rest] = GENERAL_COMMITTEE_MEMBERS;
+        const rows = [[first]];
+
+        for (let i = 0; i < rest.length; i += 2) {
+            rows.push(rest.slice(i, i + 2));
+        }
+
+        return rows;
+    }
+
+    return GENERAL_COMMITTEE_ROWS;
+}
+
 function getCommitteeMemberPosition(rowIndex, colIndex, rowLength) {
     const spacing = COMMITTEE_IMAGE_SPACING * layoutScale;
     const rowSpacing = COMMITTEE_ROW_SPACING * layoutScale;
@@ -392,6 +466,19 @@ function getCommitteeMemberPosition(rowIndex, colIndex, rowLength) {
         x: COMMITTEE_BASE_POSITION.x + xOffset,
         y,
         z: COMMITTEE_BASE_POSITION.z,
+    };
+}
+
+function getGeneralCommitteeMemberPosition(rowIndex, colIndex, rowLength) {
+    const spacing = COMMITTEE_IMAGE_SPACING * layoutScale;
+    const rowSpacing = COMMITTEE_ROW_SPACING * layoutScale;
+    const xOffset = (colIndex - (rowLength - 1) / 2) * spacing;
+    const y = GENERAL_COMMITTEE_BASE_POSITION.y - rowIndex * rowSpacing;
+
+    return {
+        x: GENERAL_COMMITTEE_BASE_POSITION.x + xOffset,
+        y,
+        z: GENERAL_COMMITTEE_BASE_POSITION.z,
     };
 }
 
@@ -503,6 +590,44 @@ function updateCommitteeMemberLayout(member) {
     member.caption.sync();
 }
 
+function updateGeneralCommitteeMemberLayout(member) {
+    const rows = getGeneralCommitteeLayoutRows();
+    let memberRowIndex = -1;
+    let memberColIndex = -1;
+    let rowLength = 0;
+
+    rows.forEach((row, rowIndex) => {
+        row.forEach((config, colIndex) => {
+            if (config.id === member.id) {
+                memberRowIndex = rowIndex;
+                memberColIndex = colIndex;
+                rowLength = row.length;
+            }
+        });
+    });
+
+    if (memberRowIndex < 0) return;
+
+    const position = getGeneralCommitteeMemberPosition(
+        memberRowIndex,
+        memberColIndex,
+        rowLength
+    );
+    const imageHeight =
+        member.image.userData.scaledHeight ??
+        GENERAL_COMMITTEE_IMAGE_HEIGHT * layoutScale;
+
+    member.image.position.set(position.x, position.y, position.z);
+    member.caption.position.set(
+        position.x,
+        position.y - imageHeight / 2 - COMMITTEE_CAPTION_GAP * layoutScale,
+        position.z
+    );
+    member.caption.fontSize =
+        member.caption.userData.baseFontSize * layoutScale;
+    member.caption.sync();
+}
+
 function updateSocialCubeLayout(cube, index) {
     const position = getSocialCubePosition(index);
     const cubeSize = SOCIAL_CUBE_SIZE * layoutScale;
@@ -536,15 +661,21 @@ function applyResponsiveLayout() {
         updateTextMeshLayout(textMesh);
     });
 
-    if (sponsorImage?.userData.aspect) {
+    sponsorLogos.forEach((logo) => {
+        if (!logo?.userData.aspect) return;
+
         updatePlaneMeshSize(
-            sponsorImage,
+            logo,
             SPONSOR_IMAGE_HEIGHT,
-            sponsorImage.userData.aspect
+            logo.userData.aspect
         );
-        sponsorImage.position.y =
-            SPONSOR_IMAGE_POS.y + SPONSOR_IMAGE_Y_OFFSET * layoutScale;
-    }
+
+        logo.position.set(
+            SPONSOR_IMAGE_POS.x + logo.userData.baseXOffset * layoutScale,
+            SPONSOR_IMAGE_POS.y + SPONSOR_IMAGE_Y_OFFSET * layoutScale,
+            SPONSOR_IMAGE_POS.z
+        );
+    });
 
     if (aboutJoinImage?.userData.aspect) {
         updatePlaneMeshSize(
@@ -566,6 +697,18 @@ function applyResponsiveLayout() {
         }
 
         updateCommitteeMemberLayout(member);
+    });
+
+    generalCommitteeMembers.forEach((member) => {
+        if (member.image.userData.aspect) {
+            updatePlaneMeshSize(
+                member.image,
+                GENERAL_COMMITTEE_IMAGE_HEIGHT,
+                member.image.userData.aspect
+            );
+        }
+
+        updateGeneralCommitteeMemberLayout(member);
     });
 
     socialCubes.forEach((cube, index) => {
@@ -971,6 +1114,10 @@ function revealSectionContent(index) {
         promises.push(revealCommitteeMembers());
     }
 
+    if (index === GENERAL_SECTION_INDEX) {
+        promises.push(revealGeneralCommitteeMembers());
+    }
+
     return Promise.all(promises);
 }
 
@@ -990,6 +1137,10 @@ function hideSectionContent(index) {
 
     if (index === COMMITTEE_SECTION_INDEX) {
         promises.push(hideCommitteeMembers());
+    }
+
+    if (index === GENERAL_SECTION_INDEX) {
+        promises.push(hideGeneralCommitteeMembers());
     }
 
     return Promise.all(promises);
@@ -1061,73 +1212,147 @@ function initSectionTexts() {
     });
 }
 
-function createSponsorImage() {
-    const sponsorDescription = SPONSOR_IMAGE_POS;
+function createSponsorLogos() {
     const textureLoader = new THREE.TextureLoader();
-    const material = new THREE.MeshBasicMaterial({
-        transparent: true,
-        opacity: 0,
+
+    const sponsorConfigs = [
+        {
+            path: NUAXION_LOGO_PATH,
+            url: NUAXION_LINK,
+            xOffset: -SPONSOR_LOGO_SPACING / 2,
+        },
+        {
+            path: TALK_ALL_SPORT_LOGO_PATH,
+            url: TALK_ALL_SPORT_LINK,
+            xOffset: SPONSOR_LOGO_SPACING / 2,
+        },
+    ];
+
+    return sponsorConfigs.map((config) => {
+        const material = new THREE.MeshBasicMaterial({
+            transparent: true,
+            opacity: 0,
+        });
+        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+
+        mesh.position.set(
+            SPONSOR_IMAGE_POS.x + config.xOffset,
+            SPONSOR_IMAGE_POS.y + SPONSOR_IMAGE_Y_OFFSET,
+            SPONSOR_IMAGE_POS.z
+        );
+        mesh.userData.url = config.url;
+        mesh.userData.baseXOffset = config.xOffset;
+        mesh.visible = false;
+        scene.add(mesh);
+
+        textureLoader.load(config.path, (texture) => {
+            texture.colorSpace = THREE.SRGBColorSpace;
+            material.map = texture;
+            material.needsUpdate = true;
+
+            const aspect = texture.image.width / texture.image.height;
+            mesh.userData.aspect = aspect;
+            updatePlaneMeshSize(mesh, SPONSOR_IMAGE_HEIGHT, aspect);
+        });
+
+        return mesh;
     });
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
-
-    mesh.position.set(
-        sponsorDescription.x,
-        sponsorDescription.y + SPONSOR_IMAGE_Y_OFFSET,
-        sponsorDescription.z
-    );
-    mesh.visible = false;
-    scene.add(mesh);
-
-    textureLoader.load(NUAXION_LOGO_PATH, (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        material.map = texture;
-        material.needsUpdate = true;
-
-        const aspect = texture.image.width / texture.image.height;
-        mesh.userData.aspect = aspect;
-        updatePlaneMeshSize(mesh, SPONSOR_IMAGE_HEIGHT, aspect);
-    });
-
-    return mesh;
 }
 
 function stopSponsorImageFade() {
-    if (!sponsorImage) return;
-
-    gsap.killTweensOf(sponsorImage.material);
-}
-
-function revealSponsorImage() {
-    if (!sponsorImage) return Promise.resolve();
-
-    stopSponsorImageFade();
-    sponsorImage.visible = true;
-
-    return new Promise((resolve) => {
-        gsap.to(sponsorImage.material, {
-            opacity: 1,
-            duration: TEXT_REVEAL_DURATION,
-            ease: "power2.out",
-            onComplete: resolve,
-        });
+    sponsorLogos.forEach((logo) => {
+        if (logo?.material) {
+            gsap.killTweensOf(logo.material);
+        }
     });
 }
 
-function hideSponsorImage() {
-    if (!sponsorImage) return Promise.resolve();
+function revealSponsorImage() {
+    if (sponsorLogos.length === 0) return Promise.resolve();
 
     stopSponsorImageFade();
 
-    return new Promise((resolve) => {
-        gsap.to(sponsorImage.material, {
-            opacity: 0,
-            duration: TEXT_HIDE_DURATION,
-            ease: "power2.in",
-            onComplete: () => {
-                sponsorImage.visible = false;
-                resolve();
-            },
-        });
+    return Promise.all(
+        sponsorLogos.map(
+            (logo) =>
+                new Promise((resolve) => {
+                    logo.visible = true;
+                    gsap.to(logo.material, {
+                        opacity: 1,
+                        duration: TEXT_REVEAL_DURATION,
+                        ease: "power2.out",
+                        onComplete: resolve,
+                    });
+                })
+        )
+    );
+}
+
+function hideSponsorImage() {
+    if (sponsorLogos.length === 0) return Promise.resolve();
+
+    stopSponsorImageFade();
+
+    return Promise.all(
+        sponsorLogos.map(
+            (logo) =>
+                new Promise((resolve) => {
+                    gsap.to(logo.material, {
+                        opacity: 0,
+                        duration: TEXT_HIDE_DURATION,
+                        ease: "power2.in",
+                        onComplete: () => {
+                            logo.visible = false;
+                            resolve();
+                        },
+                    });
+                })
+        )
+    );
+}
+
+function getVisibleSponsorLogos() {
+    return sponsorLogos.filter((logo) => logo.visible);
+}
+
+function updateSponsorLogosHover() {
+    if (
+        currentIndex !== SPONSOR_SECTION_INDEX ||
+        isAnimating ||
+        sponsorLogos.length === 0
+    ) {
+        return;
+    }
+
+    const visibleLogos = getVisibleSponsorLogos();
+    if (visibleLogos.length === 0) return;
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(visibleLogos);
+    canvas.style.cursor = intersects.length > 0 ? "pointer" : "default";
+}
+
+function setupSponsorLogoInteraction() {
+    canvas.addEventListener("click", (event) => {
+        if (
+            currentIndex !== SPONSOR_SECTION_INDEX ||
+            isAnimating ||
+            getVisibleSponsorLogos().length === 0
+        ) {
+            return;
+        }
+
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(getVisibleSponsorLogos());
+
+        if (intersects.length > 0) {
+            const url = intersects[0].object.userData.url;
+            window.open(url, "_blank", "noopener,noreferrer");
+        }
     });
 }
 
@@ -1314,6 +1539,57 @@ function createCommitteeMembers() {
     return members;
 }
 
+function createGeneralCommitteeMembers() {
+    const textureLoader = new THREE.TextureLoader();
+    const members = [];
+    const rows = getGeneralCommitteeLayoutRows();
+
+    rows.forEach((row, rowIndex) => {
+        row.forEach((config, colIndex) => {
+            const position = getGeneralCommitteeMemberPosition(
+                rowIndex,
+                colIndex,
+                row.length
+            );
+            const material = new THREE.MeshBasicMaterial({
+                transparent: true,
+                opacity: 0,
+            });
+            const image = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+
+            image.position.set(position.x, position.y, position.z);
+            image.userData.url = config.url;
+            image.userData.fadeTween = null;
+            image.visible = false;
+            scene.add(image);
+
+            const initialHeight = GENERAL_COMMITTEE_IMAGE_HEIGHT * layoutScale;
+            const caption = createCommitteeCaption(
+                config.title,
+                position,
+                initialHeight
+            );
+            caption.userData.fadeTween = null;
+
+            textureLoader.load(config.image, (texture) => {
+                texture.colorSpace = THREE.SRGBColorSpace;
+                material.map = texture;
+                material.needsUpdate = true;
+
+                const aspect = texture.image.width / texture.image.height;
+                image.userData.aspect = aspect;
+                updatePlaneMeshSize(image, GENERAL_COMMITTEE_IMAGE_HEIGHT, aspect);
+                caption.position.y =
+                    position.y - image.userData.scaledHeight / 2 - COMMITTEE_CAPTION_GAP * layoutScale;
+            });
+
+            members.push({ image, caption, id: config.id, url: config.url });
+        });
+    });
+
+    return members;
+}
+
 function stopCommitteeMemberFade(member) {
     if (member.image.userData.fadeTween) {
         member.image.userData.fadeTween.kill();
@@ -1404,8 +1680,92 @@ function hideCommitteeMembers() {
     );
 }
 
+function revealGeneralCommitteeMembers() {
+    if (generalCommitteeMembers.length === 0) return Promise.resolve();
+
+    return Promise.all(
+        generalCommitteeMembers.map((member) => {
+            stopCommitteeMemberFade(member);
+            member.image.visible = true;
+            member.caption.visible = true;
+            member.caption.fillOpacity = 0;
+            member.caption.sync();
+
+            return Promise.all([
+                new Promise((resolve) => {
+                    member.image.userData.fadeTween = gsap.to(member.image.material, {
+                        opacity: 1,
+                        duration: TEXT_REVEAL_DURATION,
+                        ease: "power2.out",
+                        onComplete: () => {
+                            member.image.userData.fadeTween = null;
+                            resolve();
+                        },
+                    });
+                }),
+                new Promise((resolve) => {
+                    member.caption.userData.fadeTween = gsap.to(member.caption, {
+                        fillOpacity: 1,
+                        duration: TEXT_REVEAL_DURATION,
+                        ease: "power2.out",
+                        onUpdate: () => member.caption.sync(),
+                        onComplete: () => {
+                            member.caption.userData.fadeTween = null;
+                            resolve();
+                        },
+                    });
+                }),
+            ]);
+        })
+    );
+}
+
+function hideGeneralCommitteeMembers() {
+    if (generalCommitteeMembers.length === 0) return Promise.resolve();
+
+    return Promise.all(
+        generalCommitteeMembers.map((member) => {
+            stopCommitteeMemberFade(member);
+
+            return Promise.all([
+                new Promise((resolve) => {
+                    member.image.userData.fadeTween = gsap.to(member.image.material, {
+                        opacity: 0,
+                        duration: TEXT_HIDE_DURATION,
+                        ease: "power2.in",
+                        onComplete: () => {
+                            member.image.visible = false;
+                            member.image.userData.fadeTween = null;
+                            resolve();
+                        },
+                    });
+                }),
+                new Promise((resolve) => {
+                    member.caption.userData.fadeTween = gsap.to(member.caption, {
+                        fillOpacity: 0,
+                        duration: TEXT_HIDE_DURATION,
+                        ease: "power2.in",
+                        onUpdate: () => member.caption.sync(),
+                        onComplete: () => {
+                            member.caption.visible = false;
+                            member.caption.userData.fadeTween = null;
+                            resolve();
+                        },
+                    });
+                }),
+            ]);
+        })
+    );
+}
+
 function getVisibleCommitteeImages() {
     return committeeMembers
+        .map((member) => member.image)
+        .filter((image) => image.visible);
+}
+
+function getVisibleGeneralCommitteeImages() {
+    return generalCommitteeMembers
         .map((member) => member.image)
         .filter((image) => image.visible);
 }
@@ -1424,17 +1784,44 @@ function updateCommitteeHover() {
 
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(visibleImages);
+    const hoveredUrl = intersects[0]?.object?.userData?.url;
 
-    canvas.style.cursor = intersects.length > 0 ? "pointer" : "default";
+    canvas.style.cursor = hoveredUrl ? "pointer" : "default";
+}
+
+function updateGeneralCommitteeHover() {
+    if (
+        currentIndex !== GENERAL_SECTION_INDEX ||
+        isAnimating ||
+        generalCommitteeMembers.length === 0
+    ) {
+        return;
+    }
+
+    const visibleImages = getVisibleGeneralCommitteeImages();
+    if (visibleImages.length === 0) return;
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(visibleImages);
+    const hoveredUrl = intersects[0]?.object?.userData?.url;
+
+    canvas.style.cursor = hoveredUrl ? "pointer" : "default";
 }
 
 function setupCommitteeInteraction() {
     canvas.addEventListener("click", (event) => {
-        if (
-            currentIndex !== COMMITTEE_SECTION_INDEX ||
-            isAnimating ||
-            getVisibleCommitteeImages().length === 0
-        ) {
+        const isCommitteeSection = currentIndex === COMMITTEE_SECTION_INDEX;
+        const isGeneralSection = currentIndex === GENERAL_SECTION_INDEX;
+
+        if (!isCommitteeSection && !isGeneralSection) {
+            return;
+        }
+
+        const visibleImages = isCommitteeSection
+            ? getVisibleCommitteeImages()
+            : getVisibleGeneralCommitteeImages();
+
+        if (isAnimating || visibleImages.length === 0) {
             return;
         }
 
@@ -1443,11 +1830,13 @@ function setupCommitteeInteraction() {
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
         raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(getVisibleCommitteeImages());
+        const intersects = raycaster.intersectObjects(visibleImages);
 
         if (intersects.length > 0) {
             const url = intersects[0].object.userData.url;
-            window.open(url, "_blank", "noopener,noreferrer");
+            if (url) {
+                window.open(url, "_blank", "noopener,noreferrer");
+            }
         }
     });
 }
@@ -1846,12 +2235,14 @@ function setupScrollControl() {
 
 setupScrollControl();
 initSectionTexts();
-sponsorImage = createSponsorImage();
+sponsorLogos = createSponsorLogos();
 aboutJoinImage = createAboutJoinImage();
 committeeMembers = createCommitteeMembers();
+generalCommitteeMembers = createGeneralCommitteeMembers();
 setupNavbar();
 socialCubes = createSocialCubes();
 setupSocialCubeInteraction();
+setupSponsorLogoInteraction();
 setupAboutJoinInteraction();
 setupCommitteeInteraction();
 applyResponsiveLayout();
@@ -1948,8 +2339,10 @@ function animate() {
 
     animateRainbowBackdrop();
     updateSocialCubeHover();
+    updateSponsorLogosHover();
     updateAboutJoinHover();
     updateCommitteeHover();
+    updateGeneralCommitteeHover();
 
     if (ENABLE_ORBIT_CONTROLS && controls) {
         controls.update();
