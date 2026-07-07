@@ -173,13 +173,13 @@ const GENERAL_COMMITTEE_ROWS = [
         },
         {
             id: "william",
-            image: `${ASSET_BASE}Assets/images/william.png`,
+            image: `${ASSET_BASE}Assets/images/william.webp`,
             url: GENERAL_WILLIAM_LINK,
             title: GENERAL_CAPTION,
         },
         {
             id: "keerthana",
-            image: `${ASSET_BASE}Assets/images/keerthana.png`,
+            image: `${ASSET_BASE}Assets/images/keerthana.webp`,
             url: GENERAL_KEERTHANA_LINK,
             title: GENERAL_CAPTION,
         },
@@ -187,13 +187,13 @@ const GENERAL_COMMITTEE_ROWS = [
     [
         {
             id: "connor",
-            image: `${ASSET_BASE}Assets/images/connor.png`,
+            image: `${ASSET_BASE}Assets/images/connor.webp`,
             url: null,
             title: GENERAL_CAPTION,
         },
         {
             id: "antra",
-            image: `${ASSET_BASE}Assets/images/antra.png`,
+            image: `${ASSET_BASE}Assets/images/antra.webp`,
             url: GENERAL_ANTRA_LINK,
             title: GENERAL_CAPTION,
         },
