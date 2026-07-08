@@ -52,7 +52,55 @@ Actual subagents were used.
 
 ## Blocked local checks
 
-- `npm run test:component` and `npm run test:e2e`: Cypress binary is not installed in `/Users/keys/Library/Caches/Cypress/15.18.0/Cypress.app`.
-- `npm run security:audit`: registry DNS blocked (`getaddrinfo ENOTFOUND registry.npmjs.org`).
-- `npm run security:osv`: `npx` could not download `osv-scanner` because registry DNS is blocked.
-- `npm run analyze`: Rsdoctor opened/held its report process and did not complete in non-interactive CLI mode.
+- `npm run test:component` and `npm run test:e2e`: Cypress 15.18.0 installed, but the Cypress app aborts during its smoke test on this macOS sandbox.
+- `npm run analyze`: Rsdoctor opened/held its report process and did not complete in non-interactive CLI mode. `analyze` now uses deterministic build metrics instead.
+
+## CI/security/benchmark follow-up
+
+### Frontend Mage
+
+- Finding: PR CI had no accessibility smoke assertion.
+- Fix: added a Cypress E2E smoke for keyboard focus, `aria-current`, and canvas `aria-label`.
+- Finding: Cypress component tests relied on transitive Vite.
+- Fix: made Vite an explicit dev-only Cypress component test harness dependency.
+
+### Security Researcher
+
+- Finding: workflows used mutable action tags with `pin-blocked:` comments.
+- Fix: resolved and pinned full SHAs for checkout, setup-node, artifact, Pages, Dependency Review, CodeQL, Lighthouse, and OSV reusable workflow refs. `check:actions-pinned` now rejects all non-SHA refs.
+- Finding: `npx --yes` OSV/LHCI scripts were not lockfile-reproducible.
+- Fix: removed those paths. OSV runs through a pinned reusable workflow; Lighthouse runs through a pinned benchmark action.
+
+### Techstack Genius
+
+- Finding: deploy used `ci:build` and could publish while quality checks failed.
+- Fix: deploy build now runs `npm run ci`.
+- Finding: LHCI as a devDependency introduced audit failures.
+- Fix: removed the package and kept Lighthouse in the benchmark workflow only.
+
+### QA / Test Strategist
+
+- Finding: `ci:browser` was not runnable because it did not start a server.
+- Fix: removed the dead alias; workflows own preview startup explicitly.
+- Finding: Lighthouse readiness regex was guessed.
+- Fix: benchmark workflow starts preview with a curl readiness loop before running Lighthouse.
+
+### @Ponytail Ultra
+
+- Delete-list applied:
+  - removed fake action pin exception;
+  - removed dead browser/workflow aliases;
+  - removed vulnerable LHCI devDependency;
+  - kept benchmark docs concise and did not add actionlint/zizmor packages.
+
+### Benchmark Quant
+
+- Finding: bundle budget script counted only `index*.js` as base JS, missing initial vendor/runtime scripts from `dist/index.html`.
+- Fix: `collect-benchmarks.ts` now parses `dist/index.html` and sums every initial script. Corrected base JS gzip is 99.1 KiB.
+- Finding: benchmark docs overclaimed timing/Web Vitals tracking.
+- Fix: docs now distinguish bundle metrics, CI timing targets, Lighthouse lab warnings, and field-only INP.
+
+### Legacy Hunter
+
+- Result: no active legacy workflow, markdown-content, first-party JS, Playwright, Bootstrap, Redux, Anime.js, or direct Rapier blockers found.
+- Remaining mentions are docs-only, test extension strings, benchmark Markdown report output, or lockfile optional/transitive metadata.

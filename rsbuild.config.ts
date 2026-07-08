@@ -30,7 +30,16 @@ export default defineConfig({
   tools: {
     rspack(config, { appendPlugins }) {
       if (process.env.RSDOCTOR === "true") {
-        appendPlugins(new RsdoctorRspackPlugin({}));
+        appendPlugins(
+          new RsdoctorRspackPlugin({
+            disableClientServer: true,
+            output: {
+              mode: "brief",
+              reportCodeType: "noCode",
+              reportDir: "artifacts/rsdoctor",
+            },
+          }),
+        );
       }
       return config;
     },

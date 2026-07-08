@@ -9,22 +9,30 @@
     "prebuild": "npm run check:no-js && npm run validate:content",
     "build": "rsbuild build",
     "preview": "rsbuild preview",
+    "ci": "npm run ci:quality && npm run ci:build",
+    "ci:quality": "npm run check:no-js && npm run validate:content && npm run typecheck && npm run lint && npm run format:check && npm run test:unit",
+    "ci:build": "npm run build && npm run check:budgets && node scripts/collect-benchmarks.ts --out artifacts/benchmarks/build.json",
+    "ci:security": "npm run check:workflows && npm run security:audit",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "check:no-js": "node scripts/assert-no-js.ts",
+    "check:actions-pinned": "node scripts/assert-actions-pinned.ts",
+    "check:workflows": "npm run check:actions-pinned && node scripts/assert-workflows-hardened.ts",
+    "check:budgets": "node scripts/collect-benchmarks.ts --check-budgets",
     "validate:content": "node scripts/validate-content.ts",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:component": "cypress run --component",
     "test:e2e": "cypress run --e2e",
-    "test:ci": "npm run check:no-js && npm run validate:content && npm run typecheck && npm run lint && npm run test:unit && npm run build",
-    "analyze": "RSDOCTOR=true rsbuild build",
+    "test:ci": "npm run ci:quality && npm run ci:build",
+    "analyze": "npm run benchmark:build",
+    "benchmark": "npm run benchmark:build",
+    "benchmark:build": "npm run build && node scripts/collect-benchmarks.ts --out artifacts/benchmarks/build.json",
     "assets:optimize": "node scripts/optimize-assets.ts",
-    "security:audit": "npm audit --audit-level=moderate",
-    "security:osv": "npx osv-scanner --lockfile package-lock.json"
+    "security:audit": "npm audit --audit-level=moderate"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -53,6 +61,7 @@
     "meshoptimizer": "^0.25.0",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
+    "vite": "^6.4.3",
     "vitest": "^4.0.15"
   }
 }

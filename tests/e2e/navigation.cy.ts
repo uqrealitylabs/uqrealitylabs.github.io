@@ -6,4 +6,11 @@ describe("navigation shell", () => {
     cy.contains("#nav-links button", "Home").should("exist");
     cy.get("#canvas").should("exist");
   });
+
+  it("keeps basic keyboard and canvas accessibility hooks", () => {
+    cy.visit("/");
+    cy.get("#nav-links button").first().focus().should("have.focus");
+    cy.get("#nav-links button[aria-current='page']").should("contain", "Home");
+    cy.get("#canvas").should("have.attr", "aria-label").and("not.be.empty");
+  });
 });

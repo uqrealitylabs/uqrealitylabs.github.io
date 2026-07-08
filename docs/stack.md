@@ -7,7 +7,7 @@ Live page content moved from markdown files to locale-scoped JSON. First-party s
 ## Current stack
 
 - Runtime: React 19, TypeScript, Zustand for coarse UI state, Motion for the loader, Tailwind CSS v4.
-- Build: Rsbuild/Rspack/SWC, Lightning CSS through Rsbuild, Rsdoctor behind `RSDOCTOR=true`.
+- Build: Rsbuild/Rspack/SWC and Lightning CSS through Rsbuild. Rsdoctor is installed, but the current plugin invocation holds the process open locally, so CI uses deterministic bundle metrics instead.
 - 3D: the existing vanilla Three scene is lazy-loaded. R3F/Drei/postprocessing remain target-stack dependencies but are not imported by the initial shell.
 - Tests: Vitest unit/data tests and Cypress specs. No Playwright.
 - Package manager: npm with `package-lock.json`. `pnpm`/Corepack are unavailable in this environment.
@@ -16,8 +16,8 @@ Live page content moved from markdown files to locale-scoped JSON. First-party s
 
 - No visual framework, Redux, Anime.js, Rapier, MDX, markdown parser, CMS, or runtime sanitizer.
 - Runtime deps are feature-owned: React shell, Zustand coarse state, Motion loader, Three/GSAP/Troika lazy legacy scene, R3F/Drei/postprocessing target visual stack.
-- Dev deps are build/test/analysis only: Rsbuild, TypeScript, Tailwind, Biome, Vitest, Cypress, Rsdoctor, glTF tooling.
-- New follow-up dependency: none. Node types are already transitive through installed tooling; no package was added after the JSON migration.
+- Dev deps are build/test/analysis only: Rsbuild, TypeScript, Tailwind, Biome, Vitest, Cypress, Vite for Cypress component bundling only, Rsdoctor, glTF tooling.
+- CI follow-up dependency: Vite is explicit because Cypress component testing uses its Vite dev server; it is not the app build tool. LHCI was not added because its CLI currently pulls vulnerable transitive dependencies.
 
 ## No-JS policy
 
@@ -67,8 +67,32 @@ Markdown was removed as a live content system to remove parsing/frontmatter code
 - No `dangerouslySetInnerHTML` content path.
 - Unsafe protocols such as `javascript:` are rejected by validation.
 - Suggested CSP: `default-src 'self'; img-src 'self' data: https:; connect-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'`.
-- Scripts: `security:audit` and `security:osv`.
-- Existing deploy workflows run `npm run test:ci` before publishing artifacts.
+- Script: `security:audit`. OSV runs in GitHub Actions through the pinned OSV reusable workflow because there is no npm `osv-scanner` package.
+- CI security workflow runs workflow policy checks, npm audit, OSV, Dependency Review on PRs, and CodeQL.
+
+## CI/CD
+
+- `.github/workflows/ci.yml`: quality gate, production build/budget gate, Cypress component job, Cypress E2E smoke job.
+- `.github/workflows/security.yml`: workflow policy, dependency audit, OSV, Dependency Review, CodeQL.
+- `.github/workflows/benchmarks.yml`: scheduled/manual build metrics and Lighthouse CI capture.
+- `.github/workflows/deploy.yml`: GitHub Pages deploy from a validated `dist` artifact.
+- Old duplicate Firebase and extra Pages workflows were removed; the repo now has one deploy path.
+
+GitHub Actions policy:
+
+- Top-level permissions default to `contents: read`; deploy escalates only to `pages: write` and `id-token: write`.
+- Checkout uses `persist-credentials: false` and `fetch-depth: 1`.
+- Workflow concurrency cancels stale CI/security/benchmark runs; production Pages deploys queue instead of canceling.
+- Actions and reusable workflows are pinned to full SHAs. `npm run check:actions-pinned` rejects mutable tags.
+- The npm cache is keyed through `actions/setup-node` and `package-lock.json`. `node_modules`, pnpm stores, env files, and full workspaces are not artifacted.
+- Artifacts are limited to build stats, benchmark output, Lighthouse reports, Pages dist, and Cypress screenshots/videos only on failure.
+
+## Benchmarking
+
+- `npm run benchmark:build` builds and writes `artifacts/benchmarks/build.json` plus Markdown summary.
+- `npm run check:budgets` fails when base JS, CSS, or largest lazy JS gzip budgets are exceeded.
+- Lighthouse runs only in `.github/workflows/benchmarks.yml` through a SHA-pinned action. The local npm lockfile does not carry LHCI because the CLI currently brings audit failures.
+- See `docs/benchmark.md` for budget values, variance rules, and the benchmark log.
 
 ## Commands
 
@@ -78,8 +102,12 @@ Markdown was removed as a live content system to remove parsing/frontmatter code
 - `npm run lint`
 - `npm run format:check`
 - `npm run check:no-js`
+- `npm run check:workflows`
+- `npm run check:budgets`
 - `npm run validate:content`
 - `npm run test:unit`
+- `npm run ci`
+- `npm run benchmark:build`
 - `npm run analyze`
 
 ## Known limitations
@@ -87,3 +115,5 @@ Markdown was removed as a live content system to remove parsing/frontmatter code
 - The main visual scene is still legacy vanilla Three, not fully rewritten to R3F.
 - Cypress component config is present, but no extra Vite/Rsbuild component adapter dependency was added.
 - JSON content is statically imported into the lazy legacy chunk because current content size is small; split locale/page imports when content grows.
+- Lighthouse CI is configured but local execution needs network access to download the pinned LHCI CLI package unless it is added to devDependencies later.
+- `pnpm` is unavailable in this repo; CI intentionally uses npm with the checked-in `package-lock.json`.

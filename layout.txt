@@ -23,7 +23,11 @@ Filesystem
 - src/shared/state/: coarse Zustand UI state.
 - src/shared/styles/: Tailwind v4 entry, tokens, base CSS, legacy CSS.
 - scripts/: TypeScript-only validation/asset scripts.
-- .github/workflows/: existing deploy workflows call `npm run test:ci`.
+- .github/workflows/ci.yml: quality, build, Cypress component, and E2E smoke.
+- .github/workflows/security.yml: workflow policy, npm audit, OSV, Dependency Review, CodeQL.
+- .github/workflows/benchmarks.yml: scheduled/manual build metrics and Lighthouse capture.
+- .github/workflows/deploy.yml: GitHub Pages deploy from validated dist.
+- .github/dependabot.yml: npm and GitHub Actions update automation.
 - tests/unit/: Vitest data/logic tests.
 - tests/e2e and tests/component: Cypress specs.
 
@@ -38,6 +42,8 @@ No-JS enforcement
 - `scripts/assert-no-js.ts` scans first-party files.
 - `tsconfig.json` has `allowJs: false`.
 - `npm run test:ci` runs no-JS and content validation before typecheck/lint/tests/build.
+- `npm run check:workflows` enforces documented action refs, minimal permissions, checkout credential disabling, cache keying, and artifact boundaries.
+- `npm run check:budgets` reads `dist` and fails on shell/lazy chunk gzip budget violations.
 
 Removed legacy flow
 - No `public/content` markdown.
@@ -53,3 +59,15 @@ Lazy boundaries
 Tests
 - Vitest: i18n, JSON content/schema/registry/renderer, no-JS scanner, scaling, JOIN reducer, bee path math, social material matrix.
 - Cypress: shell/responsive/i18n and component-level behavior specs.
+
+CI artifact flow
+- Build stats: `artifacts/benchmarks/` uploaded from CI/build and benchmarks.
+- Lighthouse: `artifacts/lighthouse/` uploaded from benchmark workflow.
+- Cypress screenshots/videos: uploaded only when a Cypress job fails.
+- Pages deploy: `dist` uploaded through the Pages artifact action only.
+
+Security flow
+- Untrusted PRs run CI/security without secrets.
+- Dependency Review runs only on PRs.
+- CodeQL uploads security events with job-scoped permission.
+- Firebase secret-based deploy workflows were removed.
