@@ -1,0 +1,15 @@
+@theme {
+  --font-display: "Pixelify Sans", system-ui, sans-serif;
+  --color-ink: #0f1118;
+  --color-marker: #ff5757;
+  --color-chalk: #fff3d2;
+}
+
+:root {
+  --site-scale: clamp(0.85, 0.65rem + 1vw, 1.35);
+  --nav-scale: var(--site-scale);
+  --join-us-size: clamp(1rem, 0.75rem + 1vw, 1.45rem);
+  --bee-line-scale: var(--site-scale);
+  --orb-size: calc(0.8rem * var(--site-scale));
+  --social-box-size: clamp(7rem, 18vmin, 13rem);
+}

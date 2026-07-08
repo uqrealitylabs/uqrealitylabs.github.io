@@ -1,0 +1,27 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "es",
+  "id": "sponsors",
+  "route": "/sponsors",
+  "meta": {
+    "title": "Patrocinadores",
+    "description": "Apoya las demos, talleres y pequeñas explosiones de píxeles."
+  },
+  "nav": { "label": "Patrocinadores", "shortLabel": "Sponsor", "order": 4 },
+  "hero": {
+    "title": "Patrocinadores",
+    "slugline": "Apoya las demos.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "Apoya las demos, talleres y pequeñas explosiones de píxeles."
+      }
+    ]
+  },
+  "theme": {
+    "accentColor": "#A78BFA",
+    "trailColor": "#A78BFA",
+    "pathVariant": "spiral-pop"
+  },
+  "sections": []
+}

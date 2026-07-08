@@ -1,0 +1,31 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "es",
+  "id": "rubrics",
+  "route": "/rubrics",
+  "meta": {
+    "title": "Rubrics",
+    "description": "Únete a UQ Reality Labs por Rubrics."
+  },
+  "nav": { "label": "Rubrics", "shortLabel": "Únete", "order": 6 },
+  "hero": {
+    "title": "Rubrics",
+    "slugline": "Únete al laboratorio.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "La membresía usa Rubrics para que las inscripciones y la administración del club estén en un solo lugar."
+      }
+    ],
+    "cta": {
+      "label": "Abrir Rubrics",
+      "href": "https://campus.hellorubric.com/?s=5809"
+    }
+  },
+  "theme": {
+    "accentColor": "#F59E0B",
+    "trailColor": "#F59E0B",
+    "pathVariant": "excited-loop"
+  },
+  "sections": []
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "en",
+  "id": "committee",
+  "route": "/committee",
+  "meta": {
+    "title": "Committee",
+    "description": "The humans keeping the headset pile upright."
+  },
+  "nav": { "label": "Committee", "shortLabel": "Team", "order": 5 },
+  "hero": {
+    "title": "Committee",
+    "slugline": "Crew roll call.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "The humans keeping the headset pile upright."
+      }
+    ]
+  },
+  "theme": {
+    "accentColor": "#22C55E",
+    "trailColor": "#22C55E",
+    "pathVariant": "loop-buzz"
+  },
+  "sections": [{ "id": "committee", "type": "committee" }]
+}

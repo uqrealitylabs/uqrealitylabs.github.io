@@ -1,0 +1,27 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "en",
+  "id": "contact",
+  "route": "/contact",
+  "meta": {
+    "title": "Contact",
+    "description": "Send a signal. We check the weird inbox."
+  },
+  "nav": { "label": "Contact", "shortLabel": "Contact", "order": 3 },
+  "hero": {
+    "title": "Contact",
+    "slugline": "Send a signal.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "Send a signal. We check the weird inbox."
+      }
+    ]
+  },
+  "theme": {
+    "accentColor": "#38BDF8",
+    "trailColor": "#38BDF8",
+    "pathVariant": "route-hop"
+  },
+  "sections": [{ "id": "socials", "type": "socialGrid" }]
+}

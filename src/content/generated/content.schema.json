@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uqrealitylabs.local/content.schema.json",
+  "title": "UQ Reality Labs content",
+  "type": "object",
+  "oneOf": [{ "$ref": "#/$defs/page" }, { "$ref": "#/$defs/site" }],
+  "$defs": {
+    "safeHref": {
+      "type": "string",
+      "pattern": "^(\\/[^/].*|\\/|https://.+|mailto:.+)$"
+    },
+    "assetPath": {
+      "type": "string",
+      "pattern": "^/Assets/[^.].*"
+    },
+    "block": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["type", "text"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "paragraph" },
+            "text": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "level", "text"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "heading" },
+            "level": { "enum": [2, 3, 4] },
+            "text": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "items"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "list" },
+            "items": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "text"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "quote" },
+            "text": { "type": "string", "minLength": 1 },
+            "cite": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "label", "href"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "link" },
+            "label": { "type": "string", "minLength": 1 },
+            "href": { "$ref": "#/$defs/safeHref" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "src"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "image" },
+            "src": { "$ref": "#/$defs/assetPath" },
+            "alt": { "type": "string" },
+            "decorative": { "type": "boolean" },
+            "caption": { "type": "string" }
+          },
+          "anyOf": [
+            { "required": ["alt"] },
+            {
+              "required": ["decorative"],
+              "properties": { "decorative": { "const": true } }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "required": ["type", "label", "href"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "cta" },
+            "label": { "type": "string", "minLength": 1 },
+            "href": { "$ref": "#/$defs/safeHref" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "text"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "callout" },
+            "title": { "type": "string" },
+            "text": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type"],
+          "additionalProperties": false,
+          "properties": { "type": { "const": "socialGrid" } }
+        },
+        {
+          "type": "object",
+          "required": ["type", "items"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "rubricList" },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["title", "text"],
+                "additionalProperties": false,
+                "properties": {
+                  "title": { "type": "string", "minLength": 1 },
+                  "text": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "spacer" },
+            "size": { "enum": ["sm", "md", "lg"] }
+          }
+        }
+      ]
+    },
+    "page": {
+      "type": "object",
+      "required": ["locale", "id", "route", "meta", "nav", "hero", "sections"],
+      "additionalProperties": true,
+      "properties": {
+        "$schema": { "type": "string" },
+        "locale": { "enum": ["en", "es"] },
+        "id": {
+          "enum": [
+            "home",
+            "about",
+            "contact",
+            "sponsors",
+            "committee",
+            "rubrics"
+          ]
+        },
+        "route": { "$ref": "#/$defs/safeHref" },
+        "meta": {
+          "type": "object",
+          "required": ["title", "description"],
+          "additionalProperties": false,
+          "properties": {
+            "title": { "type": "string", "minLength": 1 },
+            "description": { "type": "string", "minLength": 1 }
+          }
+        },
+        "nav": {
+          "type": "object",
+          "required": ["label", "shortLabel", "order"],
+          "additionalProperties": false,
+          "properties": {
+            "label": { "type": "string", "minLength": 1 },
+            "shortLabel": { "type": "string", "minLength": 1 },
+            "order": { "type": "number" }
+          }
+        },
+        "hero": {
+          "type": "object",
+          "required": ["title", "body"],
+          "additionalProperties": true,
+          "properties": {
+            "title": { "type": "string", "minLength": 1 },
+            "slugline": { "type": "string" },
+            "body": { "type": "array", "items": { "$ref": "#/$defs/block" } },
+            "cta": {
+              "type": "object",
+              "required": ["label", "href"],
+              "additionalProperties": false,
+              "properties": {
+                "label": { "type": "string", "minLength": 1 },
+                "href": { "$ref": "#/$defs/safeHref" }
+              }
+            }
+          }
+        },
+        "sections": { "type": "array" }
+      }
+    },
+    "site": {
+      "type": "object",
+      "required": [
+        "locale",
+        "animationCopy",
+        "socialLinks",
+        "committee",
+        "roles"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "$schema": { "type": "string" },
+        "locale": { "enum": ["en", "es"] },
+        "animationCopy": { "type": "object" },
+        "socialLinks": { "type": "array" },
+        "committee": { "type": "object" },
+        "roles": { "type": "object" }
+      }
+    }
+  }
+}

@@ -1,3 +1,55 @@
-about page
-contact us (have linkedin, instagram, email to)
-sponsors (nuaxion)
+better-resp layout
+
+Routes
+- /: React shell mounts the lazy legacy Three scene.
+- In-scene sections come from JSON pages: home, about, contact, sponsors, committee.
+- Rubrics content exists as JSON for routing/extraction and current external CTA use.
+
+Filesystem
+- index.html: minimal React root.
+- public/: static assets only; no live content files.
+- src/app/: React boot shell.
+- src/content/generated/content.schema.json: editor schema.
+- src/content/pages/<locale>/*.json: page content.
+- src/content/site/<locale>.json: socials, committee, animation copy.
+- src/content/schema/contentSchema.ts: TS validation/types.
+- src/content/contentRegistry.ts: central content imports and locale fallback.
+- src/content/ContentRenderer.tsx: safe structured block renderer.
+- src/features/legacy-three/: lazy Three scene and DOM scaffold.
+- src/features/living-join-us/: extracted state reducer.
+- src/features/bee-line-orb/: path math helpers.
+- src/features/social-materials/: material config matrix.
+- src/shared/i18n/: shell/global UI strings.
+- src/shared/state/: coarse Zustand UI state.
+- src/shared/styles/: Tailwind v4 entry, tokens, base CSS, legacy CSS.
+- scripts/: TypeScript-only validation/asset scripts.
+- .github/workflows/: existing deploy workflows call `npm run test:ci`.
+- tests/unit/: Vitest data/logic tests.
+- tests/e2e and tests/component: Cypress specs.
+
+Data flow
+- App sets locale metadata and lazy-loads legacy-main.
+- legacy-main reads `document.documentElement.lang`, then gets pages/site data from contentRegistry.
+- contentRegistry falls unknown locales back to English and throws for unknown pages.
+- ContentRenderer renders validated structured sections without raw HTML.
+- i18n owns shell labels; JSON owns page/body/social/member/animation copy.
+
+No-JS enforcement
+- `scripts/assert-no-js.ts` scans first-party files.
+- `tsconfig.json` has `allowJs: false`.
+- `npm run test:ci` runs no-JS and content validation before typecheck/lint/tests/build.
+
+Removed legacy flow
+- No `public/content` markdown.
+- No frontmatter parser.
+- No markdown loader/renderer.
+- No `.js/.jsx/.mjs/.cjs` first-party source/config/script files.
+
+Lazy boundaries
+- Initial shell: React, Zustand, i18n, Motion loader, CSS.
+- Lazy visual chunk: Three, GSAP, Troika, static JSON content.
+- Validation scripts/tests are not imported by App.
+
+Tests
+- Vitest: i18n, JSON content/schema/registry/renderer, no-JS scanner, scaling, JOIN reducer, bee path math, social material matrix.
+- Cypress: shell/responsive/i18n and component-level behavior specs.

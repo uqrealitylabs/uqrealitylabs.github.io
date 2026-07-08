@@ -1,0 +1,89 @@
+# better-resp stack
+
+## Follow-up summary
+
+Live page content moved from markdown files to locale-scoped JSON. First-party source, configs, and scripts are TypeScript-only; `.js/.jsx/.mjs/.cjs` files are rejected by `npm run check:no-js`.
+
+## Current stack
+
+- Runtime: React 19, TypeScript, Zustand for coarse UI state, Motion for the loader, Tailwind CSS v4.
+- Build: Rsbuild/Rspack/SWC, Lightning CSS through Rsbuild, Rsdoctor behind `RSDOCTOR=true`.
+- 3D: the existing vanilla Three scene is lazy-loaded. R3F/Drei/postprocessing remain target-stack dependencies but are not imported by the initial shell.
+- Tests: Vitest unit/data tests and Cypress specs. No Playwright.
+- Package manager: npm with `package-lock.json`. `pnpm`/Corepack are unavailable in this environment.
+
+## Dependency rules
+
+- No visual framework, Redux, Anime.js, Rapier, MDX, markdown parser, CMS, or runtime sanitizer.
+- Runtime deps are feature-owned: React shell, Zustand coarse state, Motion loader, Three/GSAP/Troika lazy legacy scene, R3F/Drei/postprocessing target visual stack.
+- Dev deps are build/test/analysis only: Rsbuild, TypeScript, Tailwind, Biome, Vitest, Cypress, Rsdoctor, glTF tooling.
+- New follow-up dependency: none. Node types are already transitive through installed tooling; no package was added after the JSON migration.
+
+## No-JS policy
+
+Allowed first-party source/config/script extensions are `.ts`, `.tsx`, `.d.ts`, `.json`, `.css`, `.html`, and assets. `scripts/assert-no-js.ts` ignores generated/dependency folders and fails on checked-in `.js/.jsx/.mjs/.cjs`.
+
+## Content system
+
+- Content editors edit JSON under `src/content/pages/<locale>/` and `src/content/site/`.
+- `src/content/generated/content.schema.json` gives editor schema support.
+- `src/content/schema/contentSchema.ts` validates required fields, block types, safe URLs, and asset paths.
+- `src/content/contentRegistry.ts` is the only central importer for page/site JSON.
+- `src/content/ContentRenderer.tsx` renders structured blocks with React escaping and no raw HTML.
+
+Markdown was removed as a live content system to remove parsing/frontmatter code and make content validation explicit. Documentation markdown remains allowed.
+
+## Content/i18n ownership
+
+- Global shell labels stay in `src/shared/i18n/runtime.ts`.
+- Page body, nav labels used by the scene, animation copy, socials, committee roles, and member content live in JSON.
+- Unknown locales fall back to English. Unknown pages throw a clear error.
+
+## Validation commands
+
+- `npm run check:no-js`
+- `npm run validate:content`
+- `npm run test:unit`
+- `npm run test:ci`
+- `npm run build` also runs `check:no-js` and `validate:content` through `prebuild`.
+
+## Lazy-load boundaries
+
+- Initial shell: React, i18n, Zustand, Motion loader, CSS, JSON-free app shell.
+- Heavy chunk: `src/features/legacy-three/legacy-main.ts` imports Three, GSAP, Troika, and JSON content registry.
+- Content validation is test/script-only and is not imported by `App`.
+
+## Performance budgets
+
+- Target base shell JS: <= 180 KB gzip.
+- Target CSS: <= 35 KB gzip.
+- No markdown parser in browser bundle.
+- Heavy visual chunk is allowed to exceed shell budget until the legacy scene is split.
+- Core Web Vitals are targets only; not claimed without browser measurement.
+
+## Security
+
+- Content supports text, safe links, safe asset paths, and structured blocks only.
+- No `dangerouslySetInnerHTML` content path.
+- Unsafe protocols such as `javascript:` are rejected by validation.
+- Suggested CSP: `default-src 'self'; img-src 'self' data: https:; connect-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'`.
+- Scripts: `security:audit` and `security:osv`.
+- Existing deploy workflows run `npm run test:ci` before publishing artifacts.
+
+## Commands
+
+- `npm run dev`
+- `npm run build`
+- `npm run typecheck`
+- `npm run lint`
+- `npm run format:check`
+- `npm run check:no-js`
+- `npm run validate:content`
+- `npm run test:unit`
+- `npm run analyze`
+
+## Known limitations
+
+- The main visual scene is still legacy vanilla Three, not fully rewritten to R3F.
+- Cypress component config is present, but no extra Vite/Rsbuild component adapter dependency was added.
+- JSON content is statically imported into the lazy legacy chunk because current content size is small; split locale/page imports when content grows.

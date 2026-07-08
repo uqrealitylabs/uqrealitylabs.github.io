@@ -1,0 +1,319 @@
+{
+  "$schema": "../generated/content.schema.json",
+  "locale": "en",
+  "animationCopy": {
+    "joinUs": "JOIN US",
+    "nearThought": "AWWWW",
+    "sadThought": "aw.",
+    "ow": "ow.",
+    "yay": "yay",
+    "loading": "Loading scene"
+  },
+  "socialLinks": [
+    {
+      "label": "LinkedIn",
+      "url": "https://www.linkedin.com/company/uq-reality-labs",
+      "texture": "/Assets/images/linkedin.png",
+      "accent": "#0A66C2",
+      "music": {
+        "label": "rickroll ping",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "volume": 0.28,
+        "start": 0,
+        "duration": 5
+      }
+    },
+    {
+      "label": "Instagram",
+      "url": "https://www.instagram.com/uqrealitylabs/",
+      "texture": "/Assets/images/instagram.jpg",
+      "accent": "#E1306C",
+      "music": {
+        "label": "nyan cat sparkle",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=QH2-TGUlwu4",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      }
+    },
+    {
+      "label": "Discord",
+      "url": "https://discord.com/invite/eN6v8R3fYD",
+      "texture": "/Assets/images/discord.jpg",
+      "accent": "#5865F2",
+      "music": {
+        "label": "coffin dance bounce",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=j9V78UbdzWI",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      }
+    },
+    {
+      "label": "Email",
+      "url": "mailto:uqrealitylabs@gmail.com",
+      "texture": "/Assets/images/email.jpg",
+      "accent": "#F59E0B",
+      "music": {
+        "label": "crab rave mail",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=LDU_Txk06tM",
+        "volume": 0.28,
+        "start": 0,
+        "duration": 5
+      }
+    }
+  ],
+  "committee": {
+    "rows": [
+      ["president", "secretary", "treasurer"],
+      ["media", "events", "workshop", "industry"]
+    ],
+    "roles": [
+      "president",
+      "secretary",
+      "treasurer",
+      "media",
+      "events",
+      "workshop",
+      "industry"
+    ]
+  },
+  "roles": {
+    "president": {
+      "role": "President",
+      "slug": "president",
+      "slugline": "Keeps the circus pointed forward.",
+      "accentColor": "#FF5757",
+      "hoverColor": "#FF7A7A",
+      "trailColor": "#FF5757",
+      "pathVariant": "steady-loop",
+      "order": 1,
+      "music": {
+        "label": "gangnam style",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=9bZkp7q19f0",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Cyrus Forudi",
+          "role": "President",
+          "photo": "/Assets/images/Cyrus.webp",
+          "photoWidth": 900,
+          "photoHeight": 1351,
+          "photoFocus": "50% 34%",
+          "linkedin": "https://www.linkedin.com/in/cyrus-forudi/",
+          "shortBio": "Lorem ipsum dolor sit amet.",
+          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          "music": {
+            "label": "OIIA OIIA",
+            "source": "youtube",
+            "url": "https://www.youtube.com/watch?v=90DC_ri0WEY",
+            "volume": 0.35,
+            "start": 0,
+            "duration": 5
+          },
+          "order": 1
+        }
+      ]
+    },
+    "secretary": {
+      "role": "Secretary",
+      "slug": "secretary",
+      "slugline": "Minutes magician.",
+      "accentColor": "#F59E0B",
+      "hoverColor": "#FBBF24",
+      "trailColor": "#F59E0B",
+      "pathVariant": "loop-buzz",
+      "order": 2,
+      "music": {
+        "label": "never gonna give you up",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Navya",
+          "role": "Secretary",
+          "photo": "/Assets/images/Navya.webp",
+          "photoWidth": 900,
+          "photoHeight": 1200,
+          "photoFocus": "50% 36%",
+          "linkedin": "https://www.linkedin.com/in/navpas/",
+          "shortBio": "Lorem ipsum dolor sit amet.",
+          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          "order": 1
+        }
+      ]
+    },
+    "treasurer": {
+      "role": "Treasurer",
+      "slug": "treasurer",
+      "slugline": "Budget chaos audited.",
+      "accentColor": "#38BDF8",
+      "hoverColor": "#7DD3FC",
+      "trailColor": "#38BDF8",
+      "pathVariant": "hop-hop",
+      "order": 3,
+      "music": {
+        "label": "sandstorm",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=y6120QOlsfU",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Amna",
+          "role": "Treasurer",
+          "photo": "/Assets/images/Amna.webp",
+          "photoWidth": 900,
+          "photoHeight": 1200,
+          "photoFocus": "50% 36%",
+          "linkedin": "https://www.linkedin.com/in/amna-ar/",
+          "shortBio": "Lorem ipsum dolor sit amet.",
+          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          "order": 1
+        }
+      ]
+    },
+    "media": {
+      "role": "Media",
+      "slug": "media",
+      "slugline": "Makes pixels behave.",
+      "accentColor": "#A78BFA",
+      "hoverColor": "#C4B5FD",
+      "trailColor": "#A78BFA",
+      "pathVariant": "spiral-pop",
+      "order": 4,
+      "music": {
+        "label": "nyan cat",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=QH2-TGUlwu4",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Chloe Lim",
+          "role": "Media",
+          "photo": "/Assets/images/Chloe.webp",
+          "photoWidth": 900,
+          "photoHeight": 1200,
+          "photoFocus": "50% 36%",
+          "linkedin": "https://www.linkedin.com/in/chloe-lim-10a840386/",
+          "shortBio": "Lorem ipsum dolor sit amet.",
+          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          "order": 1
+        }
+      ]
+    },
+    "events": {
+      "role": "Events",
+      "slug": "events",
+      "slugline": "Chaos scheduler.",
+      "accentColor": "#22C55E",
+      "hoverColor": "#4ADE80",
+      "trailColor": "#22C55E",
+      "pathVariant": "route-hop",
+      "order": 5,
+      "music": {
+        "label": "coffin dance",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=j9V78UbdzWI",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Clare Johnston-Koto",
+          "role": "Events",
+          "photo": "/Assets/images/Clare.webp",
+          "photoWidth": 900,
+          "photoHeight": 675,
+          "photoFocus": "50% 42%",
+          "linkedin": "https://www.linkedin.com/in/clare-johnston-koto/",
+          "shortBio": "Lorem ipsum dolor sit amet.",
+          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          "order": 1
+        }
+      ]
+    },
+    "workshop": {
+      "role": "Workshop",
+      "slug": "workshop",
+      "slugline": "Demo duct-tape specialist.",
+      "accentColor": "#84CC16",
+      "hoverColor": "#A3E635",
+      "trailColor": "#84CC16",
+      "pathVariant": "ziggle-pop",
+      "order": 6,
+      "music": {
+        "label": "crab rave",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=LDU_Txk06tM",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Radhesh",
+          "role": "Workshop",
+          "photo": "/Assets/images/Radhesh.webp",
+          "photoWidth": 900,
+          "photoHeight": 1034,
+          "photoFocus": "50% 35%",
+          "linkedin": "https://www.linkedin.com/in/radhesh-g/",
+          "shortBio": "Lorem ipsum dolor sit amet.",
+          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          "order": 1
+        }
+      ]
+    },
+    "industry": {
+      "role": "Industry",
+      "slug": "industry",
+      "slugline": "Handshake side quest.",
+      "accentColor": "#14B8A6",
+      "hoverColor": "#2DD4BF",
+      "trailColor": "#14B8A6",
+      "pathVariant": "underline-swoop",
+      "order": 7,
+      "music": {
+        "label": "trololo",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=oavMtUWDBTM",
+        "volume": 0.28,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Doris Wei",
+          "role": "Industry",
+          "photo": "/Assets/images/doris.jpg",
+          "photoWidth": 1280,
+          "photoHeight": 853,
+          "photoFocus": "50% 42%",
+          "linkedin": "https://www.linkedin.com/in/doriswei/",
+          "shortBio": "Lorem ipsum dolor sit amet.",
+          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          "order": 1
+        }
+      ]
+    }
+  }
+}

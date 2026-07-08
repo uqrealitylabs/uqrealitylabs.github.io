@@ -3,17 +3,56 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "packageManager": "npm@11.12.1",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "devDependencies": {
-    "vite": "^6.3.5"
+    "dev": "rsbuild dev",
+    "prebuild": "npm run check:no-js && npm run validate:content",
+    "build": "rsbuild build",
+    "preview": "rsbuild preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "check:no-js": "node scripts/assert-no-js.ts",
+    "validate:content": "node scripts/validate-content.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:component": "cypress run --component",
+    "test:e2e": "cypress run --e2e",
+    "test:ci": "npm run check:no-js && npm run validate:content && npm run typecheck && npm run lint && npm run test:unit && npm run build",
+    "analyze": "RSDOCTOR=true rsbuild build",
+    "assets:optimize": "node scripts/optimize-assets.ts",
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:osv": "npx osv-scanner --lockfile package-lock.json"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.4.0",
+    "@react-three/postprocessing": "^3.0.4",
     "gsap": "^3.15.0",
+    "maath": "^0.10.8",
+    "motion": "^12.23.26",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
     "three": "^0.177.0",
-    "troika-three-text": "^0.52.4"
+    "troika-three-text": "^0.52.4",
+    "zustand": "^5.0.9"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.8",
+    "@gltf-transform/cli": "^4.2.1",
+    "@rsbuild/core": "^2.1.4",
+    "@rsbuild/plugin-react": "^2.1.0",
+    "@rsbuild/plugin-tailwindcss": "^2.0.3",
+    "@rsdoctor/rspack-plugin": "^1.5.17",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "cypress": "^15.7.0",
+    "gltfpack": "^0.25.0",
+    "meshoptimizer": "^0.25.0",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
   }
 }

@@ -1,0 +1,31 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "en",
+  "id": "rubrics",
+  "route": "/rubrics",
+  "meta": {
+    "title": "Rubrics",
+    "description": "Join UQ Reality Labs through Rubrics."
+  },
+  "nav": { "label": "Rubrics", "shortLabel": "Join", "order": 6 },
+  "hero": {
+    "title": "Rubrics",
+    "slugline": "Join the lab.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "Membership runs through Rubrics so signups and club admin stay in one place."
+      }
+    ],
+    "cta": {
+      "label": "Open Rubrics",
+      "href": "https://campus.hellorubric.com/?s=5809"
+    }
+  },
+  "theme": {
+    "accentColor": "#F59E0B",
+    "trailColor": "#F59E0B",
+    "pathVariant": "excited-loop"
+  },
+  "sections": []
+}
