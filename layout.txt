@@ -25,8 +25,8 @@ Filesystem
 - scripts/: TypeScript-only validation/asset scripts.
 - .github/workflows/ci.yml: quality, build, Cypress component, and E2E smoke.
 - .github/workflows/security.yml: workflow policy, npm audit, OSV, Dependency Review, CodeQL.
-- .github/workflows/benchmarks.yml: scheduled/manual build metrics and Lighthouse capture.
-- .github/workflows/deploy.yml: GitHub Pages deploy from validated dist.
+- .github/workflows/benchmarks.yml: scheduled/manual build metrics and Lighthouse capture for `/`.
+- .github/workflows/deploy.yml: GitHub Pages deploy from validated dist on `main`.
 - .github/dependabot.yml: npm and GitHub Actions update automation.
 - tests/unit/: Vitest data/logic tests.
 - tests/e2e and tests/component: Cypress specs.
@@ -42,7 +42,7 @@ No-JS enforcement
 - `scripts/assert-no-js.ts` scans first-party files.
 - `tsconfig.json` has `allowJs: false`.
 - `npm run test:ci` runs no-JS and content validation before typecheck/lint/tests/build.
-- `npm run check:workflows` enforces documented action refs, minimal permissions, checkout credential disabling, cache keying, and artifact boundaries.
+- `npm run check:workflows` enforces SHA-pinned workflow actions; permissions, cache, artifact, and deploy policies live directly in the workflow YAML.
 - `npm run check:budgets` reads `dist` and fails on shell/lazy chunk gzip budget violations.
 
 Removed legacy flow
@@ -61,7 +61,7 @@ Tests
 - Cypress: shell/responsive/i18n and component-level behavior specs.
 
 CI artifact flow
-- Build stats: `artifacts/benchmarks/` uploaded from CI/build and benchmarks.
+- Build stats: written to CI summaries and uploaded only by the benchmark workflow.
 - Lighthouse: `artifacts/lighthouse/` uploaded from benchmark workflow.
 - Cypress screenshots/videos: uploaded only when a Cypress job fails.
 - Pages deploy: `dist` uploaded through the Pages artifact action only.

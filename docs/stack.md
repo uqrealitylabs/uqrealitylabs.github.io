@@ -74,8 +74,8 @@ Markdown was removed as a live content system to remove parsing/frontmatter code
 
 - `.github/workflows/ci.yml`: quality gate, production build/budget gate, Cypress component job, Cypress E2E smoke job.
 - `.github/workflows/security.yml`: workflow policy, dependency audit, OSV, Dependency Review, CodeQL.
-- `.github/workflows/benchmarks.yml`: scheduled/manual build metrics and Lighthouse CI capture.
-- `.github/workflows/deploy.yml`: GitHub Pages deploy from a validated `dist` artifact.
+- `.github/workflows/benchmarks.yml`: scheduled/manual build metrics and Lighthouse CI capture for the served home route.
+- `.github/workflows/deploy.yml`: GitHub Pages deploy from a validated `dist` artifact on `main`.
 - Old duplicate Firebase and extra Pages workflows were removed; the repo now has one deploy path.
 
 GitHub Actions policy:
@@ -85,13 +85,13 @@ GitHub Actions policy:
 - Workflow concurrency cancels stale CI/security/benchmark runs; production Pages deploys queue instead of canceling.
 - Actions and reusable workflows are pinned to full SHAs. `npm run check:actions-pinned` rejects mutable tags.
 - The npm cache is keyed through `actions/setup-node` and `package-lock.json`. `node_modules`, pnpm stores, env files, and full workspaces are not artifacted.
-- Artifacts are limited to build stats, benchmark output, Lighthouse reports, Pages dist, and Cypress screenshots/videos only on failure.
+- Artifacts are limited to benchmark output, Lighthouse reports, Pages dist, and Cypress screenshots/videos only on failure. Normal CI writes build stats into the job summary instead of uploading an artifact.
 
 ## Benchmarking
 
 - `npm run benchmark:build` builds and writes `artifacts/benchmarks/build.json` plus Markdown summary.
 - `npm run check:budgets` fails when base JS, CSS, or largest lazy JS gzip budgets are exceeded.
-- Lighthouse runs only in `.github/workflows/benchmarks.yml` through a SHA-pinned action. The local npm lockfile does not carry LHCI because the CLI currently brings audit failures.
+- Lighthouse runs only in `.github/workflows/benchmarks.yml` through a SHA-pinned action. It audits `/` until real pathname routing exists for the in-scene sections. The local npm lockfile does not carry LHCI because the CLI currently brings audit failures.
 - See `docs/benchmark.md` for budget values, variance rules, and the benchmark log.
 
 ## Commands
@@ -102,7 +102,7 @@ GitHub Actions policy:
 - `npm run lint`
 - `npm run format:check`
 - `npm run check:no-js`
-- `npm run check:workflows`
+- `npm run check:workflows` (action pin policy)
 - `npm run check:budgets`
 - `npm run validate:content`
 - `npm run test:unit`

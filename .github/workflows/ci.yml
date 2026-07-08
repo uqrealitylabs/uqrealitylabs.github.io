@@ -64,14 +64,6 @@ jobs:
           if [ -f artifacts/benchmarks/build.md ]; then
             cat artifacts/benchmarks/build.md >> "$GITHUB_STEP_SUMMARY"
           fi
-      - name: Upload build stats
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: build-stats
-          path: artifacts/benchmarks/
-          if-no-files-found: error
-          retention-days: 14
-
   cypress-component:
     runs-on: ubuntu-latest
     timeout-minutes: 20

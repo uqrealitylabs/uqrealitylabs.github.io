@@ -20,7 +20,7 @@
     "format:check": "biome format .",
     "check:no-js": "node scripts/assert-no-js.ts",
     "check:actions-pinned": "node scripts/assert-actions-pinned.ts",
-    "check:workflows": "npm run check:actions-pinned && node scripts/assert-workflows-hardened.ts",
+    "check:workflows": "npm run check:actions-pinned",
     "check:budgets": "node scripts/collect-benchmarks.ts --check-budgets",
     "validate:content": "node scripts/validate-content.ts",
     "test": "vitest run",

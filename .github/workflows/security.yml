@@ -37,7 +37,7 @@ jobs:
           cache-dependency-path: package-lock.json
       - name: Install dependencies
         run: npm ci
-      - name: Check workflow hardening
+      - name: Check workflow action pins
         run: npm run check:workflows
       - name: Run npm audit
         run: npm run security:audit

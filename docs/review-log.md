@@ -104,3 +104,22 @@ Actual subagents were used.
 
 - Result: no active legacy workflow, markdown-content, first-party JS, Playwright, Bootstrap, Redux, Anime.js, or direct Rapier blockers found.
 - Remaining mentions are docs-only, test extension strings, benchmark Markdown report output, or lockfile optional/transitive metadata.
+
+## CI review trim follow-up
+
+### Security Researcher
+
+- Finding: manual Pages deploy could run from a non-`main` ref.
+- Fix: removed `workflow_dispatch` from deploy; Pages deploy now runs only on `main` pushes.
+- Finding: workflow hardening check was too broad.
+- Fix: removed the false-confidence hardening parser; `check:workflows` now only enforces SHA-pinned actions.
+
+### Benchmark Quant
+
+- Finding: Lighthouse audited `/about` and `/rubrics`, but those pathnames do not map to in-scene sections yet.
+- Fix: Lighthouse now audits `/` only; docs mark the first row as a local seed, not a CI baseline.
+
+### @Ponytail Ultra
+
+- Delete-list applied: removed CI build-stat artifact upload and shortened benchmark artifact retention.
+- Delete-list deferred: kept OSV, Dependency Review, CodeQL, and benchmark workflow because they were explicit project gates, not local-only theater.
