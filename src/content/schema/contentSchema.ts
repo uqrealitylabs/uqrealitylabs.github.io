@@ -156,7 +156,6 @@ export type SiteContent = {
       aiInput: boolean;
       aiTrain: boolean;
     };
-    searchVerification?: Record<string, string>;
   };
   animationCopy: Record<
     "joinUs" | "nearThought" | "sadThought" | "ow" | "yay" | "loading",
@@ -201,6 +200,25 @@ function issue(
     expected,
     actual,
     message: `${path} must be ${expected}`,
+  });
+}
+
+function validateAllowedKeys(
+  issues: ValidationIssue[],
+  value: Record<string, unknown>,
+  path: string,
+  allowed: readonly string[],
+) {
+  const allowedSet = new Set(allowed);
+  Object.keys(value).forEach((key) => {
+    if (!allowedSet.has(key)) {
+      issue(
+        issues,
+        `${path}.${key}`,
+        `one of ${allowed.join(", ")}`,
+        value[key],
+      );
+    }
   });
 }
 
@@ -353,6 +371,14 @@ export function validatePageContent(
   if (!isRecord(page.meta))
     issue(issues, `${filePath}.meta`, "object", page.meta);
   else {
+    validateAllowedKeys(issues, page.meta, `${filePath}.meta`, [
+      "title",
+      "description",
+      "indexable",
+      "canonicalPath",
+      "updatedAt",
+      "social",
+    ]);
     if (!hasText(page.meta.title))
       issue(issues, `${filePath}.meta.title`, "text", page.meta.title);
     if (!hasText(page.meta.description))
@@ -400,6 +426,11 @@ export function validatePageContent(
       );
     }
     if (isRecord(page.meta.social)) {
+      validateAllowedKeys(issues, page.meta.social, `${filePath}.meta.social`, [
+        "title",
+        "description",
+        "image",
+      ]);
       if (
         page.meta.social.title !== undefined &&
         !hasText(page.meta.social.title)
@@ -541,6 +572,15 @@ export function validateSiteContent(
   if (!isRecord(site.seo))
     issue(issues, `${filePath}.seo`, "SEO config", site.seo);
   else {
+    validateAllowedKeys(issues, site.seo, `${filePath}.seo`, [
+      "siteName",
+      "siteUrl",
+      "defaultTitleTemplate",
+      "defaultDescription",
+      "defaultSocialImage",
+      "organization",
+      "contentPolicy",
+    ]);
     if (!hasText(site.seo.siteName))
       issue(issues, `${filePath}.seo.siteName`, "text", site.seo.siteName);
     validateHttpsUrl(issues, site.seo.siteUrl, `${filePath}.seo.siteUrl`);

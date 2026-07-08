@@ -5,7 +5,10 @@ import {
   getSiteContent,
   listPages,
 } from "../../src/content/contentRegistry";
-import { validatePageContent } from "../../src/content/schema/contentSchema";
+import {
+  validatePageContent,
+  validateSiteContent,
+} from "../../src/content/schema/contentSchema";
 import {
   buildLlms,
   buildPageMetadata,
@@ -91,6 +94,20 @@ describe("SEO signals", () => {
     expect(issuePaths).toContain("page.meta.canonicalPath");
     expect(issuePaths).toContain("page.meta.indexable");
     expect(issuePaths).toContain("page.meta.social.image.alt");
+  });
+
+  it("rejects unknown metadata fields instead of rendering unsafe head paths", () => {
+    const pageIssuePaths = validatePageContent({
+      ...home,
+      meta: { ...home.meta, rawHtml: "<meta name=x content=y>" },
+    }).map((issue) => issue.path);
+    const siteIssuePaths = validateSiteContent({
+      ...site,
+      seo: { ...site.seo, searchVerification: { google: "token" } },
+    }).map((issue) => issue.path);
+
+    expect(pageIssuePaths).toContain("page.meta.rawHtml");
+    expect(siteIssuePaths).toContain("site.seo.searchVerification");
   });
 
   it("detects duplicate indexable canonical URLs", () => {

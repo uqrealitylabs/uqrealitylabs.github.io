@@ -253,7 +253,7 @@
             "organization",
             "contentPolicy"
           ],
-          "additionalProperties": true,
+          "additionalProperties": false,
           "properties": {
             "siteName": { "type": "string", "minLength": 1 },
             "siteUrl": { "type": "string", "pattern": "^https://.+" },
@@ -283,8 +283,7 @@
                 "aiInput": { "type": "boolean" },
                 "aiTrain": { "type": "boolean" }
               }
-            },
-            "searchVerification": { "type": "object" }
+            }
           }
         },
         "animationCopy": { "type": "object" },
