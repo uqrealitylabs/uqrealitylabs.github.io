@@ -1,6 +1,30 @@
 {
   "$schema": "../generated/content.schema.json",
   "locale": "es",
+  "seo": {
+    "siteName": "UQ Reality Labs",
+    "siteUrl": "https://uqrealitylabs.github.io",
+    "defaultTitleTemplate": "%s | UQ Reality Labs",
+    "defaultDescription": "El primer club de realidad aumentada y virtual de Australia.",
+    "defaultSocialImage": {
+      "src": "/Assets/images/labs_logo.png",
+      "alt": "Logotipo de UQ Reality Labs"
+    },
+    "organization": {
+      "name": "UQ Reality Labs",
+      "url": "https://uqrealitylabs.github.io/",
+      "logo": "/Assets/images/labs_logo.png",
+      "sameAs": [
+        "https://www.linkedin.com/company/uq-reality-labs",
+        "https://www.instagram.com/uqrealitylabs/"
+      ]
+    },
+    "contentPolicy": {
+      "search": true,
+      "aiInput": true,
+      "aiTrain": false
+    }
+  },
   "animationCopy": {
     "joinUs": "ÚNETE",
     "nearThought": "AWWWW",

@@ -5,7 +5,8 @@
   "route": "/",
   "meta": {
     "title": "UQ Reality Labs desde 2022",
-    "description": "AR, VR, talleres, demos y un cable de visor sospechoso."
+    "description": "AR, VR, talleres, demos y un cable de visor sospechoso.",
+    "canonicalPath": "/"
   },
   "nav": { "label": "Inicio", "shortLabel": "Inicio", "order": 1 },
   "hero": {

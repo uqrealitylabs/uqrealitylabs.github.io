@@ -57,12 +57,30 @@ export type ContentSection =
   | { id: string; type: "socialGrid" }
   | { id: string; type: "committee" };
 
+export type SocialImage = {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+};
+
 export type PageContent = {
   $schema?: string;
   locale: Locale;
   id: PageId;
   route: string;
-  meta: { title: string; description: string };
+  meta: {
+    title: string;
+    description: string;
+    indexable?: boolean;
+    canonicalPath?: string;
+    updatedAt?: string;
+    social?: {
+      title?: string;
+      description?: string;
+      image?: SocialImage;
+    };
+  };
   nav: { label: string; shortLabel: string; order: number };
   hero: {
     title: string;
@@ -121,6 +139,25 @@ export type RoleContent = {
 export type SiteContent = {
   $schema?: string;
   locale: Locale;
+  seo: {
+    siteName: string;
+    siteUrl: string;
+    defaultTitleTemplate: string;
+    defaultDescription: string;
+    defaultSocialImage: SocialImage;
+    organization: {
+      name: string;
+      url: string;
+      logo: string;
+      sameAs: string[];
+    };
+    contentPolicy: {
+      search: boolean;
+      aiInput: boolean;
+      aiTrain: boolean;
+    };
+    searchVerification?: Record<string, string>;
+  };
   animationCopy: Record<
     "joinUs" | "nearThought" | "sadThought" | "ow" | "yay" | "loading",
     string
@@ -184,6 +221,20 @@ function validateHref(issues: ValidationIssue[], value: unknown, path: string) {
   }
 }
 
+function validateHttpsUrl(
+  issues: ValidationIssue[],
+  value: unknown,
+  path: string,
+) {
+  if (!hasText(value)) return issue(issues, path, "https URL", value);
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:") issue(issues, path, "https URL", value);
+  } catch {
+    issue(issues, path, "https URL", value);
+  }
+}
+
 function validateAssetPath(
   issues: ValidationIssue[],
   value: unknown,
@@ -195,6 +246,22 @@ function validateAssetPath(
     value.includes("..")
   ) {
     issue(issues, path, "a safe /Assets/ path", value);
+  }
+}
+
+function validateSocialImage(
+  issues: ValidationIssue[],
+  value: unknown,
+  path: string,
+) {
+  if (!isRecord(value)) return issue(issues, path, "social image", value);
+  validateAssetPath(issues, value.src, `${path}.src`);
+  if (!hasText(value.alt)) issue(issues, `${path}.alt`, "alt text", value.alt);
+  if (value.width !== undefined && typeof value.width !== "number") {
+    issue(issues, `${path}.width`, "number", value.width);
+  }
+  if (value.height !== undefined && typeof value.height !== "number") {
+    issue(issues, `${path}.height`, "number", value.height);
   }
 }
 
@@ -295,6 +362,74 @@ export function validatePageContent(
         "text",
         page.meta.description,
       );
+    if (
+      page.meta.indexable !== undefined &&
+      typeof page.meta.indexable !== "boolean"
+    ) {
+      issue(
+        issues,
+        `${filePath}.meta.indexable`,
+        "boolean",
+        page.meta.indexable,
+      );
+    }
+    if (
+      page.meta.canonicalPath !== undefined &&
+      (!hasText(page.meta.canonicalPath) ||
+        !page.meta.canonicalPath.startsWith("/") ||
+        page.meta.canonicalPath.startsWith("//") ||
+        page.meta.canonicalPath.includes("?") ||
+        page.meta.canonicalPath.includes("#"))
+    ) {
+      issue(
+        issues,
+        `${filePath}.meta.canonicalPath`,
+        "safe absolute path without query or hash",
+        page.meta.canonicalPath,
+      );
+    }
+    if (
+      page.meta.updatedAt !== undefined &&
+      Number.isNaN(Date.parse(String(page.meta.updatedAt)))
+    ) {
+      issue(
+        issues,
+        `${filePath}.meta.updatedAt`,
+        "ISO date string",
+        page.meta.updatedAt,
+      );
+    }
+    if (isRecord(page.meta.social)) {
+      if (
+        page.meta.social.title !== undefined &&
+        !hasText(page.meta.social.title)
+      ) {
+        issue(
+          issues,
+          `${filePath}.meta.social.title`,
+          "text",
+          page.meta.social.title,
+        );
+      }
+      if (
+        page.meta.social.description !== undefined &&
+        !hasText(page.meta.social.description)
+      ) {
+        issue(
+          issues,
+          `${filePath}.meta.social.description`,
+          "text",
+          page.meta.social.description,
+        );
+      }
+      if (page.meta.social.image !== undefined) {
+        validateSocialImage(
+          issues,
+          page.meta.social.image,
+          `${filePath}.meta.social.image`,
+        );
+      }
+    }
   }
 
   if (!isRecord(page.nav)) issue(issues, `${filePath}.nav`, "object", page.nav);
@@ -403,6 +538,93 @@ export function validateSiteContent(
     ];
   if (!locales.includes(site.locale as Locale))
     issue(issues, `${filePath}.locale`, "supported locale", site.locale);
+  if (!isRecord(site.seo))
+    issue(issues, `${filePath}.seo`, "SEO config", site.seo);
+  else {
+    if (!hasText(site.seo.siteName))
+      issue(issues, `${filePath}.seo.siteName`, "text", site.seo.siteName);
+    validateHttpsUrl(issues, site.seo.siteUrl, `${filePath}.seo.siteUrl`);
+    if (!hasText(site.seo.defaultTitleTemplate)) {
+      issue(
+        issues,
+        `${filePath}.seo.defaultTitleTemplate`,
+        "text",
+        site.seo.defaultTitleTemplate,
+      );
+    }
+    if (!hasText(site.seo.defaultDescription)) {
+      issue(
+        issues,
+        `${filePath}.seo.defaultDescription`,
+        "text",
+        site.seo.defaultDescription,
+      );
+    }
+    validateSocialImage(
+      issues,
+      site.seo.defaultSocialImage,
+      `${filePath}.seo.defaultSocialImage`,
+    );
+    if (!isRecord(site.seo.organization)) {
+      issue(
+        issues,
+        `${filePath}.seo.organization`,
+        "organization",
+        site.seo.organization,
+      );
+    } else {
+      if (!hasText(site.seo.organization.name)) {
+        issue(
+          issues,
+          `${filePath}.seo.organization.name`,
+          "text",
+          site.seo.organization.name,
+        );
+      }
+      validateHttpsUrl(
+        issues,
+        site.seo.organization.url,
+        `${filePath}.seo.organization.url`,
+      );
+      validateAssetPath(
+        issues,
+        site.seo.organization.logo,
+        `${filePath}.seo.organization.logo`,
+      );
+      if (
+        !Array.isArray(site.seo.organization.sameAs) ||
+        !site.seo.organization.sameAs.every(
+          (url) => typeof url === "string" && isSafeHref(url),
+        )
+      ) {
+        issue(
+          issues,
+          `${filePath}.seo.organization.sameAs`,
+          "safe URL array",
+          site.seo.organization.sameAs,
+        );
+      }
+    }
+    if (!isRecord(site.seo.contentPolicy)) {
+      issue(
+        issues,
+        `${filePath}.seo.contentPolicy`,
+        "content policy",
+        site.seo.contentPolicy,
+      );
+    } else {
+      for (const key of ["search", "aiInput", "aiTrain"] as const) {
+        if (typeof site.seo.contentPolicy[key] !== "boolean") {
+          issue(
+            issues,
+            `${filePath}.seo.contentPolicy.${key}`,
+            "boolean",
+            site.seo.contentPolicy[key],
+          );
+        }
+      }
+    }
+  }
   const animationCopy = isRecord(site.animationCopy)
     ? site.animationCopy
     : null;
