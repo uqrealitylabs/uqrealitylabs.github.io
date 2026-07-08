@@ -1,18 +1,18 @@
 ---
-name: Feature request
-about: Suggest an idea or major improvement for this project
-title: "[FEAT]: "
-labels: enhancement, help wanted
+name: Task request
+about: Suggest a small task for a feature for this project
+title: "[TAS]: "
+labels: ''
 assignees: ''
-type: Feature
+type: Task
 
 ---
 
 ## Summary line
-One sentence explaining the feature and why it should exist.
+One sentence explaining what needs to be done.
 
 ## Scope
-What this feature touches.
+What this task touches.
 
 - [ ] UI / UX
 - [ ] Content
@@ -25,15 +25,7 @@ What this feature touches.
 - [ ] Security
 - [ ] Performance
 
-## User value
-Who this helps and what gets better.
-
-- [ ]
-
 ## Requirements
-
-### Behavior
-- [ ]
 
 ### Content
 - [ ]
@@ -51,7 +43,7 @@ Who this helps and what gets better.
 - [ ]
 
 ## Acceptance Criteria
-- [ ] The feature is complete and visible in the site
+- [ ] The work is complete and visible where expected
 - [ ] It works on mobile and desktop
 - [ ] No obvious horizontal overflow
 - [ ] Existing pages, routes, and tabs still work
@@ -59,11 +51,6 @@ Who this helps and what gets better.
 - [ ] Accessibility basics were checked
 - [ ] Reduced-motion behavior was considered if animation changed
 - [ ] Relevant checks pass
-
-## Out of scope
-Anything this issue should not include.
-
-- [ ]
 
 > [!NOTE]
 > Anything weird, risky, blocked, or worth double-checking.

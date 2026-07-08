@@ -1,38 +1,91 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: ''
-labels: ''
+title: "[BUG]: "
+labels: bug
 assignees: ''
+type: Bug
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+---
+name: Bug report
+about: Something is broken, confusing, slow, unsafe, or not working as intended.
+title: "bug: "
+labels: ""
+assignees: ""
+---
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+## Summary line
+One sentence explaining what is broken.
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## What happened?
+Describe the bug clearly.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+## Expected behavior
+What should have happened instead?
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+## Steps to reproduce
+1.
+2.
+3.
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+## Scope
+What this bug appears to affect.
 
-**Additional context**
-Add any other context about the problem here.
+- [ ] UI / UX
+- [ ] Content
+- [ ] Data / content files
+- [ ] Styling
+- [ ] 3D / animation
+- [ ] Tests
+- [ ] Build / CI
+- [ ] Documentation
+- [ ] Security
+- [ ] Performance
+
+## Environment
+Fill in what you know.
+
+- Device:
+- Browser:
+- Screen size:
+- Route/page:
+- Branch/commit:
+- Logged in/out, if relevant:
+
+## Evidence
+Add screenshots, recordings, console errors, failed checks, or links.
+
+```text
+Paste logs/errors here if useful.
+```
+
+## **Requirements**
+
+### **Fix**
+
+- [ ]
+
+### **Regression coverage**
+
+- [ ]
+
+### **Accessibility / responsiveness**
+
+- [ ]
+
+## **Acceptance Criteria**
+
+- The bug is fixed
+- The fix works on mobile and desktop
+- No obvious horizontal overflow
+- Existing pages, routes, and tabs still work
+- No unnecessary UI clutter was added
+- Accessibility basics were checked
+- Reduced-motion behavior was considered if animation changed
+- A regression test or clear manual check was added
+- Relevant checks pass
+
+> [!NOTE]
+> Anything weird, risky, blocked, or worth double-checking.
