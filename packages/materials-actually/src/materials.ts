@@ -91,17 +91,19 @@ export const materialConfigs: Record<MaterialKind, MaterialConfig> = {
   },
 };
 
-export function getMaterialKind(label = ""): MaterialKind {
-  const name = label.toLowerCase();
-
-  if (Object.hasOwn(materialConfigs, name)) return name as MaterialKind;
-  if (name.includes("discord")) return "rubber";
-  if (name.includes("linkedin")) return "glass";
-  if (name.includes("email") || name.includes("mail")) return "mail";
-  if (name.includes("grass")) return "grass";
-  return "cloth";
+export function isMaterialKind(value = ""): value is MaterialKind {
+  return Object.hasOwn(materialConfigs, value.toLowerCase());
 }
 
-export function getMaterialConfig(label = "") {
-  return materialConfigs[getMaterialKind(label)];
+export function getMaterialKind(
+  value = "",
+  fallback: MaterialKind = "cloth",
+): MaterialKind {
+  const name = value.toLowerCase();
+
+  return isMaterialKind(name) ? name : fallback;
+}
+
+export function getMaterialConfig(value = "", fallback?: MaterialKind) {
+  return materialConfigs[getMaterialKind(value, fallback)];
 }

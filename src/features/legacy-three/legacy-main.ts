@@ -15,7 +15,6 @@ import {
   createPokeState,
   getMaterialConfig as getSocialMaterialConfig,
   getMaterialEventKind,
-  getMaterialKind as getSocialMaterialKind,
   getPokeInfluence,
   getPokeVelocity,
   shouldTriggerMaterialHaptic,
@@ -28,6 +27,7 @@ import {
   JOIN_US_NAVIGATION_DELAY_MS,
   joinUsStates,
 } from "../../shared/lib/joinUsState";
+import { resolveSocialMaterialKind } from "../../shared/lib/socialMaterials";
 
 gsap.registerPlugin(Observer);
 
@@ -141,7 +141,7 @@ async function loadSocialContent() {
       label: social.label,
       url: social.url,
       texture: withBasePath(social.texture),
-      material: social.material || null,
+      material: resolveSocialMaterialKind(social),
       accent: social.accent || social.accentColor || "#FF5757",
       music: social.music || null,
       order: Number.isFinite(social.order) ? social.order : index + 1,
@@ -1506,7 +1506,7 @@ function createRoundedIconMaterial(texture) {
 }
 
 function getSocialMaterialProfile(label = "") {
-  const kind = getSocialMaterialKind(label);
+  const kind = resolveSocialMaterialKind({ material: label });
 
   if (kind === "rubber") {
     return {

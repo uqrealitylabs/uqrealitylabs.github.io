@@ -13,6 +13,7 @@ import {
   getMaterialKind,
   getMaterialResponse,
   getPokeInfluence,
+  isMaterialKind,
   PokeSurface,
   releasePoke,
   materialConfigs,
@@ -26,15 +27,16 @@ import {
 import type React from "react";
 
 describe("materials-actually", () => {
-  it("maps labels to material kinds", () => {
-    expect(getMaterialKind("LinkedIn")).toBe("glass");
+  it("parses material kinds without app label coupling", () => {
+    expect(isMaterialKind("glass")).toBe(true);
+    expect(isMaterialKind("Glass")).toBe(true);
+    expect(isMaterialKind("LinkedIn")).toBe(false);
     expect(getMaterialKind("glass")).toBe("glass");
-    expect(getMaterialKind("Discord")).toBe("rubber");
-    expect(getMaterialKind("Email")).toBe("mail");
-    expect(getMaterialKind("grass field")).toBe("grass");
-    expect(getMaterialKind("Website")).toBe("cloth");
+    expect(getMaterialKind("Glass")).toBe("glass");
+    expect(getMaterialKind("unknown-kind", "rubber")).toBe("rubber");
     expect(getMaterialKind("constructor")).toBe("cloth");
-    expect(getMaterialConfig("Email")).toBe(materialConfigs.mail);
+    expect(getMaterialConfig("mail")).toBe(materialConfigs.mail);
+    expect(getMaterialConfig("unknown", "grass")).toBe(materialConfigs.grass);
   });
 
   it("keeps poke influence local and clamps input", () => {

@@ -119,6 +119,7 @@
       "label": "LinkedIn",
       "url": "https://www.linkedin.com/company/uq-reality-labs",
       "texture": "/Assets/images/linkedin.png",
+      "material": "glass",
       "accent": "#0A66C2",
       "music": {
         "label": "rickroll ping",
@@ -148,6 +149,7 @@
       "label": "Discord",
       "url": "https://discord.com/invite/eN6v8R3fYD",
       "texture": "/Assets/images/discord.jpg",
+      "material": "rubber",
       "accent": "#5865F2",
       "music": {
         "label": "coffin dance bounce",
@@ -162,6 +164,7 @@
       "label": "Email",
       "url": "mailto:uqrealitylabs@gmail.com",
       "texture": "/Assets/images/email.jpg",
+      "material": "mail",
       "accent": "#F59E0B",
       "music": {
         "label": "crab rave mail",
