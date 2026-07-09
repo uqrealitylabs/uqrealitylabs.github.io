@@ -25,11 +25,9 @@ for (const [path, value] of expected) {
     issues.push(`${path} is stale; run npm run seo:generate`);
 }
 
-if (
-  !readFileSync("index.html", "utf8").includes(
-    renderHeadBlock(site, selectIndexPage(site, pages), pages),
-  )
-) {
+const expectedHeadBlock = `    ${renderHeadBlock(site, selectIndexPage(site, pages), pages)}`;
+
+if (!readFileSync("index.html", "utf8").includes(expectedHeadBlock)) {
   issues.push("index.html SEO head block is stale; run npm run seo:generate");
 }
 
