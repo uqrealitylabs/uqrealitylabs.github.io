@@ -11,8 +11,8 @@ function renderBlock(block: ContentBlock, index: number) {
     case "list":
       return (
         <ul key={index}>
-          {block.items.map((item) => (
-            <li key={item}>{item}</li>
+          {block.items.map((item, itemIndex) => (
+            <li key={`${index}-${itemIndex}`}>{item}</li>
           ))}
         </ul>
       );
