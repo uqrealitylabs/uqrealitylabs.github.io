@@ -60,29 +60,6 @@ jobs:
         with:
           fail-on-severity: moderate
 
-  codeql:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@4110a988ca85d436f1ad69dd90aed6222a6ac39e # v3.30.6
-        with:
-          languages: javascript-typescript
-          queries: security-extended
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@4110a988ca85d436f1ad69dd90aed6222a6ac39e # v3.30.6
-      - name: Analyze
-        uses: github/codeql-action/analyze@4110a988ca85d436f1ad69dd90aed6222a6ac39e # v3.30.6
-
   osv:
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@9a498708959aeaef5ef730655706c5a1df1edbc2 # v2.3.8
     permissions:

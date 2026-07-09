@@ -1,12 +1,5 @@
 import { execFileSync } from "node:child_process";
-import {
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  statSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { arch, cpus, platform, release } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { brotliCompressSync, gzipSync } from "node:zlib";
@@ -24,22 +17,55 @@ type Asset = {
   brotli: number;
 };
 
-function walk(dir: string, root = dir) {
-  const assets: Asset[] = [];
-  for (const name of readdirSync(dir)) {
-    const full = join(dir, name);
-    const stats = statSync(full);
-    if (stats.isDirectory()) assets.push(...walk(full, root));
-    else if (/\.(css|js|html)$/.test(name)) {
-      const data = readFileSync(full);
-      const bytes = Uint8Array.from(data);
-      assets.push({
-        path: relative(root, full),
-        bytes: data.length,
-        gzip: gzipSync(bytes).length,
-        brotli: brotliCompressSync(bytes).length,
-      });
+function fileCode(error: unknown) {
+  return error instanceof Error && "code" in error
+    ? String(error.code)
+    : undefined;
+}
+
+function readAsset(full: string, root: string): Asset | undefined {
+  try {
+    const data = readFileSync(full);
+    const bytes = Uint8Array.from(data);
+    return {
+      path: relative(root, full),
+      bytes: data.length,
+      gzip: gzipSync(bytes).length,
+      brotli: brotliCompressSync(bytes).length,
+    };
+  } catch (error) {
+    if (["EACCES", "EISDIR", "ENOENT", "EPERM"].includes(fileCode(error) ?? ""))
+      return undefined;
+    throw error;
+  }
+}
+
+function walk(dir: string, root = dir): Asset[] {
+  let names: string[];
+  try {
+    names = readdirSync(dir);
+  } catch (error) {
+    if (dir === root && fileCode(error) === "ENOENT") {
+      throw new Error("dist does not exist; run npm run build first");
     }
+    if (
+      ["EACCES", "ENOENT", "ENOTDIR", "EPERM"].includes(fileCode(error) ?? "")
+    )
+      return [];
+    throw error;
+  }
+
+  const assets: Asset[] = [];
+  for (const name of names) {
+    const full = join(dir, name);
+    if (/\.(css|js|html)$/.test(name)) {
+      const asset = readAsset(full, root);
+      if (asset) {
+        assets.push(asset);
+        continue;
+      }
+    }
+    assets.push(...walk(full, root));
   }
   return assets.sort((a, b) => a.path.localeCompare(b.path));
 }
@@ -64,10 +90,6 @@ function formatBytes(value: number) {
 }
 
 function collect() {
-  if (!existsSync("dist")) {
-    throw new Error("dist does not exist; run npm run build first");
-  }
-
   const assets = walk("dist");
   const initialScripts = new Set(initialScriptPaths());
   const baseJsGzip = assets
