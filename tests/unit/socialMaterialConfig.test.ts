@@ -1,9 +1,6 @@
+import { getMaterialKind, materialConfigs } from "materials-actually";
 import { describe, expect, it } from "vitest";
 import { getSiteContent } from "../../src/content/contentRegistry";
-import {
-  getSocialMaterialKind,
-  socialMaterialConfigs,
-} from "../../src/features/social-materials/materialConfig";
 
 describe("social material configs", () => {
   it.each([
@@ -14,8 +11,8 @@ describe("social material configs", () => {
     ["Mail", "mail", "bend"],
     ["grass", "grass", "bend"],
   ] as const)("maps %s to %s material behavior", (label, kind, behavior) => {
-    expect(getSocialMaterialKind(label)).toBe(kind);
-    expect(socialMaterialConfigs[kind]).toMatchObject({
+    expect(getMaterialKind(label)).toBe(kind);
+    expect(materialConfigs[kind]).toMatchObject({
       behavior,
       pointerResponse: true,
     });
@@ -23,7 +20,7 @@ describe("social material configs", () => {
 
   it("exposes each required feelable material through live social content", () => {
     const socialMaterials = getSiteContent("en").socialLinks.map((social) =>
-      getSocialMaterialKind(social.material ?? social.label),
+      getMaterialKind(social.material ?? social.label),
     );
 
     expect(new Set(socialMaterials)).toEqual(
@@ -32,7 +29,7 @@ describe("social material configs", () => {
     expect(getSiteContent("en").socialLinks).toContainEqual(
       expect.objectContaining({ label: "Email" }),
     );
-    expect(getSocialMaterialKind("Email")).toBe("mail");
+    expect(getMaterialKind("Email")).toBe("mail");
     expect(getSiteContent("en").socialLinks).toContainEqual(
       expect.objectContaining({ label: "Instagram", material: "grass" }),
     );

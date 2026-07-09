@@ -6,25 +6,25 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Text } from "troika-three-text";
-import { getPageContent, getSiteContent } from "../../content/contentRegistry";
 import {
   JOIN_US_BLUSH_DELAY_MS,
   JOIN_US_NAVIGATION_DELAY_MS,
   constrainPupilOffset,
   getOrganicWinkDelayMs,
   joinUsStates,
-} from "../living-join-us/joinUsState";
-import {
-  getSocialMaterialConfig,
-  getSocialMaterialKind,
-} from "../social-materials/materialConfig";
+} from "eyslie";
 import {
   applyPoke,
   createPokeState,
+  getMaterialConfig as getSocialMaterialConfig,
+  getMaterialEventKind,
+  getMaterialKind as getSocialMaterialKind,
   getPokeInfluence,
-  getPokeVelocity,
+  shouldTriggerMaterialHaptic,
   stepPoke,
-} from "../social-materials/socialPokeModel";
+  triggerMaterialHaptic,
+} from "materials-actually";
+import { getPageContent, getSiteContent } from "../../content/contentRegistry";
 
 gsap.registerPlugin(Observer);
 
@@ -1691,6 +1691,7 @@ function createMaterialTouchField(label = "") {
     poke: createPokeState(),
     world: new THREE.Vector3(),
     touched: false,
+    lastHapticAt: 0,
   };
 }
 
@@ -1699,6 +1700,15 @@ function stampMaterialTouch(field, uv, worldPoint, pressure = 0.25) {
   const boosted = pressure * field.config.pressBoost;
   applyPoke(field.poke, uv.x, uv.y, Math.min(1, boosted));
   if (worldPoint) field.world.copy(worldPoint);
+  const eventKind = getMaterialEventKind(field.config, field.poke, pressure);
+  const now = performance.now();
+  if (shouldTriggerMaterialHaptic(field.lastHapticAt, now)) {
+    triggerMaterialHaptic(field.config.kind, eventKind, pressure, {
+      navigator,
+      reducedMotion: prefersReducedMotion.matches,
+    });
+    field.lastHapticAt = now;
+  }
   field.touched = true;
 }
 

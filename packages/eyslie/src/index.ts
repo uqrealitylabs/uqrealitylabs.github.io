@@ -74,10 +74,32 @@ export function constrainPupilOffset(
   };
 }
 
+export function isWithinHideRadius(
+  pointer: { x: number; y: number },
+  target: { x: number; y: number },
+  radius: number,
+) {
+  return Math.hypot(pointer.x - target.x, pointer.y - target.y) <= radius;
+}
+
 export function getOrganicWinkDelayMs(seed: number, winkIndex: number) {
   const value =
     Math.sin((seed + 1) * 12.9898 + winkIndex * 78.233) * 43758.5453;
   const unit = value - Math.floor(value);
 
   return Math.round(2600 + unit * 3600);
+}
+
+export type EyeExpression = "idle" | "happy" | "sad";
+
+export function getExpressionForJoinState(state: JoinUsState): EyeExpression {
+  if (
+    state === joinUsStates.rubricsHoverExcited ||
+    state === joinUsStates.rubricsHoverBlush ||
+    state === joinUsStates.rubricsClickCelebration
+  ) {
+    return "happy";
+  }
+  if (state === joinUsStates.sadShrivel) return "sad";
+  return "idle";
 }

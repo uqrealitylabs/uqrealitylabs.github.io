@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import {
   constrainPupilOffset,
   getOrganicWinkDelayMs,
@@ -7,7 +6,8 @@ import {
   joinUsStates,
   nextJoinUsState,
   shouldShowJoinBlush,
-} from "../../src/features/living-join-us/joinUsState";
+} from "eyslie";
+import { describe, expect, it } from "vitest";
 
 describe("living JOIN US state", () => {
   it("moves through the requested interaction states", () => {

@@ -6,10 +6,17 @@
 }
 
 :root {
-  --site-scale: 1;
+  --site-scale: clamp(0.85, 0.65rem + 1vw, 1.35);
   --nav-scale: var(--site-scale);
+  --tap-target-min: 2.75rem;
+  --nav-padding-inline: clamp(0.38rem, 1.7vw, 0.94rem);
+  --nav-padding-block: clamp(0.3rem, 1vw, 0.48rem);
+  --scene-text-padding: clamp(0.9rem, 3.2vw, 2rem);
   --join-us-size: clamp(1rem, 0.75rem + 1vw, 1.45rem);
+  --bee-line-height: clamp(3.2rem, 10vmin, 5.1rem);
   --bee-line-width: clamp(13.5rem, 18vmin, 16.5rem);
   --orb-size: clamp(0.62rem, 0.44rem + 0.58vw, 0.96rem);
   --social-box-size: clamp(7rem, 18vmin, 13rem);
+  --social-grid-gap: clamp(0.7rem, 2.6vw, 1.4rem);
+  --material-poke-radius: clamp(1.35rem, 6vmin, 2.4rem);
 }
