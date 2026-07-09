@@ -2,12 +2,14 @@
   "$schema": "../../generated/content.schema.json",
   "locale": "es",
   "id": "contact",
-  "route": "/contact",
   "meta": {
     "title": "Contacto",
     "description": "Envía una señal. Revisamos la bandeja rara."
   },
-  "nav": { "label": "Contacto", "shortLabel": "Contacto", "order": 3 },
+  "nav": {
+    "label": "Contacto",
+    "shortLabel": "Contacto"
+  },
   "hero": {
     "title": "Contacto",
     "slugline": "Envía una señal.",
@@ -17,11 +19,5 @@
         "text": "Envía una señal. Revisamos la bandeja rara."
       }
     ]
-  },
-  "theme": {
-    "accentColor": "#38BDF8",
-    "trailColor": "#38BDF8",
-    "pathVariant": "route-hop"
-  },
-  "sections": [{ "id": "socials", "type": "socialGrid" }]
+  }
 }

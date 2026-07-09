@@ -43,7 +43,9 @@ export function App() {
       <LegacyDomScaffold
         labels={{
           mainNav: t(locale, "nav.main"),
+          joinFallback: t(locale, "nav.joinFallback"),
           logoAlt: t(locale, "nav.logoAlt"),
+          socialLinks: t(locale, "nav.social"),
           sceneLabel: t(locale, "scene.label"),
           closeProfile: t(locale, "profile.close"),
           linkedIn: t(locale, "profile.linkedin"),

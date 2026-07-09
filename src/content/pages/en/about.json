@@ -2,12 +2,14 @@
   "$schema": "../../generated/content.schema.json",
   "locale": "en",
   "id": "about",
-  "route": "/about",
   "meta": {
     "title": "About",
     "description": "UQ Reality Labs is Australia's first Augmented and Virtual Reality Club."
   },
-  "nav": { "label": "About", "shortLabel": "Info", "order": 2 },
+  "nav": {
+    "label": "About",
+    "shortLabel": "Info"
+  },
   "hero": {
     "title": "About",
     "slugline": "Buzz in, bestie.",
@@ -18,17 +20,7 @@
       }
     ],
     "cta": {
-      "label": "Join Us",
-      "href": "https://campus.hellorubric.com/?s=5809"
+      "label": "Join Us"
     }
-  },
-  "links": {
-    "join": "https://campus.hellorubric.com/?s=5809"
-  },
-  "theme": {
-    "accentColor": "#F59E0B",
-    "trailColor": "#F59E0B",
-    "pathVariant": "excited-loop"
-  },
-  "sections": []
+  }
 }

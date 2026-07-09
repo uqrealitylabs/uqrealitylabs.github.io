@@ -42,7 +42,7 @@ Markdown was removed as a live content system to remove parsing/frontmatter code
 ## SEO and crawler signals
 
 - `robotic-bees` manually ports only the useful `seo-robots-content-signals` ideas: generated robots, sitemap, `llms.txt`, canonical metadata, social tags, favicon, and truthful JSON-LD.
-- SEO source of truth is JSON content: page `meta` fields plus site `seo` fields in `src/content/site/<locale>.json`.
+- SEO source of truth is resolved JSON content: shared site defaults in `src/content/graph/shared.json` plus locale overlays in `src/content/site/<locale>.json` and page `meta` fields.
 - `src/seo/seo.ts` is pure build/test code. It does not run in the browser shell.
 - `scripts/generate-seo.ts` writes `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt`, and the generated SEO block in `index.html`.
 - `scripts/validate-seo.ts` fails when generated files are stale or indexable pages have duplicate/missing canonical metadata.

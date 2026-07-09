@@ -7,7 +7,9 @@ type Messages = Record<string, string>;
 const messages: Record<Locale, Messages> = {
   en: {
     "nav.main": "Main",
+    "nav.joinFallback": "Join Us",
     "nav.logoAlt": "UQ Reality Labs logo",
+    "nav.social": "Social links",
     "scene.label": "Interactive UQ Reality Labs 3D scene",
     "profile.close": "Close profile",
     "profile.linkedin": "View LinkedIn profile",
@@ -15,7 +17,9 @@ const messages: Record<Locale, Messages> = {
   },
   es: {
     "nav.main": "Principal",
+    "nav.joinFallback": "Unirse",
     "nav.logoAlt": "Logotipo de UQ Reality Labs",
+    "nav.social": "Enlaces sociales",
     "scene.label": "Escena 3D interactiva de UQ Reality Labs",
     "profile.close": "Cerrar perfil",
     "profile.linkedin": "Ver perfil de LinkedIn",

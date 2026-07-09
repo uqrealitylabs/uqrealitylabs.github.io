@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main, better-resp]
+    branches: [main, better-resp, robotic-bees]
   workflow_dispatch:
 
 permissions:

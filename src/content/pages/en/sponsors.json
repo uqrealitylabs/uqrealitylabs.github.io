@@ -2,12 +2,14 @@
   "$schema": "../../generated/content.schema.json",
   "locale": "en",
   "id": "sponsors",
-  "route": "/sponsors",
   "meta": {
     "title": "Sponsors",
     "description": "Back the demos, workshops, and tiny pixel explosions."
   },
-  "nav": { "label": "Sponsors", "shortLabel": "Sponsor", "order": 4 },
+  "nav": {
+    "label": "Sponsors",
+    "shortLabel": "Sponsor"
+  },
   "hero": {
     "title": "Sponsors",
     "slugline": "Back the demos.",
@@ -17,11 +19,5 @@
         "text": "Back the demos, workshops, and tiny pixel explosions."
       }
     ]
-  },
-  "theme": {
-    "accentColor": "#A78BFA",
-    "trailColor": "#A78BFA",
-    "pathVariant": "spiral-pop"
-  },
-  "sections": []
+  }
 }

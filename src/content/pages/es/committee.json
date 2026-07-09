@@ -2,12 +2,14 @@
   "$schema": "../../generated/content.schema.json",
   "locale": "es",
   "id": "committee",
-  "route": "/committee",
   "meta": {
     "title": "Comité",
     "description": "Las personas que mantienen en pie la pila de visores."
   },
-  "nav": { "label": "Comité", "shortLabel": "Equipo", "order": 5 },
+  "nav": {
+    "label": "Comité",
+    "shortLabel": "Equipo"
+  },
   "hero": {
     "title": "Comité",
     "slugline": "Lista del equipo.",
@@ -17,11 +19,5 @@
         "text": "Las personas que mantienen en pie la pila de visores."
       }
     ]
-  },
-  "theme": {
-    "accentColor": "#22C55E",
-    "trailColor": "#22C55E",
-    "pathVariant": "loop-buzz"
-  },
-  "sections": [{ "id": "committee", "type": "committee" }]
+  }
 }

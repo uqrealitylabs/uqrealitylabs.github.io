@@ -1,11 +1,16 @@
-import { allPageEntries, allSiteEntries } from "./contentRegistry";
+import {
+  allPageEntries,
+  allSiteEntries,
+  validateContentGraph,
+} from "./contentRegistry.ts";
 import {
   formatIssues,
   validatePageContent,
   validateSiteContent,
-} from "./schema/contentSchema";
+} from "./schema/contentSchema.ts";
 
 export function validateAllContent() {
+  const graphIssues = validateContentGraph();
   const pageIssues = allPageEntries().flatMap(({ content, path }) =>
     validatePageContent(content, path),
   );
@@ -13,7 +18,7 @@ export function validateAllContent() {
     validateSiteContent(content, path),
   );
 
-  return [...pageIssues, ...siteIssues];
+  return [...graphIssues, ...pageIssues, ...siteIssues];
 }
 
 export function assertValidContent() {

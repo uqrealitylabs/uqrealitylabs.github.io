@@ -98,6 +98,7 @@ async function loadTab(slug) {
     title: compactContentText(page.hero?.title || page.meta.title || slug),
     description: pageDescription(page),
     links: page.links || {},
+    joinLabel: page.hero?.cta?.label || "",
     slugline: page.hero?.slugline || "",
     accentColor: theme.accentColor || "#FF5757",
     trailColor: theme.trailColor || theme.accentColor || "#FF5757",
@@ -176,6 +177,7 @@ const RUBRIC_IMAGE_PATH = `${ASSET_BASE}Assets/images/rubric.png`;
 const ABOUT_IMAGE_Y_OFFSET = -5;
 const ABOUT_IMAGE_HEIGHT = 5.2;
 let JOIN_LINK = "";
+let JOIN_LABEL = "";
 const NUAXION_LOGO_PATH = `${ASSET_BASE}Assets/images/nuaxion_logo.avif`;
 let SPONSOR_SECTION_INDEX = 0;
 const SPONSOR_IMAGE_Y_OFFSET = -5;
@@ -270,6 +272,7 @@ async function loadSiteContent() {
   );
   ABOUT_SECTION_INDEX = SECTION_INDEX.about;
   JOIN_LINK = TABS[ABOUT_SECTION_INDEX].links.join;
+  JOIN_LABEL = TABS[ABOUT_SECTION_INDEX].joinLabel;
   SPONSOR_SECTION_INDEX = SECTION_INDEX.sponsors;
   COMMITTEE_SECTION_INDEX = SECTION_INDEX.committee;
   CONTACT_SECTION_INDEX = SECTION_INDEX.contact;
@@ -289,6 +292,24 @@ async function loadSiteContent() {
   }));
 
   SOCIAL_CUBES = await loadSocialContent();
+}
+
+function setupAccessibleContentLinks() {
+  if (joinUsAccessibleLink && JOIN_LINK) {
+    joinUsAccessibleLink.href = JOIN_LINK;
+    joinUsAccessibleLink.textContent = JOIN_LABEL || JOIN_LINK;
+  }
+
+  if (!socialAccessibleLinks) return;
+  socialAccessibleLinks.replaceChildren(
+    ...SOCIAL_CUBES.map((social) => {
+      const link = document.createElement("a");
+      link.href = social.url;
+      link.textContent = social.label;
+      link.rel = "noopener noreferrer";
+      return link;
+    }),
+  );
 }
 
 const SPONSOR_IMAGE_POS = { x: 0, y: 5, z: -20 };
@@ -317,6 +338,8 @@ const statusLabel = document.querySelector("#status");
 const navbar = document.querySelector("#navbar");
 const navLogoImage = document.querySelector("#nav-logo-img");
 const navLinks = document.querySelector("#nav-links");
+const joinUsAccessibleLink = document.querySelector("#join-us-accessible-link");
+const socialAccessibleLinks = document.querySelector("#social-accessible-links");
 let navSectionButtons = [];
 const memberPopup = document.querySelector("#member-popup");
 const memberPopupCard = document.querySelector(".member-popup__card");
@@ -3874,6 +3897,7 @@ window.addEventListener("pagehide", (event) => {
 
 async function init() {
   await loadSiteContent();
+  setupAccessibleContentLinks();
   COMMITTEE_ROWS = await loadCommitteeRows();
   setupScrollControl();
   setupKeyboardNavigation();

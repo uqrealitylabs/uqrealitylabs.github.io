@@ -153,3 +153,34 @@ Requested passes only: Legacy Hunter, Security Researcher, Benchmark Quant, and 
   - removed the unused `searchVerification` schema surface;
   - kept the SEO generator/tests because they are deterministic build-time checks, not runtime bloat;
   - did not add dependencies or CI jobs.
+
+## remaining seo-robots-content-signals forensic pass
+
+Requested passes only: Legacy Hunter, Security Researcher, Techstack Genius, and @Ponytail Ultra.
+
+### Legacy Hunter
+
+- Already copied: robots content-signal policy, sitemap generation, `llms.txt`, canonical/social metadata, JSON-LD, the current small favicon SVG/ICO surface, and generated-file tests.
+- Ported now: small touch/PWA/Safari icon files and static head links from `99340ff`, plus hidden JOIN/social fallback links from `efd4e7c`.
+- Rejected: source-branch `app/main.js`, `app/styles.css`, `.mjs` tests, static markdown/content paths, and `static/` crawler files because current `robotic-bees` owns TS-only source, generated SEO files, and JSON content graph resolution.
+
+### Security Researcher
+
+- Finding: source branch's later `favicon.svg` embeds a large base64 PNG with editor metadata.
+- Fix: kept the current small inline SVG and copied only PNG touch icons plus the simple Safari mask SVG.
+- Finding: no new metadata injection path was needed.
+- Fix: added only static `<link rel="icon">`, `apple-touch-icon`, and `mask-icon` tags.
+- Finding: routes reused generic href validation, allowing external URLs to flow into canonicals/sitemaps.
+- Fix: added route-path validation and same-origin SEO validation.
+
+### Techstack Genius
+
+- Finding: source branch SEO scripts/tests are stale Node `.mjs` and Vite-era files.
+- Fix: kept current TypeScript SEO builders and Vitest coverage; added one existing SEO test matrix for the newly ported static icon surface.
+- Finding: source branch route/hash sitemap ideas conflict with current canonical route policy.
+- Decision: kept the content-registry-driven sitemap with only real indexable routes.
+
+### @Ponytail Ultra
+
+- Delete-list applied: did not import old app code, oversized favicon SVG, duplicate robots/sitemap files, README churn, or separate SEO tests.
+- Remaining useful source-branch gap after review: none found beyond the static icon links/files and accessible fallback links ported here.

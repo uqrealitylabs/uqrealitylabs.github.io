@@ -1,6 +1,8 @@
 type LegacyLabels = {
   mainNav: string;
+  joinFallback: string;
   logoAlt: string;
+  socialLinks: string;
   sceneLabel: string;
   closeProfile: string;
   linkedIn: string;
@@ -16,6 +18,18 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
         <div id="nav-links" className="nav-links" />
       </nav>
       <canvas id="canvas" aria-label={labels.sceneLabel} />
+      <a
+        id="join-us-accessible-link"
+        className="sr-only focus:not-sr-only"
+        href="#nav-links"
+      >
+        {labels.joinFallback}
+      </a>
+      <nav
+        id="social-accessible-links"
+        className="sr-only focus-within:not-sr-only"
+        aria-label={labels.socialLinks}
+      />
       <div id="chalk-layer" aria-hidden="true">
         <svg
           className="bee-trail bee-trail--join"

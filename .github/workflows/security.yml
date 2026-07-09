@@ -3,7 +3,7 @@ name: Security
 on:
   pull_request:
   push:
-    branches: [main, better-resp]
+    branches: [main, better-resp, robotic-bees]
   schedule:
     - cron: "23 3 * * 1"
   workflow_dispatch:

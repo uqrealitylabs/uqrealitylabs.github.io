@@ -2,13 +2,14 @@
   "$schema": "../../generated/content.schema.json",
   "locale": "es",
   "id": "home",
-  "route": "/",
   "meta": {
     "title": "UQ Reality Labs desde 2022",
-    "description": "AR, VR, talleres, demos y un cable de visor sospechoso.",
-    "canonicalPath": "/"
+    "description": "AR, VR, talleres, demos y un cable de visor sospechoso."
   },
-  "nav": { "label": "Inicio", "shortLabel": "Inicio", "order": 1 },
+  "nav": {
+    "label": "Inicio",
+    "shortLabel": "Inicio"
+  },
   "hero": {
     "title": "UQ Reality Labs desde 2022",
     "slugline": "AR/VR sin voz aburrida de folleto.",
@@ -18,11 +19,5 @@
         "text": "AR, VR, talleres, demos y un cable de visor sospechoso."
       }
     ]
-  },
-  "theme": {
-    "accentColor": "#FF5757",
-    "trailColor": "#FF5757",
-    "pathVariant": "steady-loop"
-  },
-  "sections": []
+  }
 }

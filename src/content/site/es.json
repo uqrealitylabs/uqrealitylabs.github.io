@@ -2,27 +2,9 @@
   "$schema": "../generated/content.schema.json",
   "locale": "es",
   "seo": {
-    "siteName": "UQ Reality Labs",
-    "siteUrl": "https://uqrealitylabs.github.io",
-    "defaultTitleTemplate": "%s | UQ Reality Labs",
     "defaultDescription": "El primer club de realidad aumentada y virtual de Australia.",
     "defaultSocialImage": {
-      "src": "/Assets/images/labs_logo.png",
       "alt": "Logotipo de UQ Reality Labs"
-    },
-    "organization": {
-      "name": "UQ Reality Labs",
-      "url": "https://uqrealitylabs.github.io/",
-      "logo": "/Assets/images/labs_logo.png",
-      "sameAs": [
-        "https://www.linkedin.com/company/uq-reality-labs",
-        "https://www.instagram.com/uqrealitylabs/"
-      ]
-    },
-    "contentPolicy": {
-      "search": true,
-      "aiInput": true,
-      "aiTrain": false
     }
   },
   "animationCopy": {
@@ -33,201 +15,34 @@
     "yay": "yay",
     "loading": "Cargando escena"
   },
-  "socialLinks": [
-    {
-      "label": "LinkedIn",
-      "url": "https://www.linkedin.com/company/uq-reality-labs",
-      "texture": "/Assets/images/linkedin.png",
-      "accent": "#0A66C2"
-    },
-    {
-      "label": "Instagram",
-      "url": "https://www.instagram.com/uqrealitylabs/",
-      "texture": "/Assets/images/instagram.jpg",
-      "accent": "#E1306C"
-    },
-    {
-      "label": "Discord",
-      "url": "https://discord.com/invite/eN6v8R3fYD",
-      "texture": "/Assets/images/discord.jpg",
-      "accent": "#5865F2"
-    },
-    {
-      "label": "Email",
-      "url": "mailto:uqrealitylabs@gmail.com",
-      "texture": "/Assets/images/email.jpg",
-      "accent": "#F59E0B"
-    }
-  ],
-  "committee": {
-    "rows": [
-      ["president", "secretary", "treasurer"],
-      ["media", "events", "workshop", "industry"]
-    ],
-    "roles": [
-      "president",
-      "secretary",
-      "treasurer",
-      "media",
-      "events",
-      "workshop",
-      "industry"
-    ]
-  },
   "roles": {
     "president": {
       "role": "Presidencia",
-      "slug": "president",
-      "slugline": "Mantiene el circo apuntando hacia adelante.",
-      "accentColor": "#FF5757",
-      "trailColor": "#FF5757",
-      "pathVariant": "steady-loop",
-      "members": [
-        {
-          "name": "Cyrus Forudi",
-          "role": "Presidencia",
-          "photo": "/Assets/images/Cyrus.webp",
-          "photoWidth": 900,
-          "photoHeight": 1351,
-          "photoFocus": "50% 34%",
-          "linkedin": "https://www.linkedin.com/in/cyrus-forudi/",
-          "shortBio": "Lorem ipsum dolor sit amet.",
-          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-          "order": 1
-        }
-      ]
+      "slugline": "Mantiene el circo apuntando hacia adelante."
     },
     "secretary": {
       "role": "Secretaría",
-      "slug": "secretary",
-      "slugline": "Magia de actas.",
-      "accentColor": "#F59E0B",
-      "trailColor": "#F59E0B",
-      "pathVariant": "loop-buzz",
-      "members": [
-        {
-          "name": "Navya",
-          "role": "Secretaría",
-          "photo": "/Assets/images/Navya.webp",
-          "photoWidth": 900,
-          "photoHeight": 1200,
-          "photoFocus": "50% 36%",
-          "linkedin": "https://www.linkedin.com/in/navpas/",
-          "shortBio": "Lorem ipsum dolor sit amet.",
-          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-          "order": 1
-        }
-      ]
+      "slugline": "Magia de actas."
     },
     "treasurer": {
       "role": "Tesorería",
-      "slug": "treasurer",
-      "slugline": "Caos presupuestario auditado.",
-      "accentColor": "#38BDF8",
-      "trailColor": "#38BDF8",
-      "pathVariant": "hop-hop",
-      "members": [
-        {
-          "name": "Amna",
-          "role": "Tesorería",
-          "photo": "/Assets/images/Amna.webp",
-          "photoWidth": 900,
-          "photoHeight": 1200,
-          "photoFocus": "50% 36%",
-          "linkedin": "https://www.linkedin.com/in/amna-ar/",
-          "shortBio": "Lorem ipsum dolor sit amet.",
-          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-          "order": 1
-        }
-      ]
+      "slugline": "Caos presupuestario auditado."
     },
     "media": {
       "role": "Medios",
-      "slug": "media",
-      "slugline": "Hace que los píxeles se porten bien.",
-      "accentColor": "#A78BFA",
-      "trailColor": "#A78BFA",
-      "pathVariant": "spiral-pop",
-      "members": [
-        {
-          "name": "Chloe Lim",
-          "role": "Medios",
-          "photo": "/Assets/images/Chloe.webp",
-          "photoWidth": 900,
-          "photoHeight": 1200,
-          "photoFocus": "50% 36%",
-          "linkedin": "https://www.linkedin.com/in/chloe-lim-10a840386/",
-          "shortBio": "Lorem ipsum dolor sit amet.",
-          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-          "order": 1
-        }
-      ]
+      "slugline": "Hace que los píxeles se porten bien."
     },
     "events": {
       "role": "Eventos",
-      "slug": "events",
-      "slugline": "Agenda el caos.",
-      "accentColor": "#22C55E",
-      "trailColor": "#22C55E",
-      "pathVariant": "route-hop",
-      "members": [
-        {
-          "name": "Clare Johnston-Koto",
-          "role": "Eventos",
-          "photo": "/Assets/images/Clare.webp",
-          "photoWidth": 900,
-          "photoHeight": 675,
-          "photoFocus": "50% 42%",
-          "linkedin": "https://www.linkedin.com/in/clare-johnston-koto/",
-          "shortBio": "Lorem ipsum dolor sit amet.",
-          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-          "order": 1
-        }
-      ]
+      "slugline": "Agenda el caos."
     },
     "workshop": {
       "role": "Talleres",
-      "slug": "workshop",
-      "slugline": "Especialista en demos.",
-      "accentColor": "#84CC16",
-      "trailColor": "#84CC16",
-      "pathVariant": "ziggle-pop",
-      "members": [
-        {
-          "name": "Radhesh",
-          "role": "Talleres",
-          "photo": "/Assets/images/Radhesh.webp",
-          "photoWidth": 900,
-          "photoHeight": 1034,
-          "photoFocus": "50% 35%",
-          "linkedin": "https://www.linkedin.com/in/radhesh-g/",
-          "shortBio": "Lorem ipsum dolor sit amet.",
-          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-          "order": 1
-        }
-      ]
+      "slugline": "Especialista en demos."
     },
     "industry": {
       "role": "Industria",
-      "slug": "industry",
-      "slugline": "Misión de apretones de manos.",
-      "accentColor": "#14B8A6",
-      "trailColor": "#14B8A6",
-      "pathVariant": "underline-swoop",
-      "members": [
-        {
-          "name": "Doris Wei",
-          "role": "Industria",
-          "photo": "/Assets/images/doris.jpg",
-          "photoWidth": 1280,
-          "photoHeight": 853,
-          "photoFocus": "50% 42%",
-          "linkedin": "https://www.linkedin.com/in/doriswei/",
-          "shortBio": "Lorem ipsum dolor sit amet.",
-          "bio": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-          "order": 1
-        }
-      ]
+      "slugline": "Misión de apretones de manos."
     }
   }
 }

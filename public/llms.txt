@@ -1,6 +1,6 @@
 # UQ Reality Labs
 
-UQ Reality Labs is Australia's first Augmented and Virtual Reality Club.
+Australia's first Augmented and Virtual Reality Club.
 
 Public links:
 - https://uqrealitylabs.github.io/

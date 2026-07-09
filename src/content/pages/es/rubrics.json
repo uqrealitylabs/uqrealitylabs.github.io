@@ -2,12 +2,14 @@
   "$schema": "../../generated/content.schema.json",
   "locale": "es",
   "id": "rubrics",
-  "route": "/rubrics",
   "meta": {
     "title": "Rubrics",
     "description": "Únete a UQ Reality Labs por Rubrics."
   },
-  "nav": { "label": "Rubrics", "shortLabel": "Únete", "order": 6 },
+  "nav": {
+    "label": "Rubrics",
+    "shortLabel": "Únete"
+  },
   "hero": {
     "title": "Rubrics",
     "slugline": "Únete al laboratorio.",
@@ -18,14 +20,7 @@
       }
     ],
     "cta": {
-      "label": "Abrir Rubrics",
-      "href": "https://campus.hellorubric.com/?s=5809"
+      "label": "Abrir Rubrics"
     }
-  },
-  "theme": {
-    "accentColor": "#F59E0B",
-    "trailColor": "#F59E0B",
-    "pathVariant": "excited-loop"
-  },
-  "sections": []
+  }
 }

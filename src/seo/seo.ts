@@ -169,7 +169,7 @@ export function buildLlms(site: SiteContent, pages: PageContent[]) {
   return [
     "# UQ Reality Labs",
     "",
-    "UQ Reality Labs is Australia's first Augmented and Virtual Reality Club.",
+    site.seo.defaultDescription,
     "",
     "Public links:",
     ...urls.map((url) => `- ${url}`),
@@ -212,11 +212,15 @@ export function validateSeo(site: SiteContent, pages: PageContent[]) {
   const issues: string[] = [];
   const canonicals = new Set<string>();
   const publicPages = indexablePages(pages);
+  const siteOrigin = new URL(site.seo.siteUrl).origin;
 
   if (publicPages.length === 0) issues.push("No indexable pages found.");
 
   for (const page of publicPages) {
     const url = canonicalUrl(site, page);
+    if (new URL(url).origin !== siteOrigin) {
+      issues.push(`Canonical URL outside site origin: ${url}`);
+    }
     if (canonicals.has(url)) issues.push(`Duplicate canonical URL: ${url}`);
     canonicals.add(url);
     if (!page.meta.title.trim()) issues.push(`${page.id} missing title.`);

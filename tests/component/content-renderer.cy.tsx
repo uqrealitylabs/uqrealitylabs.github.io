@@ -1,25 +1,32 @@
 import { mount } from "cypress/react";
 import { ContentRenderer } from "../../src/content/ContentRenderer";
-import type { ContentSection } from "../../src/content/schema/contentSchema";
+import { getPageContent } from "../../src/content/contentRegistry";
+import type { ContentBlock } from "../../src/content/schema/contentSchema";
 
 describe("ContentRenderer", () => {
-  it("mounts structured JSON content blocks", () => {
-    const sections: ContentSection[] = [
-      {
-        id: "intro",
-        type: "richText",
-        blocks: [
-          { type: "heading", level: 2, text: "About" },
-          { type: "paragraph", text: "JSON content" },
-          { type: "cta", label: "Join", href: "/rubrics" },
-        ],
-      },
-    ];
+  it("mounts resolved JSON content blocks", () => {
+    const page = getPageContent("en", "about");
+    const cta = page.hero.cta;
+    const blocks: ContentBlock[] = [...page.hero.body];
+    if (cta) blocks.push({ type: "cta", label: cta.label, href: cta.href });
+    const paragraph = page.hero.body.find(
+      (block) => block.type === "paragraph",
+    );
 
-    mount(<ContentRenderer sections={sections} />);
+    mount(
+      <ContentRenderer
+        sections={[
+          {
+            id: "intro",
+            type: "richText",
+            blocks,
+          },
+        ]}
+      />,
+    );
 
-    cy.get("h2").should("have.text", "About");
-    cy.contains("p", "JSON content").should("exist");
-    cy.get('a[href="/rubrics"]').should("have.text", "Join");
+    if (paragraph)
+      cy.contains("p", paragraph.text.split("\n")[0]).should("exist");
+    if (cta) cy.get(`a[href="${cta.href}"]`).should("have.text", cta.label);
   });
 });

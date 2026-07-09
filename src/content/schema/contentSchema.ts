@@ -114,8 +114,8 @@ export type MemberContent = {
   photoHeight?: number;
   photoFocus?: string;
   linkedin: string;
-  shortBio: string;
-  bio: string;
+  shortBio?: string;
+  bio?: string;
   accentColor?: string;
   pathVariant?: string;
   music?: MusicCue;
@@ -233,9 +233,33 @@ export function isSafeHref(value: string) {
   }
 }
 
+export function isSafeRoutePath(value: string) {
+  return (
+    value.startsWith("/") &&
+    !value.startsWith("//") &&
+    !value.includes("?") &&
+    !value.includes("#")
+  );
+}
+
 function validateHref(issues: ValidationIssue[], value: unknown, path: string) {
   if (!hasText(value) || !isSafeHref(value)) {
     issue(issues, path, "an internal, https, or mailto URL", value);
+  }
+}
+
+function validateRoutePath(
+  issues: ValidationIssue[],
+  value: unknown,
+  path: string,
+) {
+  if (!hasText(value) || !isSafeRoutePath(value)) {
+    issue(
+      issues,
+      path,
+      "safe absolute route path without query or hash",
+      value,
+    );
   }
 }
 
@@ -366,7 +390,7 @@ export function validatePageContent(
     issue(issues, `${filePath}.locale`, "supported locale", page.locale);
   if (!pageIds.includes(page.id as PageId))
     issue(issues, `${filePath}.id`, "known page id", page.id);
-  validateHref(issues, page.route, `${filePath}.route`);
+  validateRoutePath(issues, page.route, `${filePath}.route`);
 
   if (!isRecord(page.meta))
     issue(issues, `${filePath}.meta`, "object", page.meta);
@@ -402,10 +426,7 @@ export function validatePageContent(
     if (
       page.meta.canonicalPath !== undefined &&
       (!hasText(page.meta.canonicalPath) ||
-        !page.meta.canonicalPath.startsWith("/") ||
-        page.meta.canonicalPath.startsWith("//") ||
-        page.meta.canonicalPath.includes("?") ||
-        page.meta.canonicalPath.includes("#"))
+        !isSafeRoutePath(page.meta.canonicalPath))
     ) {
       issue(
         issues,
@@ -762,9 +783,9 @@ export function validateSiteContent(
             issue(issues, `${memberPath}.role`, "text", member.role);
           validateAssetPath(issues, member.photo, `${memberPath}.photo`);
           validateHref(issues, member.linkedin, `${memberPath}.linkedin`);
-          if (!hasText(member.shortBio))
+          if (member.shortBio !== undefined && !hasText(member.shortBio))
             issue(issues, `${memberPath}.shortBio`, "text", member.shortBio);
-          if (!hasText(member.bio))
+          if (member.bio !== undefined && !hasText(member.bio))
             issue(issues, `${memberPath}.bio`, "text", member.bio);
           validateMusic(member.music, `${memberPath}.music`, issues);
         });
