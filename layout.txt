@@ -58,7 +58,7 @@ Lazy boundaries
 - SEO generation scripts/tests are not imported by App.
 
 Tests
-- Vitest: i18n, JSON content/schema/registry/renderer, no-JS scanner, scaling, JOIN reducer, bee path math, social material matrix.
+- Vitest: i18n, JSON content/schema/registry/renderer, no-JS scanner, scaling, and SEO builders.
 - SEO unit tests: robots, sitemap, metadata, JSON-LD escaping, duplicate canonical detection, stale generated files.
 - Cypress: shell/responsive/i18n and component-level behavior specs.
 

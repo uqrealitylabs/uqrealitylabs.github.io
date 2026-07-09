@@ -191,6 +191,6 @@ Requested passes only: Legacy Hunter, Security Researcher, Techstack Genius, and
 
 - Already copied: generated robots/content-signal policy, sitemap, `llms.txt`, canonical/social metadata, JSON-LD escaping, hidden JOIN/social fallback links, and touch/Safari icon links.
 - Ported now: the small non-base64 `favicon.svg` from `99340ff`.
-- Removed now: test-only `joinUsState`, `materialConfig`, and `beeLinePath` shards plus their tests; source branch's real runtime interaction work was either already in `legacy-main.ts` or rejected as old static-app code.
+- Removed now: test-only `joinUsState`, `materialConfig`, and `beeLinePath` shards plus their tests; the source branch's larger material/bee/JOIN runtime pass remains rejected as old static-app interaction work, not an SEO/crawl fix.
 - Tightened now: page JSON cannot own graph-owned `route`, `theme`, or `sections`; resolver ignores those fields and validation fails them if they reappear.
 - Rejected: `app/main.js`, `app/styles.css`, Node `.mjs` tests, Firebase deploy workflows, source static markdown/content paths, source-tip base64 favicon SVG, duplicate static robots/sitemap files, and README/process-doc churn.
