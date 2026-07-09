@@ -52,7 +52,7 @@ Actual subagents were used.
 
 ## Blocked local checks
 
-- `npm run test:component` and `npm run test:e2e`: Cypress 15.18.0 installed, but the Cypress app aborts during its smoke test on this macOS sandbox.
+- `npm run test:component` and `npm run test:e2e`: Cypress 15.7.0 installed, but the Cypress app aborts during its smoke test on this macOS sandbox.
 - `npm run analyze`: Rsdoctor opened/held its report process and did not complete in non-interactive CLI mode. `analyze` now uses deterministic build metrics instead.
 
 ## CI/security/benchmark follow-up
