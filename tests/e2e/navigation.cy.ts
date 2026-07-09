@@ -39,4 +39,68 @@ describe("navigation shell", () => {
         .should("have.attr", "href", social.url);
     });
   });
+
+  it("renders the visible living JOIN US face scaffold", () => {
+    cy.visit("/");
+    cy.contains("#nav-links button", about.nav.label).click();
+    cy.get(".bee-trail--join .bee-trail__join-letter").then((letters) => {
+      expect([...letters].map((node) => node.textContent).join("")).to.eq(
+        site.animationCopy.joinUs.replace(/\s+/g, ""),
+      );
+    });
+    cy.get(".bee-trail--join .bee-trail__eye--o .bee-trail__eye-ring").should(
+      "exist",
+    );
+    cy.get(".bee-trail--join .bee-trail__eye--o .bee-trail__eye-pupil").should(
+      "exist",
+    );
+    cy.get(".bee-trail--join .bee-trail__thought--near-awwww").should(
+      "contain",
+      site.animationCopy.nearThought,
+    );
+  });
+
+  it("drives JOIN US reactions from keyboard-safe RUBRICS activation", () => {
+    cy.clock();
+    cy.visit("/");
+    cy.get("#nav-links button").should("have.length.gte", 5);
+    cy.get("#join-us-accessible-link").focus();
+    cy.get("body").should(
+      "have.attr",
+      "data-join-state",
+      "rubricsHoverExcited",
+    );
+    cy.tick(3000);
+    cy.get("body").should("have.attr", "data-join-state", "rubricsHoverBlush");
+    cy.get("#join-us-accessible-link").blur();
+    cy.get("body").should("have.attr", "data-join-state", "sadShrivel");
+    cy.tick(1000);
+    cy.get("body").should("have.attr", "data-join-state", "idleCurious");
+  });
+
+  it("shows yay before delayed JOIN navigation", () => {
+    cy.clock();
+    cy.visit("/");
+    cy.window().then((win) => {
+      cy.stub(win, "open").as("open");
+    });
+    cy.get("#nav-links button").should("have.length.gte", 5);
+    cy.get("#join-us-accessible-link").click({ force: true });
+    cy.get("body").should(
+      "have.attr",
+      "data-join-state",
+      "rubricsClickCelebration",
+    );
+    cy.get(".bee-trail--join .bee-trail__thought--yay").should(
+      "contain",
+      site.animationCopy.yay,
+    );
+    cy.tick(500);
+    cy.get("@open").should(
+      "have.been.calledWith",
+      joinCta.href,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  });
 });

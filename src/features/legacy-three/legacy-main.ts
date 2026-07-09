@@ -7,6 +7,24 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Text } from "troika-three-text";
 import { getPageContent, getSiteContent } from "../../content/contentRegistry";
+import {
+  JOIN_US_BLUSH_DELAY_MS,
+  JOIN_US_NAVIGATION_DELAY_MS,
+  constrainPupilOffset,
+  getOrganicWinkDelayMs,
+  joinUsStates,
+} from "../living-join-us/joinUsState";
+import {
+  getSocialMaterialConfig,
+  getSocialMaterialKind,
+} from "../social-materials/materialConfig";
+import {
+  applyPoke,
+  createPokeState,
+  getPokeInfluence,
+  getPokeVelocity,
+  stepPoke,
+} from "../social-materials/socialPokeModel";
 
 gsap.registerPlugin(Observer);
 
@@ -200,7 +218,7 @@ const EMAIL_LINK = "mailto:uqrealitylabs@gmail.com";
 let CONTACT_SECTION_INDEX = 0;
 const SOCIAL_CUBE_SPACING = 6;
 const SOCIAL_CUBE_RADIUS = 0.18;
-const SOCIAL_CUBE_SEGMENTS = 4;
+const SOCIAL_CUBE_SEGMENTS = 18;
 const SOCIAL_CUBE_BASE = {
   x: 0,
   y: 4 + DESCRIPTION_Y_OFFSET,
@@ -218,6 +236,7 @@ const SOCIAL_CUBE_EXIT_DURATION = 0.5;
 const SOCIAL_CUBE_EXIT_EASE = "power3.in";
 const SOCIAL_CUBE_EXIT_OFFSET = 35;
 const SOCIAL_CARD_DEPTH = 0.42;
+const SOCIAL_TOUCH_TEXTURE_SIZE = 256;
 let SOCIAL_CUBES = [];
 
 // scroll down moves to the next section (model shifts down on Y)
@@ -339,6 +358,8 @@ const navbar = document.querySelector("#navbar");
 const navLogoImage = document.querySelector("#nav-logo-img");
 const navLinks = document.querySelector("#nav-links");
 const joinUsAccessibleLink = document.querySelector("#join-us-accessible-link");
+const joinWord = document.querySelector(".bee-trail__join-word");
+const joinEyePupils = document.querySelectorAll(".bee-trail--join .bee-trail__eye-pupil");
 const socialAccessibleLinks = document.querySelector("#social-accessible-links");
 let navSectionButtons = [];
 const memberPopup = document.querySelector("#member-popup");
@@ -357,7 +378,7 @@ if (DEBUG && statusLabel) {
 }
 
 document.body.dataset.section = "0";
-document.body.dataset.beeState = "idle";
+document.body.dataset.joinState = joinUsStates.idleCurious;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(CLEAR_COLOUR);
@@ -466,7 +487,11 @@ let sectionDescriptionTexts = [];
 let socialCubes = [];
 let sponsorImage = null;
 let aboutJoinImage = null;
-let beeStateTimer = 0;
+let joinStateTimer = 0;
+let joinBlushTimer = 0;
+let joinNavigationTimer = 0;
+let joinWinkTimer = 0;
+let joinWinkCount = 0;
 let committeeMembers = [];
 let hoveredCommitteeImage = null;
 let cachedViewportLayout = null;
@@ -491,6 +516,11 @@ const pointerTarget = new THREE.Vector2(0, 0);
 const pointerCurrent = new THREE.Vector2(0, 0);
 const pointerNeutral = new THREE.Vector2(0, 0);
 let lastPointerAt = 0;
+let lastPointerClientX = Number.NEGATIVE_INFINITY;
+let lastPointerClientY = Number.NEGATIVE_INFINITY;
+let pointerIsDown = false;
+let pointerPressure = 0;
+let lastPointerType = "mouse";
 let parallaxActive = false;
 const prefersReducedMotion = window.matchMedia(
   "(prefers-reduced-motion: reduce)",
@@ -958,7 +988,8 @@ function applyPointerMotion() {
 
   for (const cube of socialCubes) {
     if (cube.visible) {
-      cube.rotation.set(tiltX, tiltY, 0);
+      cube.rotation.x = tiltX;
+      cube.rotation.y = tiltY;
     }
   }
 
@@ -1289,6 +1320,15 @@ function updatePointerFromEvent(event) {
   const rect = canvasRect.width ? canvasRect : canvas.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
 
+  lastPointerClientX = event.clientX;
+  lastPointerClientY = event.clientY;
+  if ("pointerType" in event && event.pointerType) {
+    lastPointerType = event.pointerType;
+  }
+  if ("pressure" in event && Number.isFinite(event.pressure)) {
+    pointerPressure = event.pressure;
+  }
+
   mouse.x = THREE.MathUtils.clamp(
     ((event.clientX - rect.left) / rect.width) * 2 - 1,
     -1,
@@ -1510,9 +1550,9 @@ function createRoundedIconMaterial(texture) {
 }
 
 function getSocialMaterialProfile(label = "") {
-  const name = label.toLowerCase();
+  const kind = getSocialMaterialKind(label);
 
-  if (name.includes("discord")) {
+  if (kind === "rubber") {
     return {
       base: 0x1a1f29,
       top: 0x222838,
@@ -1529,12 +1569,12 @@ function getSocialMaterialProfile(label = "") {
     };
   }
 
-  if (name.includes("email")) {
+  if (kind === "mail" || kind === "grass") {
     return {
-      base: 0x314628,
-      top: 0x40582f,
-      bottom: 0x24321c,
-      back: 0x2d3a24,
+      base: 0x385629,
+      top: 0x4f7837,
+      bottom: 0x25381b,
+      back: 0x304925,
       roughness: 0.99,
       metalness: 0.01,
       clearcoat: 0.02,
@@ -1546,7 +1586,7 @@ function getSocialMaterialProfile(label = "") {
     };
   }
 
-  if (name.includes("instagram")) {
+  if (kind === "cloth") {
     return {
       base: 0x1d2230,
       top: 0x273248,
@@ -1563,7 +1603,7 @@ function getSocialMaterialProfile(label = "") {
     };
   }
 
-  if (name.includes("linkedin")) {
+  if (kind === "glass") {
     return {
       base: 0x647381,
       top: 0x7a8796,
@@ -1596,17 +1636,267 @@ function getSocialMaterialProfile(label = "") {
   };
 }
 
-function createSocialCardMaterials(texture, label = "") {
+function createMaterialTouchField(label = "") {
+  const config = getSocialMaterialConfig(label);
+  const size =
+    config.kind === "mail" || config.kind === "grass"
+      ? SOCIAL_TOUCH_TEXTURE_SIZE / 2
+      : SOCIAL_TOUCH_TEXTURE_SIZE;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d", { willReadFrequently: false });
+
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, size, size);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+
+  return {
+    config,
+    canvas,
+    ctx,
+    texture,
+    poke: createPokeState(),
+    world: new THREE.Vector3(),
+    touched: false,
+  };
+}
+
+function stampMaterialTouch(field, uv, worldPoint, pressure = 0.25) {
+  if (!field || !uv) return;
+  const boosted = pressure * field.config.pressBoost;
+  applyPoke(field.poke, uv.x, uv.y, Math.min(1, boosted));
+  if (worldPoint) field.world.copy(worldPoint);
+  field.touched = true;
+}
+
+function fadeMaterialTouchField(field) {
+  const fade =
+    field.config.kind === "glass"
+      ? 0.035
+      : field.config.kind === "rubber"
+        ? 0.11
+        : 0.065;
+  field.ctx.globalCompositeOperation = "source-over";
+  field.ctx.fillStyle = `rgba(0,0,0,${fade})`;
+  field.ctx.fillRect(0, 0, field.canvas.width, field.canvas.height);
+}
+
+function drawMaterialTouchField(field) {
+  const { ctx, canvas, poke, config } = field;
+  const velocity = getPokeVelocity(poke);
+  const size = canvas.width;
+  const x = poke.x * size;
+  const y = (1 - poke.y) * size;
+  const force = poke.pressure * (prefersReducedMotion.matches ? 0.45 : 1);
+  const radius =
+    (config.kind === "glass" ? 22 : config.kind === "rubber" ? 28 : 20) +
+    force * 18;
+
+  ctx.globalCompositeOperation = "lighter";
+
+  if (config.kind === "glass") {
+    const smear = ctx.createLinearGradient(
+      x - velocity.x * size * 1.8,
+      y + velocity.y * size * 1.8,
+      x + velocity.x * size * 2.4,
+      y - velocity.y * size * 2.4,
+    );
+    smear.addColorStop(0, `rgba(255,255,255,${0.04 + force * 0.08})`);
+    smear.addColorStop(0.5, `rgba(255,255,255,${0.18 + force * 0.32})`);
+    smear.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = smear;
+    ctx.beginPath();
+    ctx.ellipse(
+      x,
+      y,
+      radius * (1.2 + velocity.length),
+      radius * 0.45,
+      Math.atan2(-velocity.y, velocity.x),
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+    return;
+  }
+
+  const dent = ctx.createRadialGradient(x, y, 1, x, y, radius);
+  dent.addColorStop(0, `rgba(255,255,255,${0.5 + force * 0.45})`);
+  dent.addColorStop(0.45, `rgba(255,255,255,${0.2 + force * 0.22})`);
+  dent.addColorStop(
+    0.72,
+    config.kind === "rubber"
+      ? `rgba(255,255,255,${0.28 * force})`
+      : "rgba(255,255,255,0.04)",
+  );
+  dent.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = dent;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (config.kind === "cloth") {
+    ctx.strokeStyle = `rgba(255,255,255,${0.18 + force * 0.26})`;
+    ctx.lineWidth = 1.2 + force * 1.5;
+    const angle = Math.atan2(-velocity.y || 0.15, velocity.x || 0.2) + Math.PI / 2;
+    for (let i = -2; i <= 2; i += 1) {
+      const offset = i * (6 + velocity.length * 108);
+      ctx.beginPath();
+      ctx.moveTo(x + Math.cos(angle) * offset - 26, y + Math.sin(angle) * offset);
+      ctx.quadraticCurveTo(
+        x,
+        y + offset * 0.25,
+        x + Math.cos(angle) * offset + 26,
+        y + Math.sin(angle) * offset,
+      );
+      ctx.stroke();
+    }
+  }
+}
+
+function updateMaterialTouchField(field) {
+  if (!field) return;
+  if (
+    !field.poke.active &&
+    field.poke.pressure <= 0.015 &&
+    field.poke.targetPressure === 0
+  ) {
+    return;
+  }
+
+  stepPoke(field.poke, field.config);
+  fadeMaterialTouchField(field);
+  if (field.poke.active || field.poke.pressure > 0.015) {
+    drawMaterialTouchField(field);
+  }
+  field.texture.needsUpdate = true;
+}
+
+function tuneLogoMaterial(material, label, touchField) {
+  const profile = getSocialMaterialProfile(label);
+  const kind = touchField.config.kind;
+
+  material.roughness = profile.roughness;
+  material.metalness = profile.metalness;
+  material.clearcoat = profile.clearcoat;
+  material.clearcoatRoughness = profile.clearcoatRoughness;
+  material.sheen = profile.sheen;
+  material.sheenColor = profile.sheenColor;
+  material.sheenRoughness = profile.sheenRoughness;
+  material.roughnessMap = kind === "glass" ? touchField.texture : profile.roughnessMap;
+  material.bumpMap = touchField.texture;
+  material.bumpScale = kind === "glass" ? 0.018 : kind === "rubber" ? 0.05 : 0.032;
+  material.displacementMap = kind === "glass" ? null : touchField.texture;
+  material.displacementScale =
+    kind === "rubber" ? -0.1 : kind === "mail" || kind === "grass" ? -0.045 : -0.07;
+  material.envMapIntensity = kind === "glass" ? 1.4 : 0.9;
+  material.needsUpdate = true;
+
+  if (kind === "glass") {
+    material.transparent = true;
+    material.opacity = 0.86;
+  } else if (kind === "mail" || kind === "grass") {
+    material.transparent = true;
+    material.opacity = 0.18;
+  }
+}
+
+function createSocialLogoMaterial(texture, label, touchField) {
+  const material = createRoundedIconMaterial(texture);
+  tuneLogoMaterial(material, label, touchField);
+  return material;
+}
+
+function createSocialLogoMesh(texture, label, touchField, layout) {
+  const mesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(layout.socialCardWidth, layout.socialCardHeight, 48, 48),
+    createSocialLogoMaterial(texture, label, touchField),
+  );
+
+  mesh.position.set(0, 0, SOCIAL_CARD_DEPTH / 2 + 0.035);
+  mesh.userData.isSocialLogo = true;
+  mesh.userData.touchField = touchField;
+  mesh.renderOrder = 35;
+  return mesh;
+}
+
+const grassBladeDummy = new THREE.Object3D();
+
+function createGrassLogoBlades(label, touchField, layout) {
+  const kind = touchField.config.kind;
+  if (kind !== "mail" && kind !== "grass") return null;
+
+  const logoWidth = layout.socialCardWidth;
+  const logoHeight = layout.socialCardHeight;
+  const logoSize = Math.min(logoWidth, logoHeight);
+  const bladeCount = layout.narrow ? 300 : 520;
+  const geometry = new THREE.PlaneGeometry(0.035, 0.18, 1, 2);
+  geometry.translate(0, 0.09, 0);
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x73c447,
+    roughness: 0.86,
+    metalness: 0,
+    side: THREE.DoubleSide,
+    transparent: true,
+    alphaTest: 0.25,
+  });
+  const mesh = new THREE.InstancedMesh(geometry, material, bladeCount);
+  const blades = [];
+
+  for (let i = 0; i < bladeCount; i += 1) {
+    const column = ((i * 37) % 100) / 99;
+    const row = ((i * 61) % 100) / 99;
+    const x = (column - 0.5) * logoWidth;
+    const y = (row - 0.5) * logoHeight;
+    const envelopeFold =
+      Math.abs(y) < 0.035 ||
+      Math.abs(y - Math.abs(x) * 0.34) < 0.035 ||
+      Math.abs(y + Math.abs(x) * 0.34) < 0.035;
+    const height = logoSize * (envelopeFold ? 0.095 : 0.065 + ((i * 17) % 9) * 0.004);
+    const color = new THREE.Color(
+      envelopeFold ? 0xc6f46b : i % 2 === 0 ? 0x72c543 : 0x4d982f,
+    );
+
+    blades.push({
+      x,
+      y,
+      uvx: 0.5 + x / logoWidth,
+      uvy: 0.5 + y / logoHeight,
+      height,
+      angle: (((i * 13) % 17) - 8) * 0.035,
+      stiffness: 0.55 + ((i * 19) % 9) * 0.045,
+    });
+    mesh.setColorAt(i, color);
+  }
+
+  mesh.instanceColor.needsUpdate = true;
+  mesh.position.set(0, 0, SOCIAL_CARD_DEPTH / 2 + 0.08);
+  mesh.userData.blades = blades;
+  mesh.userData.touchField = touchField;
+  mesh.renderOrder = 45;
+  return mesh;
+}
+
+function createSocialCardMaterials(texture, label = "", touchField = null) {
   const profile = getSocialMaterialProfile(label);
   const faceMaterial = createRoundedIconMaterial(texture);
-  faceMaterial.roughness = profile.roughness;
-  faceMaterial.metalness = profile.metalness;
-  faceMaterial.clearcoat = profile.clearcoat;
-  faceMaterial.clearcoatRoughness = profile.clearcoatRoughness;
-  faceMaterial.sheen = profile.sheen;
-  faceMaterial.sheenColor = profile.sheenColor;
-  faceMaterial.sheenRoughness = profile.sheenRoughness;
-  faceMaterial.roughnessMap = profile.roughnessMap;
+  if (touchField) {
+    tuneLogoMaterial(faceMaterial, label, touchField);
+  } else {
+    faceMaterial.roughness = profile.roughness;
+    faceMaterial.metalness = profile.metalness;
+    faceMaterial.clearcoat = profile.clearcoat;
+    faceMaterial.clearcoatRoughness = profile.clearcoatRoughness;
+    faceMaterial.sheen = profile.sheen;
+    faceMaterial.sheenColor = profile.sheenColor;
+    faceMaterial.sheenRoughness = profile.sheenRoughness;
+    faceMaterial.roughnessMap = profile.roughnessMap;
+  }
 
   const sheetMaterial = new THREE.MeshPhysicalMaterial({
     color: profile.base,
@@ -1618,6 +1908,8 @@ function createSocialCardMaterials(texture, label = "") {
     sheenColor: profile.sheenColor,
     sheenRoughness: profile.sheenRoughness,
     roughnessMap: profile.roughnessMap,
+    bumpMap: touchField?.texture || null,
+    bumpScale: touchField ? 0.018 : 0,
     emissive: 0x05070d,
     emissiveIntensity: 0.04,
     side: THREE.DoubleSide,
@@ -2452,6 +2744,7 @@ function applyAboutJoinImageLayout() {
     layout.aboutImageY,
     ABOUT_IMAGE_POS.z,
   );
+  aboutJoinImage.userData.baseX = ABOUT_IMAGE_POS.x;
   aboutJoinImage.userData.baseY = layout.aboutImageY;
   resizePlane(aboutJoinImage, layout.aboutImageHeight);
 }
@@ -2563,11 +2856,132 @@ function stopAboutJoinImageFade() {
   gsap.killTweensOf(aboutJoinImage.material);
 }
 
+function setJoinState(state) {
+  if (document.body.dataset.joinState === state) return;
+
+  document.body.dataset.joinState = state;
+}
+
+function clearJoinTimers() {
+  window.clearTimeout(joinStateTimer);
+  window.clearTimeout(joinBlushTimer);
+}
+
+function stopJoinWink() {
+  window.clearTimeout(joinWinkTimer);
+  document.body.removeAttribute("data-join-wink");
+}
+
+function scheduleJoinWink() {
+  window.clearTimeout(joinWinkTimer);
+  joinWinkTimer = window.setTimeout(
+    () => {
+      if (document.body.dataset.joinState === joinUsStates.idleCurious) {
+        document.body.dataset.joinWink = "true";
+        window.setTimeout(() => {
+          document.body.removeAttribute("data-join-wink");
+        }, prefersReducedMotion.matches ? 1 : 150);
+      }
+      joinWinkCount += 1;
+      scheduleJoinWink();
+    },
+    prefersReducedMotion.matches
+      ? 9000
+      : getOrganicWinkDelayMs(hashString(JOIN_LABEL || "JOIN US"), joinWinkCount),
+  );
+}
+
+function updateJoinEyes() {
+  if (!joinWord || joinEyePupils.length === 0) return;
+  if (
+    document.body.dataset.joinState === joinUsStates.joinNear ||
+    document.body.dataset.joinState === joinUsStates.sadShrivel
+  ) {
+    joinEyePupils.forEach((pupil) => pupil.removeAttribute("transform"));
+    return;
+  }
+
+  const rect = joinWord.getBoundingClientRect();
+  if (!rect.width || !Number.isFinite(lastPointerClientX)) return;
+
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  const offset = constrainPupilOffset(
+    (lastPointerClientX - centerX) * 0.035,
+    (lastPointerClientY - centerY) * 0.035,
+    { width: 11, height: 10 },
+  );
+
+  joinEyePupils.forEach((pupil, index) => {
+    const sideBias = index === 0 ? -0.25 : 0.25;
+    pupil.setAttribute(
+      "transform",
+      `translate(${(offset.x + sideBias).toFixed(2)} ${offset.y.toFixed(2)})`,
+    );
+  });
+}
+
+function updateJoinCuriosityState() {
+  const state = document.body.dataset.joinState || joinUsStates.idleCurious;
+  updateJoinEyes();
+
+  if (
+    currentIndex !== ABOUT_SECTION_INDEX ||
+    isAnimating ||
+    !aboutJoinImage?.visible ||
+    state === joinUsStates.rubricsHoverExcited ||
+    state === joinUsStates.rubricsHoverBlush ||
+    state === joinUsStates.rubricsClickCelebration ||
+    state === joinUsStates.sadShrivel ||
+    state === joinUsStates.recoveringToIdle
+  ) {
+    return;
+  }
+
+  const rect = joinWord?.getBoundingClientRect();
+  if (!rect?.width || !Number.isFinite(lastPointerClientX)) {
+    setJoinState(joinUsStates.idleCurious);
+    return;
+  }
+
+  const nearPad = Math.max(72, Math.min(128, viewportWidth * 0.08));
+  const nearJoin =
+    lastPointerClientX >= rect.left - nearPad &&
+    lastPointerClientX <= rect.right + nearPad &&
+    lastPointerClientY >= rect.top - nearPad &&
+    lastPointerClientY <= rect.bottom + nearPad;
+
+  setJoinState(nearJoin ? joinUsStates.joinNear : joinUsStates.idleCurious);
+}
+
+function stopRubricsDance() {
+  if (!aboutJoinImage) return;
+  if (aboutJoinImage.userData.danceTween) {
+    aboutJoinImage.userData.danceTween.kill();
+    aboutJoinImage.userData.danceTween = null;
+  }
+  aboutJoinImage.position.x = aboutJoinImage.userData.baseX ?? ABOUT_IMAGE_POS.x;
+}
+
+function startRubricsDance() {
+  if (!aboutJoinImage || prefersReducedMotion.matches) return;
+  stopRubricsDance();
+  const baseX = aboutJoinImage.userData.baseX ?? ABOUT_IMAGE_POS.x;
+  aboutJoinImage.userData.danceTween = gsap.to(aboutJoinImage.position, {
+    x: baseX + 0.22,
+    duration: 0.16,
+    ease: "sine.inOut",
+    yoyo: true,
+    repeat: -1,
+  });
+}
+
 function stopAboutJoinHover() {
   if (!aboutJoinImage) return;
 
-  window.clearTimeout(beeStateTimer);
-  document.body.dataset.beeState = "idle";
+  clearJoinTimers();
+  setJoinState(joinUsStates.idleCurious);
+  stopRubricsDance();
   gsap.killTweensOf(aboutJoinImage.position);
   gsap.killTweensOf(aboutJoinImage.scale);
   aboutJoinImage.userData.hovered = false;
@@ -2638,9 +3052,14 @@ function setAboutJoinImageHovered(hovered) {
   const baseY = aboutJoinImage.userData.baseY ?? aboutJoinImage.position.y;
 
   if (hovered) {
-    window.clearTimeout(beeStateTimer);
-    document.body.dataset.beeState = "excited";
+    clearJoinTimers();
     document.body.dataset.contentHover = "join";
+    setJoinState(joinUsStates.rubricsHoverExcited);
+    startRubricsDance();
+    joinBlushTimer = window.setTimeout(
+      () => setJoinState(joinUsStates.rubricsHoverBlush),
+      prefersReducedMotion.matches ? 800 : JOIN_US_BLUSH_DELAY_MS,
+    );
     gsap.to(aboutJoinImage.scale, {
       x: 1.035,
       y: 1.035,
@@ -2655,19 +3074,21 @@ function setAboutJoinImageHovered(hovered) {
     });
   } else {
     document.body.removeAttribute("data-content-hover");
-    window.clearTimeout(beeStateTimer);
-    beeStateTimer = window.setTimeout(
+    clearJoinTimers();
+    stopRubricsDance();
+    setJoinState(joinUsStates.sadShrivel);
+    restartChalkTrailMotion(".bee-trail--join");
+    joinStateTimer = window.setTimeout(
       () => {
-        document.body.dataset.beeState = "sad";
-        restartChalkTrailMotion(".bee-trail--join-sad");
-        beeStateTimer = window.setTimeout(
+        setJoinState(joinUsStates.recoveringToIdle);
+        joinStateTimer = window.setTimeout(
           () => {
-            document.body.dataset.beeState = "idle";
+            setJoinState(joinUsStates.idleCurious);
           },
-          prefersReducedMotion.matches ? 650 : 820,
+          prefersReducedMotion.matches ? 100 : 180,
         );
       },
-      prefersReducedMotion.matches ? 0 : 90,
+      prefersReducedMotion.matches ? 320 : 760,
     );
     aboutJoinImage.userData.tiltZ = 0;
     gsap.to(aboutJoinImage.scale, {
@@ -2683,6 +3104,34 @@ function setAboutJoinImageHovered(hovered) {
       ease: "power2.out",
     });
   }
+}
+
+function navigateJoinTarget(url) {
+  if (!url) return;
+  if (/^https?:/i.test(url)) {
+    window.open(url, "_blank", "noopener,noreferrer");
+    return;
+  }
+  window.location.assign(url);
+}
+
+function celebrateAndNavigateJoin(url) {
+  if (!url || aboutJoinImage?.userData.navigating) return;
+
+  if (aboutJoinImage) aboutJoinImage.userData.navigating = true;
+  clearJoinTimers();
+  window.clearTimeout(joinNavigationTimer);
+  stopRubricsDance();
+  setJoinState(joinUsStates.rubricsClickCelebration);
+  document.body.dataset.contentHover = "join";
+
+  joinNavigationTimer = window.setTimeout(
+    () => {
+      if (aboutJoinImage) aboutJoinImage.userData.navigating = false;
+      navigateJoinTarget(url);
+    },
+    prefersReducedMotion.matches ? 220 : JOIN_US_NAVIGATION_DELAY_MS,
+  );
 }
 
 function setupAboutJoinInteraction() {
@@ -2701,8 +3150,57 @@ function setupAboutJoinInteraction() {
     const intersects = raycaster.intersectObject(aboutJoinImage);
 
     if (intersects.length > 0) {
-      window.open(aboutJoinImage.userData.url, "_blank", "noopener,noreferrer");
+      celebrateAndNavigateJoin(aboutJoinImage.userData.url);
     }
+  });
+}
+
+function triggerJoinHoverFromKeyboard(active) {
+  if (active) {
+    clearJoinTimers();
+    document.body.dataset.contentHover = "join";
+    setJoinState(joinUsStates.rubricsHoverExcited);
+    joinBlushTimer = window.setTimeout(
+      () => setJoinState(joinUsStates.rubricsHoverBlush),
+      prefersReducedMotion.matches ? 800 : JOIN_US_BLUSH_DELAY_MS,
+    );
+    startRubricsDance();
+    return;
+  }
+
+  document.body.removeAttribute("data-content-hover");
+  clearJoinTimers();
+  stopRubricsDance();
+  setJoinState(joinUsStates.sadShrivel);
+  joinStateTimer = window.setTimeout(
+    () => {
+      setJoinState(joinUsStates.recoveringToIdle);
+      joinStateTimer = window.setTimeout(
+        () => setJoinState(joinUsStates.idleCurious),
+        prefersReducedMotion.matches ? 100 : 180,
+      );
+    },
+    prefersReducedMotion.matches ? 320 : 760,
+  );
+}
+
+function setupJoinAccessibleInteraction() {
+  if (!joinUsAccessibleLink) return;
+
+  joinUsAccessibleLink.addEventListener("focus", () =>
+    triggerJoinHoverFromKeyboard(true),
+  );
+  joinUsAccessibleLink.addEventListener("blur", () =>
+    triggerJoinHoverFromKeyboard(false),
+  );
+  joinUsAccessibleLink.addEventListener("click", (event) => {
+    event.preventDefault();
+    celebrateAndNavigateJoin(joinUsAccessibleLink.href || JOIN_LINK);
+  });
+  joinUsAccessibleLink.addEventListener("keydown", (event) => {
+    if (event.key !== " ") return;
+    event.preventDefault();
+    celebrateAndNavigateJoin(joinUsAccessibleLink.href || JOIN_LINK);
   });
 }
 
@@ -3176,6 +3674,41 @@ function resizeSocialCard(card) {
     );
     card.userData.caption.sync();
   }
+
+  if (card.userData.logoMesh) {
+    card.userData.logoMesh.geometry.dispose();
+    card.userData.logoMesh.geometry = new THREE.PlaneGeometry(
+      layout.socialCardWidth,
+      layout.socialCardHeight,
+      48,
+      48,
+    );
+  }
+
+  if (card.userData.underline) {
+    card.userData.underline.geometry.dispose();
+    card.userData.underline.geometry = new THREE.PlaneGeometry(
+      layout.socialCardWidth * 0.56,
+      0.055,
+    );
+    card.userData.underline.position.set(
+      0,
+      -layout.socialCardHeight / 2 - 0.28,
+      SOCIAL_CARD_DEPTH / 2 + 0.055,
+    );
+  }
+
+  if (card.userData.grassLogo) {
+    card.remove(card.userData.grassLogo);
+    card.userData.grassLogo.geometry.dispose();
+    card.userData.grassLogo.material.dispose();
+    card.userData.grassLogo = createGrassLogoBlades(
+      card.userData.label,
+      card.userData.touchField,
+      layout,
+    );
+    if (card.userData.grassLogo) card.add(card.userData.grassLogo);
+  }
 }
 
 function applySocialCubeLayout() {
@@ -3218,6 +3751,7 @@ function createSocialCubes() {
     const texture = createSocialTexture(config);
     const basePosition = getSocialCubeBasePosition(index);
     const layout = getViewportLayout();
+    const touchField = createMaterialTouchField(config.label);
     const cube = new THREE.Mesh(
       new RoundedBoxGeometry(
         layout.socialCardWidth,
@@ -3226,18 +3760,39 @@ function createSocialCubes() {
         SOCIAL_CUBE_SEGMENTS,
         SOCIAL_CUBE_RADIUS,
       ),
-      createSocialCardMaterials(texture, config.label),
+      createSocialCardMaterials(texture, config.label, touchField),
     );
     const caption = createSocialCaption(config.label);
+    const logoMesh = createSocialLogoMesh(
+      texture,
+      config.label,
+      touchField,
+      layout,
+    );
+    const grassLogo = createGrassLogoBlades(config.label, touchField, layout);
+    const underline = new THREE.Mesh(
+      new THREE.PlaneGeometry(layout.socialCardWidth * 0.56, 0.055),
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color(config.accent || "#ff5757"),
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+      }),
+    );
 
     cube.position.set(basePosition.x, basePosition.y, basePosition.z);
     cube.userData.url = config.url;
     cube.userData.label = config.label;
     cube.userData.accent = config.accent;
+    cube.userData.materialKind = touchField.config.kind;
+    cube.userData.touchField = touchField;
     cube.userData.socialIndex = index;
     cube.userData.width = layout.socialCardWidth;
     cube.userData.height = layout.socialCardHeight;
     cube.userData.caption = caption;
+    cube.userData.logoMesh = logoMesh;
+    cube.userData.grassLogo = grassLogo;
+    cube.userData.underline = underline;
     cube.userData.baseX = cube.position.x;
     cube.userData.baseY = cube.position.y;
     cube.userData.hovered = false;
@@ -3252,6 +3807,15 @@ function createSocialCubes() {
       SOCIAL_CUBE_SCALE_MIN,
       SOCIAL_CUBE_SCALE_MIN,
     );
+    underline.position.set(
+      0,
+      -layout.socialCardHeight / 2 - 0.28,
+      SOCIAL_CARD_DEPTH / 2 + 0.055,
+    );
+    underline.renderOrder = 42;
+    cube.add(logoMesh);
+    if (grassLogo) cube.add(grassLogo);
+    cube.add(underline);
     cube.add(caption);
     scene.add(cube);
     return cube;
@@ -3305,7 +3869,7 @@ function stopSocialCubeGrow(cube) {
     cube.userData.growTween = null;
   }
 
-  gsap.killTweensOf(cube.position, "z");
+  gsap.killTweensOf(cube.position, "y,z");
   gsap.killTweensOf(cube.rotation);
 }
 
@@ -3404,6 +3968,9 @@ function stopSocialCubeAnimations() {
 function hideSocialCubes() {
   canvas.style.cursor = "default";
   document.body.removeAttribute("data-content-hover");
+  document.body.removeAttribute("data-material-type");
+  document.body.removeAttribute("data-pointer-active");
+  document.body.removeAttribute("data-interaction-state");
   hoveredSocialCube = null;
   socialHoverKey = "";
   stopActiveSound(false);
@@ -3459,11 +4026,95 @@ function setSocialCubesVisible(visible) {
     stopSocialCubeAnimations();
     canvas.style.cursor = "default";
     document.body.removeAttribute("data-content-hover");
+    document.body.removeAttribute("data-material-type");
+    document.body.removeAttribute("data-pointer-active");
+    document.body.removeAttribute("data-interaction-state");
   }
 }
 
 function resetSocialCubeHover(cube) {
   setSocialCubeHovered(cube, false);
+}
+
+function getSocialCubeFromObject(object) {
+  let current = object;
+  while (current) {
+    if (socialCubes.includes(current)) return current;
+    current = current.parent;
+  }
+  return null;
+}
+
+function getSocialTouchUv(cube, hit) {
+  if (!cube || !hit) return null;
+  if (hit.object.userData?.isSocialLogo && hit.uv) return hit.uv;
+
+  const local = cube.worldToLocal(hit.point.clone());
+  const width = cube.userData.width || 1;
+  const height = cube.userData.height || 1;
+  return new THREE.Vector2(
+    THREE.MathUtils.clamp(local.x / width + 0.5, 0, 1),
+    THREE.MathUtils.clamp(local.y / height + 0.5, 0, 1),
+  );
+}
+
+function updateGrassLogoBlades(mesh) {
+  if (!mesh?.userData?.blades || !mesh.parent?.visible) return;
+
+  const field = mesh.userData.touchField;
+  const poke = field?.poke;
+  const velocity = poke ? getPokeVelocity(poke) : { x: 0, y: 0, length: 0 };
+  const time = performance.now() * 0.002;
+
+  mesh.userData.blades.forEach((blade, index) => {
+    const influence = poke
+      ? getPokeInfluence(poke, blade.uvx, blade.uvy, 0.22)
+      : 0;
+    const comb = influence * (0.22 + velocity.length * 1.4);
+    const dx = blade.uvx - (poke?.x ?? 0.5);
+    const dy = blade.uvy - (poke?.y ?? 0.5);
+    const wind = Math.sin(time + index * 0.37) * 0.025;
+
+    grassBladeDummy.position.set(
+      blade.x + dx * comb * 0.48,
+      blade.y + dy * comb * 0.32,
+      influence * -0.055,
+    );
+    grassBladeDummy.rotation.set(
+      influence * (0.85 + blade.stiffness) + wind,
+      0,
+      blade.angle + dx * influence * 1.8,
+    );
+    grassBladeDummy.scale.set(1, Math.max(0.28, 1 - influence * 0.68), 1);
+    grassBladeDummy.updateMatrix();
+    mesh.setMatrixAt(index, grassBladeDummy.matrix);
+  });
+
+  mesh.instanceMatrix.needsUpdate = true;
+}
+
+function updateSocialMaterialTouchFields() {
+  if (
+    currentIndex !== CONTACT_SECTION_INDEX ||
+    !socialCubes.some((cube) => cube.visible)
+  ) {
+    return;
+  }
+
+  socialCubes.forEach((cube) => {
+    updateMaterialTouchField(cube.userData.touchField);
+    updateGrassLogoBlades(cube.userData.grassLogo);
+
+    const pressure = cube.userData.touchField?.poke?.pressure || 0;
+    if (cube.userData.caption) {
+      cube.userData.caption.position.y =
+        -((cube.userData.height || 1) / 2) - 0.42 - pressure * 0.05;
+    }
+    if (cube.userData.underline) {
+      cube.userData.underline.scale.set(1 + pressure * 0.14, 1 + pressure * 0.4, 1);
+      cube.userData.underline.material.opacity = 0.72 + pressure * 0.25;
+    }
+  });
 }
 
 function updateSocialCubeHover() {
@@ -3477,8 +4128,11 @@ function updateSocialCubeHover() {
 
   raycaster.setFromCamera(mouse, camera);
   const visibleCubes = socialCubes.filter((cube) => cube.visible);
-  const intersects = raycaster.intersectObjects(visibleCubes);
-  const hoveredCube = intersects[0]?.object ?? null;
+  const intersects = raycaster.intersectObjects(visibleCubes, true);
+  const hoveredHit = intersects[0] ?? null;
+  const hoveredCube = hoveredHit
+    ? getSocialCubeFromObject(hoveredHit.object)
+    : null;
   let pointerActive = false;
   const hoveredKey = hoveredCube
     ? `social:${hoveredCube.userData.socialIndex}:${hoveredCube.userData.url}`
@@ -3495,6 +4149,17 @@ function updateSocialCubeHover() {
 
       if (!cube.userData.hovered) {
         setSocialCubeHovered(cube, true);
+      }
+
+      if (hoveredHit) {
+        const touchUv = getSocialTouchUv(cube, hoveredHit);
+        const pressure = pointerIsDown
+          ? Math.max(pointerPressure, lastPointerType === "touch" ? 0.85 : 0.75)
+          : Math.max(pointerPressure, 0.25);
+        stampMaterialTouch(cube.userData.touchField, touchUv, hoveredHit.point, pressure);
+        document.body.dataset.materialType = cube.userData.materialKind;
+        document.body.dataset.pointerActive = "true";
+        document.body.dataset.interactionState = pointerIsDown ? "pressed" : "hover";
       }
     } else if (cube.userData.hovered) {
       resetSocialCubeHover(cube);
@@ -3513,6 +4178,9 @@ function updateSocialCubeHover() {
 
   if (!pointerActive) {
     document.body.removeAttribute("data-content-hover");
+    document.body.removeAttribute("data-material-type");
+    document.body.removeAttribute("data-pointer-active");
+    document.body.removeAttribute("data-interaction-state");
     document.body.style.removeProperty("--content-accent");
   }
 
@@ -3523,9 +4191,32 @@ function setupSocialCubeInteraction() {
   canvas.addEventListener("pointermove", updatePointerFromEvent, {
     passive: true,
   });
-  canvas.addEventListener("pointerdown", updatePointerFromEvent, {
-    passive: true,
-  });
+  canvas.addEventListener(
+    "pointerdown",
+    (event) => {
+      pointerIsDown = true;
+      pointerPressure = Math.max(event.pressure || 0, 0.55);
+      lastPointerType = event.pointerType || lastPointerType;
+      updatePointerFromEvent(event);
+    },
+    { passive: true },
+  );
+  window.addEventListener(
+    "pointerup",
+    () => {
+      pointerIsDown = false;
+      pointerPressure = 0;
+    },
+    { passive: true },
+  );
+  canvas.addEventListener(
+    "pointerleave",
+    () => {
+      pointerIsDown = false;
+      pointerPressure = 0;
+    },
+    { passive: true },
+  );
 
   window.addEventListener("click", (event) => {
     if (
@@ -3540,15 +4231,22 @@ function setupSocialCubeInteraction() {
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(
       socialCubes.filter((cube) => cube.visible),
+      true,
     );
 
     if (intersects.length > 0) {
-      const url = intersects[0].object.userData.url;
+      const cube = getSocialCubeFromObject(intersects[0].object);
+      const url = cube?.userData.url;
+      if (!url) return;
       playMusicCue(
-        intersects[0].object.userData.music,
-        `social:${intersects[0].object.userData.socialIndex}:${url}`,
+        cube.userData.music,
+        `social:${cube.userData.socialIndex}:${url}`,
       );
-      window.open(url, "_blank", "noopener,noreferrer");
+      if (url.startsWith("mailto:")) {
+        window.location.href = url;
+      } else {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
     }
   });
 }
@@ -3842,6 +4540,8 @@ function animate() {
 
   animateRainbowBackdrop();
   applyPointerMotion();
+  updateJoinCuriosityState();
+  updateSocialMaterialTouchFields();
   updateSocialCubeHover();
   updateAboutJoinHover();
   updateCommitteeHover();
@@ -3886,6 +4586,9 @@ window.addEventListener("pagehide", (event) => {
 
   stopAnimationLoop();
   stopActiveSound(true);
+  clearJoinTimers();
+  window.clearTimeout(joinNavigationTimer);
+  stopJoinWink();
   scrollObserver?.kill();
   resizeObserver?.disconnect();
 
@@ -3910,9 +4613,11 @@ async function init() {
   setupMemberPopup();
   socialCubes = createSocialCubes();
   applyResponsiveLayout();
+  setupJoinAccessibleInteraction();
   setupSocialCubeInteraction();
   setupAboutJoinInteraction();
   setupCommitteeInteraction();
+  scheduleJoinWink();
   loadSceneModel();
 
   if (!document.hidden) {

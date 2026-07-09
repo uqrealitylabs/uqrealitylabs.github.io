@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -62,6 +64,20 @@ describe("JSON content system", () => {
     expect(about.hero.cta?.href).toBe(graph.ctas.joinRubrics.href);
     expect(site.socialLinks).toEqual(graph.socialLinks);
     expect(site.committee).toEqual(graph.committee);
+  });
+
+  it("keeps visible interaction image assets present", () => {
+    const root = process.cwd();
+    const paths = [
+      "/Assets/images/rubric.png",
+      ...getSiteContent("en").socialLinks.map((social) => social.texture),
+    ];
+
+    for (const assetPath of paths) {
+      expect(
+        existsSync(join(root, "public", assetPath.replace(/^\/+/, ""))),
+      ).toBe(true);
+    }
   });
 
   it.each([

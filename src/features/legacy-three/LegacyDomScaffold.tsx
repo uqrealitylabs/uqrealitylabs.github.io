@@ -39,16 +39,146 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
         >
           <path
             className="bee-trail__ghost"
-            d="M12 88 C36 18 72 104 94 58 C116 12 146 116 174 52 C190 20 204 38 214 70"
+            d="M12 88 C28 24 42 122 62 66 C78 14 96 108 118 56 C138 10 158 118 178 54 C192 30 204 36 214 64"
           />
           <path
             id="bee-trail-join"
             className="bee-trail__path"
-            d="M12 88 C36 18 72 104 94 58 C116 12 146 116 174 52 C190 20 204 38 214 70"
+            d="M12 88 C28 24 42 122 62 66 C78 14 96 108 118 56 C138 10 158 118 178 54 C192 30 204 36 214 64"
           />
-          <text className="bee-trail__label" x="118" y="30">
-            JOIN us
-          </text>
+          <g className="bee-trail__label-group bee-trail__join-word">
+            <text
+              className="bee-trail__label bee-trail__join-letter bee-trail__join-letter--j"
+              x="118"
+              y="30"
+            >
+              J
+            </text>
+            <text
+              className="bee-trail__label bee-trail__join-letter bee-trail__join-letter--o"
+              x="130"
+              y="30"
+            >
+              O
+            </text>
+            <text
+              className="bee-trail__label bee-trail__join-letter bee-trail__join-letter--i"
+              x="144"
+              y="30"
+            >
+              I
+            </text>
+            <text
+              className="bee-trail__label bee-trail__join-letter bee-trail__join-letter--n"
+              x="153"
+              y="30"
+            >
+              N
+            </text>
+            <text
+              className="bee-trail__label bee-trail__join-letter bee-trail__join-letter--u"
+              x="171"
+              y="30"
+            >
+              U
+            </text>
+            <text
+              className="bee-trail__label bee-trail__join-letter bee-trail__join-letter--s"
+              x="184"
+              y="30"
+            >
+              S
+            </text>
+            <g
+              className="bee-trail__eye bee-trail__eye--o"
+              transform="translate(130 24)"
+            >
+              <circle className="bee-trail__eye-ring" cx="0" cy="0" r="4.8" />
+              <circle className="bee-trail__eye-pupil" cx="0" cy="0" r="1.6" />
+            </g>
+            <g
+              className="bee-trail__eye bee-trail__eye--u"
+              transform="translate(172 25)"
+            >
+              <circle className="bee-trail__eye-ring" cx="0" cy="0" r="4.3" />
+              <circle className="bee-trail__eye-pupil" cx="0" cy="0" r="1.45" />
+            </g>
+            <path className="bee-trail__join-wink" d="M166 23 Q172 19 178 23" />
+            <path
+              className="bee-trail__join-smile"
+              d="M137 37 Q154 47 174 37"
+            />
+            <path
+              className="bee-trail__join-frown"
+              d="M137 43 Q154 32 174 43"
+            />
+            <path
+              className="bee-trail__join-tear"
+              d="M132 32 C128 38 127 43 132 47 C137 43 136 38 132 32"
+            />
+            <g className="bee-trail__thought bee-trail__thought--near-awwww">
+              <ellipse
+                className="bee-trail__thought-cloud"
+                cx="154"
+                cy="-15"
+                rx="28"
+                ry="11"
+              />
+              <text className="bee-trail__thought-text" x="131" y="-11">
+                AWWWW
+              </text>
+            </g>
+            <g className="bee-trail__thought bee-trail__thought--sad-aw">
+              <ellipse
+                className="bee-trail__thought-cloud"
+                cx="198"
+                cy="-12"
+                rx="18"
+                ry="10"
+              />
+              <text className="bee-trail__thought-text" x="187" y="-9">
+                aw.
+              </text>
+            </g>
+            <g className="bee-trail__thought bee-trail__thought--sad-ow">
+              <circle
+                className="bee-trail__thought-cloud"
+                cx="208"
+                cy="12"
+                r="10"
+              />
+              <text className="bee-trail__thought-text" x="199" y="16">
+                ow.
+              </text>
+            </g>
+            <g className="bee-trail__thought bee-trail__thought--yay">
+              <ellipse
+                className="bee-trail__thought-cloud"
+                cx="154"
+                cy="-16"
+                rx="18"
+                ry="10"
+              />
+              <text className="bee-trail__thought-text" x="144" y="-13">
+                yay
+              </text>
+            </g>
+            <g className="bee-trail__kawaii-blush">
+              <ellipse cx="141" cy="35" rx="4.4" ry="2" />
+              <ellipse cx="163" cy="35" rx="4.4" ry="2" />
+            </g>
+            <g className="bee-trail__pom-poms">
+              <path d="M126 4 l-6 -5 M126 4 l-1 -8 M126 4 l7 -5" />
+              <path d="M182 4 l-6 -5 M182 4 l1 -8 M182 4 l7 -5" />
+              <circle cx="126" cy="4" r="3" />
+              <circle cx="182" cy="4" r="3" />
+            </g>
+            <g className="bee-trail__dust">
+              <circle cx="194" cy="4" r="1.3" />
+              <circle cx="204" cy="0" r="1" />
+              <circle cx="212" cy="20" r="1.2" />
+            </g>
+          </g>
           <g className="bee-trail__dot bee-trail__bee">
             <animateMotion
               dur="3.1s"
@@ -180,27 +310,6 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
               d="M1.4 -2.1 C4.1 -5.6 1.8 -7 -0.3 -4.5"
             />
           </g>
-        </svg>
-        <svg
-          className="bee-trail bee-trail--join-sad"
-          viewBox="0 0 180 120"
-          focusable="false"
-          aria-hidden="true"
-        >
-          <path
-            className="bee-trail__ghost"
-            d="M18 74 C44 42 66 94 92 64 C116 36 132 64 154 42"
-          />
-          <path
-            className="bee-trail__path"
-            d="M18 74 C44 42 66 94 92 64 C116 36 132 64 154 42"
-          />
-          <text className="bee-trail__label" x="18" y="28">
-            aw.
-          </text>
-          <circle className="bee-trail__sad-eye" cx="76" cy="88" r="3.4" />
-          <circle className="bee-trail__sad-eye" cx="104" cy="88" r="3.4" />
-          <path className="bee-trail__sad-mouth" d="M78 108 Q90 96 102 108" />
         </svg>
       </div>
       <div id="member-popup" className="member-popup" hidden>
