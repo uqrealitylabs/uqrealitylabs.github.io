@@ -27,10 +27,14 @@ describe("social material configs", () => {
     );
 
     expect(new Set(socialMaterials)).toEqual(
-      new Set(["cloth", "rubber", "glass", "grass"]),
+      new Set(["cloth", "rubber", "glass", "grass", "mail"]),
     );
     expect(getSiteContent("en").socialLinks).toContainEqual(
-      expect.objectContaining({ label: "Email", material: "grass" }),
+      expect.objectContaining({ label: "Email" }),
+    );
+    expect(getSocialMaterialKind("Email")).toBe("mail");
+    expect(getSiteContent("en").socialLinks).toContainEqual(
+      expect.objectContaining({ label: "Instagram", material: "grass" }),
     );
   });
 });

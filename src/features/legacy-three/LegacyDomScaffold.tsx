@@ -8,6 +8,40 @@ type LegacyLabels = {
   linkedIn: string;
 };
 
+function BeeLineOrb({
+  duration,
+  pathId,
+}: {
+  duration: string;
+  pathId: string;
+}) {
+  return (
+    <g className="bee-trail__dot bee-trail__orb">
+      <animateMotion
+        dur={duration}
+        repeatCount="indefinite"
+        keyPoints="0;0.36;0.72;1;0.64;0.2;0"
+        keyTimes="0;0.18;0.38;0.54;0.72;0.88;1"
+        calcMode="spline"
+        keySplines="0.33 0 0.67 1;0.4 0 0.2 1;0.33 0 0.67 1;0.4 0 0.2 1;0.33 0 0.67 1;0.4 0 0.2 1"
+        rotate="auto"
+      >
+        <mpath href={`#${pathId}`} />
+      </animateMotion>
+      <g className="bee-trail__orb-drift">
+        <circle className="bee-trail__orb-light" cx="0" cy="0" r="7.2" />
+        <circle className="bee-trail__orb-core" cx="0" cy="0" r="3.35" />
+        <circle
+          className="bee-trail__orb-spark"
+          cx="1.45"
+          cy="-1.35"
+          r="1.05"
+        />
+      </g>
+    </g>
+  );
+}
+
 export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
   return (
     <>
@@ -179,37 +213,7 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
               <circle cx="212" cy="20" r="1.2" />
             </g>
           </g>
-          <g className="bee-trail__dot bee-trail__bee">
-            <animateMotion
-              dur="3.1s"
-              repeatCount="indefinite"
-              keyPoints="0;1;0"
-              keyTimes="0;0.5;1"
-              calcMode="linear"
-              rotate="auto"
-            >
-              <mpath href="#bee-trail-join" />
-            </animateMotion>
-            <ellipse
-              className="bee-trail__bee-body"
-              cx="0"
-              cy="0"
-              rx="4.4"
-              ry="3"
-            />
-            <path
-              className="bee-trail__bee-stripe"
-              d="M-1.8 -2.1 V2.1 M1.8 -2.1 V2.1"
-            />
-            <path
-              className="bee-trail__bee-wing bee-trail__bee-wing--left"
-              d="M-1.6 -2.2 C-4.5 -5.8 -2.1 -7.2 0.6 -4.5"
-            />
-            <path
-              className="bee-trail__bee-wing bee-trail__bee-wing--right"
-              d="M1.5 -2.2 C4.2 -5.8 2 -7.2 -0.4 -4.6"
-            />
-          </g>
+          <BeeLineOrb duration="3.6s" pathId="bee-trail-join" />
         </svg>
         <svg
           className="bee-trail bee-trail--social"
@@ -229,37 +233,7 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
           <text className="bee-trail__label" x="18" y="24">
             buzz buzz
           </text>
-          <g className="bee-trail__dot bee-trail__bee">
-            <animateMotion
-              dur="3.4s"
-              repeatCount="indefinite"
-              keyPoints="0;1;0"
-              keyTimes="0;0.5;1"
-              calcMode="linear"
-              rotate="auto"
-            >
-              <mpath href="#bee-trail-social" />
-            </animateMotion>
-            <ellipse
-              className="bee-trail__bee-body"
-              cx="0"
-              cy="0"
-              rx="4"
-              ry="2.75"
-            />
-            <path
-              className="bee-trail__bee-stripe"
-              d="M-1.6 -2 V2 M1.6 -2 V2"
-            />
-            <path
-              className="bee-trail__bee-wing bee-trail__bee-wing--left"
-              d="M-1.4 -2 C-4.2 -5.3 -1.9 -6.8 0.5 -4.2"
-            />
-            <path
-              className="bee-trail__bee-wing bee-trail__bee-wing--right"
-              d="M1.3 -2 C4 -5.3 1.7 -6.8 -0.3 -4.3"
-            />
-          </g>
+          <BeeLineOrb duration="3.9s" pathId="bee-trail-social" />
         </svg>
         <svg
           className="bee-trail bee-trail--committee"
@@ -279,37 +253,7 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
           <text className="bee-trail__label" x="36" y="42">
             crew?
           </text>
-          <g className="bee-trail__dot bee-trail__bee">
-            <animateMotion
-              dur="3.2s"
-              repeatCount="indefinite"
-              keyPoints="0;1;0"
-              keyTimes="0;0.5;1"
-              calcMode="linear"
-              rotate="auto"
-            >
-              <mpath href="#bee-trail-committee" />
-            </animateMotion>
-            <ellipse
-              className="bee-trail__bee-body"
-              cx="0"
-              cy="0"
-              rx="4.3"
-              ry="2.95"
-            />
-            <path
-              className="bee-trail__bee-stripe"
-              d="M-1.7 -2.05 V2.05 M1.7 -2.05 V2.05"
-            />
-            <path
-              className="bee-trail__bee-wing bee-trail__bee-wing--left"
-              d="M-1.5 -2.1 C-4.3 -5.6 -2 -7 0.5 -4.4"
-            />
-            <path
-              className="bee-trail__bee-wing bee-trail__bee-wing--right"
-              d="M1.4 -2.1 C4.1 -5.6 1.8 -7 -0.3 -4.5"
-            />
-          </g>
+          <BeeLineOrb duration="3.7s" pathId="bee-trail-committee" />
         </svg>
       </div>
       <div id="member-popup" className="member-popup" hidden>

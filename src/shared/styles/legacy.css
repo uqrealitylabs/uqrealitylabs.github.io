@@ -243,7 +243,10 @@ body[data-popup-open="true"] .bee-trail {
   position: absolute;
   display: none;
   color: var(--marker);
-  width: min(16rem, calc(100vw - var(--safe-left) - var(--safe-right) - 2rem));
+  width: min(
+    var(--bee-line-width),
+    calc(100vw - var(--safe-left) - var(--safe-right) - 2rem)
+  );
   height: auto;
   overflow: visible;
   opacity: 0.88;
@@ -279,37 +282,31 @@ body[data-trails-ready="true"] .bee-trail__path {
 }
 
 .bee-trail__dot {
-  filter: drop-shadow(0 0 0.22rem rgba(255, 87, 87, 0.32));
+  filter:
+    drop-shadow(0 0 0.22rem rgba(255, 243, 210, 0.88))
+    drop-shadow(0 0 0.55rem currentColor);
 }
 
-.bee-trail__bee-body {
+.bee-trail__orb-drift {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bee-orb-drift 1.7s ease-in-out infinite alternate;
+}
+
+.bee-trail__orb-light {
+  fill: currentColor;
+  opacity: 0.2;
+}
+
+.bee-trail__orb-core {
   fill: var(--chalk);
   stroke: currentColor;
-  stroke-width: 1.8;
+  stroke-width: 1.15;
 }
 
-.bee-trail__bee-stripe {
-  fill: none;
-  stroke: #1b2231;
-  stroke-width: 1.3;
-  stroke-linecap: round;
-}
-
-.bee-trail__bee-wing {
-  fill: rgba(255, 255, 255, 0.82);
-  stroke: rgba(27, 34, 49, 0.26);
-  stroke-width: 0.8;
-  transform-origin: center;
-}
-
-.bee-trail__bee-wing--left {
-  transform: translate(-1.5px, -3px) rotate(-18deg);
-  animation: bee-wing-flutter-left 0.24s ease-in-out infinite alternate;
-}
-
-.bee-trail__bee-wing--right {
-  transform: translate(1.4px, -3px) rotate(18deg);
-  animation: bee-wing-flutter-right 0.24s ease-in-out infinite alternate;
+.bee-trail__orb-spark {
+  fill: #fff;
+  opacity: 0.86;
 }
 
 .bee-trail__label {
@@ -336,7 +333,7 @@ body[data-section="1"] .bee-trail--join {
   right: calc(var(--safe-right) + clamp(1.1rem, 5.8vw, 6rem));
   bottom: calc(var(--safe-bottom) + clamp(4.9rem, 13vh, 8.2rem));
   width: min(
-    15rem,
+    var(--bee-line-width),
     calc(100vw - var(--safe-left) - var(--safe-right) - 2.2rem)
   );
   color: var(--content-trail, var(--marker));
@@ -458,14 +455,11 @@ body[data-section="1"][data-join-state="rubricsHoverBlush"]
 
 body[data-section="1"][data-join-state="rubricsHoverExcited"]
   .bee-trail--join
-  .bee-trail__dot,
+  .bee-trail__orb-drift,
 body[data-section="1"][data-join-state="rubricsHoverBlush"]
   .bee-trail--join
-  .bee-trail__dot {
-  transform-origin: center;
-  animation:
-    bee-dot-pop 0.38s ease-in-out infinite alternate,
-    bee-flight 0.52s ease-in-out infinite alternate;
+  .bee-trail__orb-drift {
+  animation: bee-orb-excited 0.62s ease-in-out infinite alternate;
 }
 
 body[data-section="1"][data-join-state="idleCurious"] .bee-trail__eye,
@@ -718,10 +712,10 @@ body[data-content-hover="committee"] .bee-trail--committee .bee-trail__path {
   animation-duration: 0.48s, 0.66s;
 }
 
-body[data-content-hover="committee"] .bee-trail--committee .bee-trail__dot {
-  animation:
-    bee-dot-pop 0.38s ease-in-out infinite alternate,
-    bee-flight 0.5s ease-in-out infinite alternate;
+body[data-content-hover="committee"]
+  .bee-trail--committee
+  .bee-trail__orb-drift {
+  animation: bee-orb-excited 0.58s ease-in-out infinite alternate;
 }
 
 body[data-content-hover="committee"] .bee-trail--committee .bee-trail__label {
@@ -949,23 +943,27 @@ body[data-content-hover="committee"] .bee-trail--committee {
   }
 }
 
-@keyframes bee-dot-pop {
-  from {
-    opacity: 0.86;
-    transform: scale(0.92);
+@keyframes bee-orb-drift {
+  0% {
+    transform: translate(-0.16rem, 0.1rem) scale(0.96);
   }
-  to {
-    opacity: 1;
-    transform: scale(1.24);
+  45% {
+    transform: translate(0.08rem, -0.14rem) scale(1.04);
+  }
+  100% {
+    transform: translate(0.18rem, 0.05rem) scale(1);
   }
 }
 
-@keyframes bee-flight {
-  from {
-    transform: translate(-0.22rem, 0.14rem) scale(0.96);
+@keyframes bee-orb-excited {
+  0% {
+    transform: translate(-0.2rem, 0.12rem) scale(0.98);
   }
-  to {
-    transform: translate(0.22rem, -0.14rem) scale(1.06);
+  40% {
+    transform: translate(0.14rem, -0.2rem) scale(1.2);
+  }
+  100% {
+    transform: translate(0.24rem, 0.03rem) scale(1.08);
   }
 }
 
@@ -1042,24 +1040,6 @@ body[data-content-hover="committee"] .bee-trail--committee {
   }
 }
 
-@keyframes bee-wing-flutter-left {
-  from {
-    transform: translate(-1.5px, -3px) rotate(-20deg) scaleY(0.92);
-  }
-  to {
-    transform: translate(-1.5px, -3px) rotate(-14deg) scaleY(1.08);
-  }
-}
-
-@keyframes bee-wing-flutter-right {
-  from {
-    transform: translate(1.4px, -3px) rotate(16deg) scaleY(0.92);
-  }
-  to {
-    transform: translate(1.4px, -3px) rotate(22deg) scaleY(1.08);
-  }
-}
-
 @media (max-width: 860px) {
   #navbar {
     top: calc(var(--safe-top) + 0.45rem);
@@ -1116,7 +1096,7 @@ body[data-content-hover="committee"] .bee-trail--committee {
     left: calc(var(--safe-left) + 0.65rem);
     bottom: calc(var(--safe-bottom) + clamp(3.6rem, 11vh, 5.6rem));
     width: min(
-      13.5rem,
+      var(--bee-line-width),
       calc(100vw - var(--safe-left) - var(--safe-right) - 1.3rem)
     );
   }
@@ -1125,7 +1105,7 @@ body[data-content-hover="committee"] .bee-trail--committee {
     right: calc(var(--safe-right) + 1rem);
     bottom: calc(var(--safe-bottom) + clamp(5.3rem, 12vh, 7.4rem));
     width: min(
-      12.6rem,
+      var(--bee-line-width),
       calc(100vw - var(--safe-left) - var(--safe-right) - 1rem)
     );
   }
@@ -1169,7 +1149,7 @@ body[data-content-hover="committee"] .bee-trail--committee {
   body[data-section="2"] .bee-trail--social,
   body[data-section="4"] .bee-trail--committee {
     width: min(
-      9.8rem,
+      10.4rem,
       calc(100vw - var(--safe-left) - var(--safe-right) - 0.95rem)
     );
   }
@@ -1180,7 +1160,7 @@ body[data-content-hover="committee"] .bee-trail--committee {
     right: calc(var(--safe-right) + 0.35rem);
     bottom: calc(var(--safe-bottom) + 3.8rem);
     width: min(
-      8.2rem,
+      10.4rem,
       calc(100vw - var(--safe-left) - var(--safe-right) - 0.7rem)
     );
   }
@@ -1189,7 +1169,7 @@ body[data-content-hover="committee"] .bee-trail--committee {
     left: calc(var(--safe-left) + 0.35rem);
     bottom: calc(var(--safe-bottom) + 3.1rem);
     width: min(
-      8.2rem,
+      10.4rem,
       calc(100vw - var(--safe-left) - var(--safe-right) - 0.7rem)
     );
   }
@@ -1198,7 +1178,7 @@ body[data-content-hover="committee"] .bee-trail--committee {
     right: calc(var(--safe-right) + 0.45rem);
     bottom: calc(var(--safe-bottom) + 4rem);
     width: min(
-      8.4rem,
+      10.4rem,
       calc(100vw - var(--safe-left) - var(--safe-right) - 0.7rem)
     );
   }

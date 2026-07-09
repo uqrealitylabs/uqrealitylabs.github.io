@@ -109,6 +109,13 @@
   },
   "socialLinks": [
     {
+      "label": "Website",
+      "url": "/",
+      "texture": "/Assets/images/labs_logo.png",
+      "material": "cloth",
+      "accent": "#FF5757"
+    },
+    {
       "label": "LinkedIn",
       "url": "https://www.linkedin.com/company/uq-reality-labs",
       "texture": "/Assets/images/linkedin.png",
@@ -126,6 +133,7 @@
       "label": "Instagram",
       "url": "https://www.instagram.com/uqrealitylabs/",
       "texture": "/Assets/images/instagram.jpg",
+      "material": "grass",
       "accent": "#E1306C",
       "music": {
         "label": "nyan cat sparkle",
@@ -154,7 +162,6 @@
       "label": "Email",
       "url": "mailto:uqrealitylabs@gmail.com",
       "texture": "/Assets/images/email.jpg",
-      "material": "grass",
       "accent": "#F59E0B",
       "music": {
         "label": "crab rave mail",

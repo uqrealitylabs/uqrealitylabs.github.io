@@ -80,8 +80,11 @@ function compactContentText(text = "") {
 }
 
 function withBasePath(path = "") {
-  if (/^(https?:|mailto:)/.test(path)) return path;
-  return `${ASSET_BASE}${path.replace(/^\/+/, "")}`;
+  const normalized = path.replace(/^\/+/, "");
+  if (!normalized.startsWith("Assets/") || normalized.includes("..")) {
+    return `${ASSET_BASE}Assets/images/labs_logo.png`;
+  }
+  return `${ASSET_BASE}${normalized}`;
 }
 
 function currentLocale() {
@@ -1087,7 +1090,13 @@ function getViewportLayout() {
       : compact
         ? -2.35
         : ABOUT_IMAGE_POS.y + ABOUT_IMAGE_Y_OFFSET,
-    socialCubeSpacing: narrow ? 3.2 : compact ? 3.55 : SOCIAL_CUBE_SPACING,
+    socialCubeSpacing: narrow
+      ? 2.7
+      : compact
+        ? 3.2
+        : SOCIAL_CUBES.length > 4
+          ? 4.35
+          : SOCIAL_CUBE_SPACING,
     socialCubeY: compact ? -0.15 : SOCIAL_CUBE_BASE.y,
     socialCardWidth: narrow ? 2.75 : compact ? 3.05 : 3.25,
     socialCardHeight: narrow ? 2.75 : compact ? 3.05 : 3.25,
@@ -1828,14 +1837,52 @@ function createSocialLogoMesh(texture, label, touchField, layout) {
 
 const grassBladeDummy = new THREE.Object3D();
 
-function createGrassLogoBlades(label, touchField, layout) {
+function createGrassLogoBlades(touchField, layout) {
   const kind = touchField.config.kind;
-  if (kind !== "mail" && kind !== "grass") return null;
+  if (kind !== "grass") return null;
 
   const logoWidth = layout.socialCardWidth;
   const logoHeight = layout.socialCardHeight;
   const logoSize = Math.min(logoWidth, logoHeight);
-  const bladeCount = layout.narrow ? 300 : 520;
+  const targetBladeCount = layout.narrow ? 360 : 640;
+  const blades = [];
+
+  const random = (seed) => {
+    const value = Math.sin(seed * 12.9898) * 43758.5453;
+    return value - Math.floor(value);
+  };
+  const isGrassLogoBlade = (x, y) => {
+    const nx = x / (logoWidth * 0.42);
+    const ny = y / (logoHeight * 0.42);
+    const square =
+      Math.abs(nx) < 0.72 &&
+      Math.abs(ny) < 0.72 &&
+      (Math.abs(Math.abs(nx) - 0.72) < 0.08 ||
+        Math.abs(Math.abs(ny) - 0.72) < 0.08);
+    const lens = Math.abs(Math.hypot(nx, ny) - 0.34) < 0.08;
+    const dot = Math.hypot(nx - 0.43, ny + 0.43) < 0.09;
+    return square || lens || dot;
+  };
+
+  for (let i = 0; blades.length < targetBladeCount && i < targetBladeCount * 90; i += 1) {
+    const x = (random(i + 1) - 0.5) * logoWidth;
+    const y = (random(i + 101) - 0.5) * logoHeight;
+    if (!isGrassLogoBlade(x, y)) continue;
+
+    blades.push({
+      x,
+      y,
+      uvx: 0.5 + x / logoWidth,
+      uvy: 0.5 + y / logoHeight,
+      height: logoSize * (0.06 + random(i + 17) * 0.055),
+      angle: (random(i + 29) - 0.5) * 0.28,
+      stiffness: 0.55 + random(i + 41) * 0.38,
+      highlight: random(i + 53) > 0.72,
+    });
+  }
+
+  if (blades.length === 0) return null;
+
   const geometry = new THREE.PlaneGeometry(0.035, 0.18, 1, 2);
   geometry.translate(0, 0.09, 0);
   const material = new THREE.MeshStandardMaterial({
@@ -1846,39 +1893,20 @@ function createGrassLogoBlades(label, touchField, layout) {
     transparent: true,
     alphaTest: 0.25,
   });
-  const mesh = new THREE.InstancedMesh(geometry, material, bladeCount);
-  const blades = [];
+  const mesh = new THREE.InstancedMesh(geometry, material, blades.length);
 
-  for (let i = 0; i < bladeCount; i += 1) {
-    const column = ((i * 37) % 100) / 99;
-    const row = ((i * 61) % 100) / 99;
-    const x = (column - 0.5) * logoWidth;
-    const y = (row - 0.5) * logoHeight;
-    const envelopeFold =
-      Math.abs(y) < 0.035 ||
-      Math.abs(y - Math.abs(x) * 0.34) < 0.035 ||
-      Math.abs(y + Math.abs(x) * 0.34) < 0.035;
-    const height = logoSize * (envelopeFold ? 0.095 : 0.065 + ((i * 17) % 9) * 0.004);
+  blades.forEach((blade, index) => {
     const color = new THREE.Color(
-      envelopeFold ? 0xc6f46b : i % 2 === 0 ? 0x72c543 : 0x4d982f,
+      blade.highlight ? 0xc6f46b : index % 2 === 0 ? 0x72c543 : 0x4d982f,
     );
-
-    blades.push({
-      x,
-      y,
-      uvx: 0.5 + x / logoWidth,
-      uvy: 0.5 + y / logoHeight,
-      height,
-      angle: (((i * 13) % 17) - 8) * 0.035,
-      stiffness: 0.55 + ((i * 19) % 9) * 0.045,
-    });
-    mesh.setColorAt(i, color);
-  }
+    mesh.setColorAt(index, color);
+  });
 
   mesh.instanceColor.needsUpdate = true;
   mesh.position.set(0, 0, SOCIAL_CARD_DEPTH / 2 + 0.08);
   mesh.userData.blades = blades;
   mesh.userData.touchField = touchField;
+  mesh.userData.isSocialGrass = true;
   mesh.renderOrder = 45;
   return mesh;
 }
@@ -3704,7 +3732,6 @@ function resizeSocialCard(card) {
     card.userData.grassLogo.geometry.dispose();
     card.userData.grassLogo.material.dispose();
     card.userData.grassLogo = createGrassLogoBlades(
-      card.userData.material || card.userData.label,
       card.userData.touchField,
       layout,
     );
@@ -3742,6 +3769,7 @@ function createSocialCaption(label) {
     -layout.socialCardHeight / 2 - 0.42,
     SOCIAL_CARD_DEPTH / 2 + 0.04,
   );
+  caption.raycast = () => {};
   caption.sync();
 
   return caption;
@@ -3771,7 +3799,7 @@ function createSocialCubes() {
       touchField,
       layout,
     );
-    const grassLogo = createGrassLogoBlades(materialKey, touchField, layout);
+    const grassLogo = createGrassLogoBlades(touchField, layout);
     const underline = new THREE.Mesh(
       new THREE.PlaneGeometry(layout.socialCardWidth * 0.56, 0.055),
       new THREE.MeshBasicMaterial({
@@ -3815,6 +3843,7 @@ function createSocialCubes() {
       -layout.socialCardHeight / 2 - 0.28,
       SOCIAL_CARD_DEPTH / 2 + 0.055,
     );
+    underline.userData.isSocialUnderline = true;
     underline.renderOrder = 42;
     cube.add(logoMesh);
     if (grassLogo) cube.add(grassLogo);
@@ -3828,16 +3857,25 @@ function createSocialCubes() {
 function exposeSocialMaterialTestState() {
   if (!window.Cypress) return;
 
-  window.__uqrlSocialMaterials = () =>
-    socialCubes.map((cube) => ({
-      label: cube.userData.label,
-      kind: cube.userData.touchField?.config?.kind,
-      visible: cube.visible,
-      hasLogo: Boolean(cube.userData.logoMesh),
-      hasUnderline: Boolean(cube.userData.underline),
-      hasGrassLogo: Boolean(cube.userData.grassLogo),
-      pressure: cube.userData.touchField?.poke?.pressure || 0,
-    }));
+  window.__uqrlSocialMaterials = () => {
+    const point = new THREE.Vector3();
+
+    return socialCubes.map((cube) => {
+      cube.getWorldPosition(point);
+      point.project(camera);
+      return {
+        label: cube.userData.label,
+        kind: cube.userData.touchField?.config?.kind,
+        visible: cube.visible,
+        hasLogo: Boolean(cube.userData.logoMesh),
+        hasUnderline: Boolean(cube.userData.underline),
+        hasGrassLogo: Boolean(cube.userData.grassLogo),
+        pressure: cube.userData.touchField?.poke?.pressure || 0,
+        screenX: canvasRect.left + (point.x * 0.5 + 0.5) * canvasRect.width,
+        screenY: canvasRect.top + (-point.y * 0.5 + 0.5) * canvasRect.height,
+      };
+    });
+  };
 }
 
 function stopSocialCubeExit(cube) {
@@ -4066,6 +4104,15 @@ function getSocialCubeFromObject(object) {
 function getSocialTouchUv(cube, hit) {
   if (!cube || !hit) return null;
   if (hit.object.userData?.isSocialLogo && hit.uv) return hit.uv;
+  if (hit.object.userData?.isSocialUnderline) {
+    const local = hit.object.worldToLocal(hit.point.clone());
+    const width = cube.userData.width * 0.56 || 1;
+    return new THREE.Vector2(
+      THREE.MathUtils.clamp(local.x / width + 0.5, 0, 1),
+      0.08,
+    );
+  }
+  if (hit.object !== cube && !hit.object.userData?.isSocialGrass) return null;
 
   const local = cube.worldToLocal(hit.point.clone());
   const width = cube.userData.width || 1;
@@ -4103,7 +4150,11 @@ function updateGrassLogoBlades(mesh) {
       0,
       blade.angle + dx * influence * 1.8,
     );
-    grassBladeDummy.scale.set(1, Math.max(0.28, 1 - influence * 0.68), 1);
+    grassBladeDummy.scale.set(
+      1,
+      (blade.height / 0.18) * Math.max(0.28, 1 - influence * 0.68),
+      1,
+    );
     grassBladeDummy.updateMatrix();
     mesh.setMatrixAt(index, grassBladeDummy.matrix);
   });
