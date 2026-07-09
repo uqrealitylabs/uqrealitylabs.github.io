@@ -135,6 +135,7 @@ async function loadSocialContent() {
       label: social.label,
       url: social.url,
       texture: withBasePath(social.texture),
+      material: social.material || null,
       accent: social.accent || social.accentColor || "#FF5757",
       music: social.music || null,
       order: Number.isFinite(social.order) ? social.order : index + 1,
@@ -3703,7 +3704,7 @@ function resizeSocialCard(card) {
     card.userData.grassLogo.geometry.dispose();
     card.userData.grassLogo.material.dispose();
     card.userData.grassLogo = createGrassLogoBlades(
-      card.userData.label,
+      card.userData.material || card.userData.label,
       card.userData.touchField,
       layout,
     );
@@ -3751,7 +3752,8 @@ function createSocialCubes() {
     const texture = createSocialTexture(config);
     const basePosition = getSocialCubeBasePosition(index);
     const layout = getViewportLayout();
-    const touchField = createMaterialTouchField(config.label);
+    const materialKey = config.material || config.label;
+    const touchField = createMaterialTouchField(materialKey);
     const cube = new THREE.Mesh(
       new RoundedBoxGeometry(
         layout.socialCardWidth,
@@ -3760,16 +3762,16 @@ function createSocialCubes() {
         SOCIAL_CUBE_SEGMENTS,
         SOCIAL_CUBE_RADIUS,
       ),
-      createSocialCardMaterials(texture, config.label, touchField),
+      createSocialCardMaterials(texture, materialKey, touchField),
     );
     const caption = createSocialCaption(config.label);
     const logoMesh = createSocialLogoMesh(
       texture,
-      config.label,
+      materialKey,
       touchField,
       layout,
     );
-    const grassLogo = createGrassLogoBlades(config.label, touchField, layout);
+    const grassLogo = createGrassLogoBlades(materialKey, touchField, layout);
     const underline = new THREE.Mesh(
       new THREE.PlaneGeometry(layout.socialCardWidth * 0.56, 0.055),
       new THREE.MeshBasicMaterial({
@@ -3783,6 +3785,7 @@ function createSocialCubes() {
     cube.position.set(basePosition.x, basePosition.y, basePosition.z);
     cube.userData.url = config.url;
     cube.userData.label = config.label;
+    cube.userData.material = config.material;
     cube.userData.accent = config.accent;
     cube.userData.materialKind = touchField.config.kind;
     cube.userData.touchField = touchField;
@@ -3820,6 +3823,21 @@ function createSocialCubes() {
     scene.add(cube);
     return cube;
   });
+}
+
+function exposeSocialMaterialTestState() {
+  if (!window.Cypress) return;
+
+  window.__uqrlSocialMaterials = () =>
+    socialCubes.map((cube) => ({
+      label: cube.userData.label,
+      kind: cube.userData.touchField?.config?.kind,
+      visible: cube.visible,
+      hasLogo: Boolean(cube.userData.logoMesh),
+      hasUnderline: Boolean(cube.userData.underline),
+      hasGrassLogo: Boolean(cube.userData.grassLogo),
+      pressure: cube.userData.touchField?.poke?.pressure || 0,
+    }));
 }
 
 function stopSocialCubeExit(cube) {
@@ -4187,6 +4205,32 @@ function updateSocialCubeHover() {
   canvas.style.cursor = pointerActive ? "pointer" : "default";
 }
 
+function clearCanvasPointerHover() {
+  pointerIsDown = false;
+  pointerPressure = 0;
+  lastPointerClientX = Number.NEGATIVE_INFINITY;
+  lastPointerClientY = Number.NEGATIVE_INFINITY;
+  mouse.set(2, 2);
+  pointerDirty = true;
+  canvas.style.cursor = "default";
+
+  if (aboutJoinImage?.userData.hovered) {
+    setAboutJoinImageHovered(false);
+  }
+
+  socialCubes.forEach((cube) => {
+    if (cube.userData.hovered) resetSocialCubeHover(cube);
+  });
+  hoveredSocialCube = null;
+  socialHoverKey = "";
+  stopActiveSound(false);
+  document.body.removeAttribute("data-content-hover");
+  document.body.removeAttribute("data-material-type");
+  document.body.removeAttribute("data-pointer-active");
+  document.body.removeAttribute("data-interaction-state");
+  document.body.style.removeProperty("--content-accent");
+}
+
 function setupSocialCubeInteraction() {
   canvas.addEventListener("pointermove", updatePointerFromEvent, {
     passive: true,
@@ -4211,12 +4255,10 @@ function setupSocialCubeInteraction() {
   );
   canvas.addEventListener(
     "pointerleave",
-    () => {
-      pointerIsDown = false;
-      pointerPressure = 0;
-    },
+    clearCanvasPointerHover,
     { passive: true },
   );
+  window.addEventListener("blur", clearCanvasPointerHover, { passive: true });
 
   window.addEventListener("click", (event) => {
     if (
@@ -4613,6 +4655,7 @@ async function init() {
   setupMemberPopup();
   socialCubes = createSocialCubes();
   applyResponsiveLayout();
+  exposeSocialMaterialTestState();
   setupJoinAccessibleInteraction();
   setupSocialCubeInteraction();
   setupAboutJoinInteraction();

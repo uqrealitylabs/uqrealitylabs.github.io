@@ -5,8 +5,18 @@ import {
 
 const home = getPageContent("en", "home");
 const about = getPageContent("en", "about");
+const contact = getPageContent("en", "contact");
 const joinCta = about.hero.cta ?? { href: "", label: "" };
 const site = getSiteContent("en");
+type SocialMaterialDebug = {
+  label: string;
+  kind: string;
+  visible: boolean;
+  hasLogo: boolean;
+  hasUnderline: boolean;
+  hasGrassLogo: boolean;
+  pressure: number;
+};
 
 describe("navigation shell", () => {
   it("loads the app shell and keeps JSON-backed nav available", () => {
@@ -43,6 +53,8 @@ describe("navigation shell", () => {
   it("renders the visible living JOIN US face scaffold", () => {
     cy.visit("/");
     cy.contains("#nav-links button", about.nav.label).click();
+    cy.get("body").should("have.attr", "data-section", "1");
+    cy.get(".bee-trail--join").should("be.visible");
     cy.get(".bee-trail--join .bee-trail__join-letter").then((letters) => {
       expect([...letters].map((node) => node.textContent).join("")).to.eq(
         site.animationCopy.joinUs.replace(/\s+/g, ""),
@@ -63,6 +75,9 @@ describe("navigation shell", () => {
   it("drives JOIN US reactions from keyboard-safe RUBRICS activation", () => {
     cy.clock();
     cy.visit("/");
+    cy.contains("#nav-links button", about.nav.label).click();
+    cy.get("body").should("have.attr", "data-section", "1");
+    cy.get(".bee-trail--join").should("be.visible");
     cy.get("#nav-links button").should("have.length.gte", 5);
     cy.get("#join-us-accessible-link").focus();
     cy.get("body").should(
@@ -70,10 +85,25 @@ describe("navigation shell", () => {
       "data-join-state",
       "rubricsHoverExcited",
     );
+    cy.get(".bee-trail--join .bee-trail__join-smile").should(
+      "have.css",
+      "opacity",
+      "1",
+    );
     cy.tick(3000);
     cy.get("body").should("have.attr", "data-join-state", "rubricsHoverBlush");
+    cy.get(".bee-trail--join .bee-trail__kawaii-blush").should(
+      "have.css",
+      "opacity",
+      "1",
+    );
     cy.get("#join-us-accessible-link").blur();
     cy.get("body").should("have.attr", "data-join-state", "sadShrivel");
+    cy.get(".bee-trail--join .bee-trail__join-frown").should(
+      "have.css",
+      "opacity",
+      "1",
+    );
     cy.tick(1000);
     cy.get("body").should("have.attr", "data-join-state", "idleCurious");
   });
@@ -81,11 +111,16 @@ describe("navigation shell", () => {
   it("shows yay before delayed JOIN navigation", () => {
     cy.clock();
     cy.visit("/");
+    cy.contains("#nav-links button", about.nav.label).click();
+    cy.get("body").should("have.attr", "data-section", "1");
     cy.window().then((win) => {
       cy.stub(win, "open").as("open");
     });
     cy.get("#nav-links button").should("have.length.gte", 5);
-    cy.get("#join-us-accessible-link").click({ force: true });
+    cy.get("#join-us-accessible-link")
+      .focus()
+      .should("be.visible")
+      .type("{enter}");
     cy.get("body").should(
       "have.attr",
       "data-join-state",
@@ -102,5 +137,39 @@ describe("navigation shell", () => {
       "_blank",
       "noopener,noreferrer",
     );
+  });
+
+  it("creates visible feelable social material cards from live content", () => {
+    cy.visit("/");
+    cy.contains("#nav-links button", contact.nav.label).click();
+    cy.get("body").should("have.attr", "data-section", "2");
+    cy.get("#canvas").should("be.visible");
+    cy.window()
+      .its("__uqrlSocialMaterials")
+      .should("be.a", "function")
+      .then((readMaterials) => {
+        const materials = (readMaterials as () => SocialMaterialDebug[])();
+        const visibleMaterials = materials.filter(
+          (material: SocialMaterialDebug) => material.visible,
+        );
+
+        expect(visibleMaterials).to.have.length(site.socialLinks.length);
+        expect(
+          new Set(
+            visibleMaterials.map(
+              (material: SocialMaterialDebug) => material.kind,
+            ),
+          ),
+        ).to.eql(new Set(["cloth", "rubber", "glass", "grass"]));
+        visibleMaterials.forEach((material: SocialMaterialDebug) => {
+          expect(material.hasLogo).to.eq(true);
+          expect(material.hasUnderline).to.eq(true);
+        });
+        expect(
+          visibleMaterials.find(
+            (material: SocialMaterialDebug) => material.label === "Email",
+          ),
+        ).to.include({ kind: "grass", hasGrassLogo: true });
+      });
   });
 });

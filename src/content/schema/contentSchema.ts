@@ -106,6 +106,8 @@ export type MusicCue = {
   duration?: number;
 };
 
+const socialMaterialKinds = ["cloth", "rubber", "glass", "grass", "mail"];
+
 export type MemberContent = {
   name: string;
   role: string;
@@ -165,6 +167,7 @@ export type SiteContent = {
     label: string;
     url: string;
     texture: string;
+    material?: "cloth" | "rubber" | "glass" | "grass" | "mail";
     accent: string;
     accentColor?: string;
     music?: MusicCue;
@@ -751,6 +754,17 @@ export function validateSiteContent(
         issue(issues, `${path}.label`, "text", social.label);
       validateHref(issues, social.url, `${path}.url`);
       validateAssetPath(issues, social.texture, `${path}.texture`);
+      if (
+        social.material !== undefined &&
+        !socialMaterialKinds.includes(String(social.material))
+      ) {
+        issue(
+          issues,
+          `${path}.material`,
+          socialMaterialKinds.join(" | "),
+          social.material,
+        );
+      }
       validateMusic(social.music, `${path}.music`, issues);
     });
 

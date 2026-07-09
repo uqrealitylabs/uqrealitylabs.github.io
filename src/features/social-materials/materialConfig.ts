@@ -58,6 +58,7 @@ export const socialMaterialConfigs: Record<
 export function getSocialMaterialKind(label = ""): SocialMaterialKind {
   const name = label.toLowerCase();
 
+  if (name in socialMaterialConfigs) return name as SocialMaterialKind;
   if (name.includes("discord")) return "rubber";
   if (name.includes("linkedin")) return "glass";
   if (name.includes("email") || name.includes("mail")) return "mail";

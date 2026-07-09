@@ -154,6 +154,7 @@
       "label": "Email",
       "url": "mailto:uqrealitylabs@gmail.com",
       "texture": "/Assets/images/email.jpg",
+      "material": "grass",
       "accent": "#F59E0B",
       "music": {
         "label": "crab rave mail",
