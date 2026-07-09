@@ -21,7 +21,7 @@ Live page content moved from markdown files to locale-scoped JSON. First-party s
 
 ## No-JS policy
 
-Allowed first-party source/config/script extensions are `.ts`, `.tsx`, `.d.ts`, `.json`, `.css`, `.html`, and assets. `scripts/assert-no-js.ts` ignores generated/dependency folders and fails on checked-in `.js/.jsx/.mjs/.cjs`.
+Allowed first-party source/config/script extensions are `.ts`, `.tsx`, `.d.ts`, `.json`, `.css`, `.html`, and assets. `tools/scripts/assert-no-js.ts` ignores generated/dependency folders and fails on checked-in `.js/.jsx/.mjs/.cjs`.
 
 ## Content system
 
@@ -44,10 +44,10 @@ Markdown was removed as a live content system to remove parsing/frontmatter code
 - `robotic-bees` manually ports only the useful `seo-robots-content-signals` ideas: generated robots, sitemap, `llms.txt`, canonical metadata, social tags, favicon, and truthful JSON-LD.
 - SEO source of truth is resolved JSON content: shared site defaults in `src/content/graph/shared.json` plus locale overlays in `src/content/site/<locale>.json` and page `meta` fields.
 - `src/seo/seo.ts` is pure build/test code. It does not run in the browser shell.
-- `scripts/generate-seo.ts` writes `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt`, and the generated SEO block in `index.html`.
-- `scripts/validate-seo.ts` fails when generated files are stale or indexable pages have duplicate/missing canonical metadata.
+- `tools/scripts/generate-seo.ts` writes `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt`, and the generated SEO block in `index.html`.
+- `tools/scripts/validate-seo.ts` fails when generated files are stale or indexable pages have duplicate/missing canonical metadata.
 - Production robots allow public pages and point to the sitemap. Preview robots are generated as `Disallow: /` by `buildRobots(site, "preview")`.
-- Only explicitly `indexable: true` pages enter the sitemap; current localized/in-scene pages stay out until real localized route URLs exist.
+- Only explicitly `indexable: true` pages enter the sitemap; localized URLs use the configured language subdomain form such as `https://en.<domain>/`.
 
 ## Validation commands
 

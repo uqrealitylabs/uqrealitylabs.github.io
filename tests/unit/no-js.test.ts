@@ -1,7 +1,7 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { findForbiddenJavaScript } from "../../scripts/assert-no-js";
+import { findForbiddenJavaScript } from "../../tools/scripts/assert-no-js";
 
 const tmpRoot = join(process.cwd(), ".tmp-no-js-test");
 

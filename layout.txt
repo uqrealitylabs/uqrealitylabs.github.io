@@ -20,7 +20,8 @@ Filesystem
 - src/shared/i18n/: shell/global UI strings.
 - src/shared/state/: coarse Zustand UI state.
 - src/shared/styles/: Tailwind v4 entry, tokens, base CSS, legacy CSS.
-- scripts/: TypeScript-only validation/asset/SEO scripts.
+- tools/configs/: explicit tool configs for Cypress, Cypress Vite, Rsbuild, Vitest, Biome, and Lighthouse.
+- tools/scripts/: TypeScript-only validation/asset/SEO scripts.
 - .github/workflows/ci.yml: quality, build, Cypress component, and E2E smoke.
 - .github/workflows/security.yml: workflow policy, npm audit, OSV, Dependency Review, CodeQL.
 - .github/workflows/benchmarks.yml: scheduled/manual build metrics and Lighthouse capture for `/`.
@@ -38,7 +39,7 @@ Data flow
 - SEO flow: JSON site/page content -> `src/seo` builders -> public crawler files and generated `index.html` head block.
 
 No-JS enforcement
-- `scripts/assert-no-js.ts` scans first-party files.
+- `tools/scripts/assert-no-js.ts` scans first-party files.
 - `tsconfig.json` has `allowJs: false`.
 - `npm run test:ci` runs no-JS and content validation before typecheck/lint/tests/build.
 - `npm run seo:check` validates generated robots, sitemap, llms.txt, and the home-page head block.
@@ -54,8 +55,8 @@ Removed legacy flow
 Lazy boundaries
 - Initial shell: React, Zustand, i18n, Motion loader, CSS.
 - Lazy visual chunk: Three, GSAP, Troika, static JSON content.
-- Validation scripts/tests are not imported by App.
-- SEO generation scripts/tests are not imported by App.
+- Validation tools/tests are not imported by App.
+- SEO generation tools/tests are not imported by App.
 
 Tests
 - Vitest: i18n, JSON content/schema/registry/renderer, no-JS scanner, scaling, and SEO builders.

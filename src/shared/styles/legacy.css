@@ -68,7 +68,7 @@ body {
   align-items: center;
   justify-content: space-between;
   width: min(
-    66rem,
+    72rem,
     calc(
       100% -
       var(--safe-left) -
@@ -76,8 +76,8 @@ body {
       clamp(0.5rem, 2.8vw, 1.8rem)
     )
   );
-  gap: clamp(0.5rem, 1.35vw, 1rem);
-  padding: 0.42rem clamp(0.56rem, 1.5vw, 0.94rem);
+  gap: clamp(0.58rem, 1.5vw, 1.12rem);
+  padding: 0.55rem clamp(0.7rem, 1.7vw, 1.15rem);
   border: 2px solid rgba(255, 243, 210, 0.44);
   border-radius: 1.35rem 1rem 1.45rem 0.95rem;
   background:
@@ -114,7 +114,7 @@ body {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
-  min-height: 2rem;
+  min-height: 2.25rem;
   border-radius: var(--radius-md);
   text-decoration: none;
 }
@@ -122,14 +122,14 @@ body {
 .nav-logo img {
   display: block;
   width: auto;
-  height: clamp(2.1rem, 4.55vw, 2.8rem);
+  height: clamp(2.35rem, 4.9vw, 3.15rem);
 }
 
 .nav-links {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: clamp(0.14rem, 0.65vw, 0.35rem);
+  gap: clamp(0.18rem, 0.72vw, 0.42rem);
   min-width: 0;
 }
 
@@ -138,16 +138,16 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.35rem;
-  min-height: 2.35rem;
-  padding: 0.38rem clamp(0.5rem, 1.1vw, 0.72rem);
+  min-width: 2.55rem;
+  min-height: 2.55rem;
+  padding: 0.46rem clamp(0.58rem, 1.2vw, 0.82rem);
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: rgba(255, 255, 255, 0.78);
   cursor: pointer;
   font:
-    clamp(0.88rem, 1.45vw, 1.05rem) / 1 "Pixelify Sans",
+    clamp(0.96rem, 1.55vw, 1.14rem) / 1 "Pixelify Sans",
     system-ui,
     sans-serif;
   white-space: nowrap;
@@ -266,12 +266,12 @@ body[data-popup-open="true"] .bee-trail {
 }
 
 .bee-trail__ghost {
-  stroke-width: 5;
+  stroke-width: 6.4;
   opacity: 0.16;
 }
 
 .bee-trail__path {
-  stroke-width: 3;
+  stroke-width: 4;
   stroke-dasharray: 9 11;
   stroke-dashoffset: 130;
   animation:
@@ -315,10 +315,10 @@ body[data-trails-ready="true"] .bee-trail__path {
 .bee-trail__label {
   fill: var(--chalk);
   stroke: rgba(255, 87, 87, 0.42);
-  stroke-width: 0.7;
+  stroke-width: 0.85;
   paint-order: stroke;
   font:
-    700 18px "Pixelify Sans",
+    700 21px "Pixelify Sans",
     system-ui,
     sans-serif;
   letter-spacing: 0;
@@ -350,7 +350,7 @@ body[data-section="1"] .bee-trail--join {
 .bee-trail__join-letter {
   fill: currentColor;
   stroke: rgba(255, 243, 210, 0.62);
-  stroke-width: 0.55;
+  stroke-width: 0.68;
   transform-box: fill-box;
   transform-origin: center;
 }
@@ -449,7 +449,7 @@ body[data-section="1"][data-join-state="rubricsHoverExcited"]
 body[data-section="1"][data-join-state="rubricsHoverBlush"]
   .bee-trail--join
   .bee-trail__path {
-  stroke-width: 4;
+  stroke-width: 5;
   stroke-dasharray: 4 8;
   animation:
     bee-draw 0.38s ease-out both,
@@ -585,7 +585,10 @@ body[data-section="2"] .bee-trail--social {
   left: calc(var(--safe-left) + clamp(1rem, 5.5vw, 6.2rem));
   bottom: calc(var(--safe-bottom) + clamp(4rem, 12vh, 6.8rem));
   transform: rotate(7deg);
-  width: min(14rem, calc(100vw - var(--safe-left) - var(--safe-right) - 2rem));
+  width: min(
+    var(--bee-line-width),
+    calc(100vw - var(--safe-left) - var(--safe-right) - 2rem)
+  );
 }
 
 body[data-section="4"] .bee-trail--committee {
@@ -593,7 +596,7 @@ body[data-section="4"] .bee-trail--committee {
   right: calc(var(--safe-right) + clamp(2.4rem, 7vw, 7.6rem));
   bottom: calc(var(--safe-bottom) + clamp(6rem, 15vh, 9.2rem));
   width: min(
-    13.4rem,
+    var(--bee-line-width),
     calc(100vw - var(--safe-left) - var(--safe-right) - 2rem)
   );
   color: var(--committee-accent, var(--marker));
@@ -1092,8 +1095,8 @@ body[data-reduced-motion="true"] .bee-trail__orb-drift {
       31rem,
       calc(100% - var(--safe-left) - var(--safe-right) - 0.7rem)
     );
-    gap: 0.28rem;
-    padding: 0.34rem 0.28rem;
+    gap: 0.32rem;
+    padding: 0.4rem 0.34rem;
     border-radius: 1rem;
   }
 
@@ -1105,11 +1108,11 @@ body[data-reduced-motion="true"] .bee-trail__orb-drift {
   }
 
   .nav-logo {
-    min-height: 2.2rem;
+    min-height: 2.4rem;
   }
 
   .nav-logo img {
-    height: 1.72rem;
+    height: 1.95rem;
   }
 
   .nav-links {
@@ -1117,10 +1120,10 @@ body[data-reduced-motion="true"] .bee-trail__orb-drift {
   }
 
   .nav-links button {
-    min-width: 2.3rem;
-    min-height: 2.3rem;
-    padding: 0.38rem 0.5rem;
-    font-size: 0.78rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    padding: 0.42rem 0.56rem;
+    font-size: 0.84rem;
   }
 
   .nav-links button:not(.is-active)::after {
@@ -1175,14 +1178,14 @@ body[data-reduced-motion="true"] .bee-trail__orb-drift {
 
 @media (max-width: 480px) {
   .nav-logo img {
-    height: 1.28rem;
+    height: 1.46rem;
   }
 
   .nav-links button {
-    min-width: 2.28rem;
-    min-height: 2.28rem;
-    padding-inline: 0.2rem;
-    font-size: 0.68rem;
+    min-width: 2.38rem;
+    min-height: 2.38rem;
+    padding-inline: 0.24rem;
+    font-size: 0.72rem;
   }
 
   #navbar:not(.is-condensed) {
@@ -1194,7 +1197,7 @@ body[data-reduced-motion="true"] .bee-trail__orb-drift {
   body[data-section="2"] .bee-trail--social,
   body[data-section="4"] .bee-trail--committee {
     width: min(
-      10.4rem,
+      12.2rem,
       calc(100vw - var(--safe-left) - var(--safe-right) - 0.95rem)
     );
   }
@@ -1205,7 +1208,7 @@ body[data-reduced-motion="true"] .bee-trail__orb-drift {
     right: calc(var(--safe-right) + 0.35rem);
     bottom: calc(var(--safe-bottom) + 3.8rem);
     width: min(
-      10.4rem,
+      12.2rem,
       calc(100vw - var(--safe-left) - var(--safe-right) - 0.7rem)
     );
   }
@@ -1214,7 +1217,7 @@ body[data-reduced-motion="true"] .bee-trail__orb-drift {
     left: calc(var(--safe-left) + 0.35rem);
     bottom: calc(var(--safe-bottom) + 3.1rem);
     width: min(
-      10.4rem,
+      12.2rem,
       calc(100vw - var(--safe-left) - var(--safe-right) - 0.7rem)
     );
   }
@@ -1232,7 +1235,7 @@ body[data-reduced-motion="true"] .bee-trail__orb-drift {
 
 @media (max-width: 360px) {
   .nav-logo img {
-    height: 1.08rem;
+    height: 1.24rem;
   }
 
   .nav-links {
@@ -1240,7 +1243,7 @@ body[data-reduced-motion="true"] .bee-trail__orb-drift {
   }
 
   .nav-links button {
-    min-width: 2.28rem;
+    min-width: 2.34rem;
   }
 
   .nav-links button.is-active span {

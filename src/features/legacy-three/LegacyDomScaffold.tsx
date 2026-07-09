@@ -29,13 +29,13 @@ function BeeLineOrb({
         <mpath href={`#${pathId}`} />
       </animateMotion>
       <g className="bee-trail__orb-drift">
-        <circle className="bee-trail__orb-light" cx="0" cy="0" r="7.2" />
-        <circle className="bee-trail__orb-core" cx="0" cy="0" r="3.35" />
+        <circle className="bee-trail__orb-light" cx="0" cy="0" r="9.2" />
+        <circle className="bee-trail__orb-core" cx="0" cy="0" r="4.25" />
         <circle
           className="bee-trail__orb-spark"
           cx="1.45"
           cy="-1.35"
-          r="1.05"
+          r="1.25"
         />
       </g>
     </g>

@@ -1,7 +1,7 @@
 import {
   allPageEntries,
   getSiteContent,
-} from "../src/content/contentRegistry.ts";
+} from "../../src/content/contentRegistry.ts";
 
 export function loadSeoInputs(locale = "en") {
   return {
