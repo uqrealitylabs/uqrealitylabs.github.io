@@ -152,7 +152,7 @@ function resolvePage(locale: Locale, pageId: PageId): PageContent {
   const cta: PageContent["hero"]["cta"] | undefined = rawCta
     ? {
         label: rawCta.label,
-        href: rawCta.href ?? resolveCtaHref(ctaRef!),
+        href: rawCta.href ?? resolveCtaHref(ctaRef ?? ""),
       }
     : undefined;
   const linkEntries = Object.entries(shared.linkRefs ?? {}).map(
