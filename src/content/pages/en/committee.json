@@ -1,0 +1,23 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "en",
+  "id": "committee",
+  "meta": {
+    "title": "Committee",
+    "description": "The humans keeping the headset pile upright."
+  },
+  "nav": {
+    "label": "Committee",
+    "shortLabel": "Team"
+  },
+  "hero": {
+    "title": "Committee",
+    "slugline": "Crew roll call.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "The humans keeping the headset pile upright."
+      }
+    ]
+  }
+}

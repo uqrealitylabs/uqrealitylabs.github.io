@@ -1,0 +1,23 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "en",
+  "id": "contact",
+  "meta": {
+    "title": "Contact",
+    "description": "Send a signal. We check the weird inbox."
+  },
+  "nav": {
+    "label": "Contact",
+    "shortLabel": "Contact"
+  },
+  "hero": {
+    "title": "Contact",
+    "slugline": "Send a signal.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "Send a signal. We check the weird inbox."
+      }
+    ]
+  }
+}

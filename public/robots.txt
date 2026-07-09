@@ -1,0 +1,8 @@
+# robots.txt for UQ Reality Labs
+# Content signals are crawler instructions and rights reservations, not access control.
+Content-Signal: search=yes, ai-input=yes, ai-train=no
+
+User-agent: *
+Allow: /
+
+Sitemap: https://en.uqrealitylabs.github.io/sitemap.xml

@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://uqrealitylabs.github.io/sitemap.xml

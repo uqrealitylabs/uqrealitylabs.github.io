@@ -4,10 +4,20 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 10
-
+      day: tuesday
+      time: "08:00"
+      timezone: Australia/Brisbane
+    groups:
+      dev-tooling:
+        dependency-type: development
+      runtime-minor-patch:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 5
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 10
+      day: tuesday
+      time: "08:30"
+      timezone: Australia/Brisbane
+    open-pull-requests-limit: 5

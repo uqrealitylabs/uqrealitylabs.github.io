@@ -1,0 +1,26 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "en",
+  "id": "rubrics",
+  "meta": {
+    "title": "Rubrics",
+    "description": "Join UQ Reality Labs through Rubrics."
+  },
+  "nav": {
+    "label": "Rubrics",
+    "shortLabel": "Join"
+  },
+  "hero": {
+    "title": "Rubrics",
+    "slugline": "Join the lab.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "Membership runs through Rubrics so signups and club admin stay in one place."
+      }
+    ],
+    "cta": {
+      "label": "Open Rubrics"
+    }
+  }
+}

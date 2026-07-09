@@ -1,0 +1,42 @@
+#root {
+  min-block-size: 100dvh;
+}
+
+.loading-experience {
+  position: fixed;
+  inset-block-end: max(1rem, env(safe-area-inset-bottom));
+  inset-inline-start: 50%;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.7rem;
+  color: var(--chalk);
+  background: rgba(15, 17, 24, 0.82);
+  border: 1px solid rgba(255, 243, 210, 0.24);
+  border-radius: 999px;
+  transform: translateX(-50%);
+  font: 700 0.9rem / 1 var(--font-display);
+}
+
+.loading-experience__orb {
+  inline-size: var(--orb-size);
+  block-size: var(--orb-size);
+  border-radius: 999px;
+  background: var(--marker);
+  box-shadow: 0 0 0.7rem var(--marker);
+  animation: loading-orb 0.75s ease-in-out infinite alternate;
+}
+
+@keyframes loading-orb {
+  to {
+    transform: scale(1.18);
+    opacity: 0.72;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-experience__orb {
+    animation: none;
+  }
+}

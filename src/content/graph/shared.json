@@ -1,0 +1,390 @@
+{
+  "$schema": "../generated/content.schema.json",
+  "routes": {
+    "home": {
+      "route": "/",
+      "navOrder": 1,
+      "theme": {
+        "accentColor": "#FF5757",
+        "trailColor": "#FF5757",
+        "pathVariant": "steady-loop"
+      },
+      "sections": [],
+      "indexable": true,
+      "canonicalPath": "/"
+    },
+    "about": {
+      "route": "/about",
+      "navOrder": 2,
+      "theme": {
+        "accentColor": "#F59E0B",
+        "trailColor": "#F59E0B",
+        "pathVariant": "excited-loop"
+      },
+      "sections": [],
+      "heroCtaRef": "joinRubrics",
+      "linkRefs": {
+        "join": "joinRubrics"
+      }
+    },
+    "contact": {
+      "route": "/contact",
+      "navOrder": 3,
+      "theme": {
+        "accentColor": "#38BDF8",
+        "trailColor": "#38BDF8",
+        "pathVariant": "route-hop"
+      },
+      "sections": [
+        {
+          "id": "socials",
+          "type": "socialGrid"
+        }
+      ]
+    },
+    "sponsors": {
+      "route": "/sponsors",
+      "navOrder": 4,
+      "theme": {
+        "accentColor": "#A78BFA",
+        "trailColor": "#A78BFA",
+        "pathVariant": "spiral-pop"
+      },
+      "sections": []
+    },
+    "committee": {
+      "route": "/committee",
+      "navOrder": 5,
+      "theme": {
+        "accentColor": "#22C55E",
+        "trailColor": "#22C55E",
+        "pathVariant": "loop-buzz"
+      },
+      "sections": [
+        {
+          "id": "committee",
+          "type": "committee"
+        }
+      ]
+    },
+    "rubrics": {
+      "route": "/rubrics",
+      "navOrder": 6,
+      "theme": {
+        "accentColor": "#F59E0B",
+        "trailColor": "#F59E0B",
+        "pathVariant": "excited-loop"
+      },
+      "sections": [],
+      "heroCtaRef": "joinRubrics"
+    }
+  },
+  "ctas": {
+    "joinRubrics": {
+      "id": "joinRubrics",
+      "href": "https://campus.hellorubric.com/?s=5809"
+    }
+  },
+  "seo": {
+    "siteName": "UQ Reality Labs",
+    "siteUrl": "https://uqrealitylabs.github.io",
+    "defaultTitleTemplate": "%s | UQ Reality Labs",
+    "defaultSocialImage": {
+      "src": "/Assets/images/labs_logo.png"
+    },
+    "organization": {
+      "name": "UQ Reality Labs",
+      "url": "https://uqrealitylabs.github.io/",
+      "logo": "/Assets/images/labs_logo.png",
+      "sameAs": [
+        "https://www.linkedin.com/company/uq-reality-labs",
+        "https://www.instagram.com/uqrealitylabs/"
+      ]
+    },
+    "contentPolicy": {
+      "search": true,
+      "aiInput": true,
+      "aiTrain": false
+    }
+  },
+  "socialLinks": [
+    {
+      "label": "Website",
+      "url": "/",
+      "texture": "/Assets/images/labs_logo.png",
+      "material": "cloth",
+      "accent": "#FF5757"
+    },
+    {
+      "label": "LinkedIn",
+      "url": "https://www.linkedin.com/company/uq-reality-labs",
+      "texture": "/Assets/images/linkedin.png",
+      "accent": "#0A66C2",
+      "music": {
+        "label": "rickroll ping",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "volume": 0.28,
+        "start": 0,
+        "duration": 5
+      }
+    },
+    {
+      "label": "Instagram",
+      "url": "https://www.instagram.com/uqrealitylabs/",
+      "texture": "/Assets/images/instagram.jpg",
+      "material": "grass",
+      "accent": "#E1306C",
+      "music": {
+        "label": "nyan cat sparkle",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=QH2-TGUlwu4",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      }
+    },
+    {
+      "label": "Discord",
+      "url": "https://discord.com/invite/eN6v8R3fYD",
+      "texture": "/Assets/images/discord.jpg",
+      "accent": "#5865F2",
+      "music": {
+        "label": "coffin dance bounce",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=j9V78UbdzWI",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      }
+    },
+    {
+      "label": "Email",
+      "url": "mailto:uqrealitylabs@gmail.com",
+      "texture": "/Assets/images/email.jpg",
+      "accent": "#F59E0B",
+      "music": {
+        "label": "crab rave mail",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=LDU_Txk06tM",
+        "volume": 0.28,
+        "start": 0,
+        "duration": 5
+      }
+    }
+  ],
+  "committee": {
+    "rows": [
+      ["president", "secretary", "treasurer"],
+      ["media", "events", "workshop", "industry"]
+    ],
+    "roles": [
+      "president",
+      "secretary",
+      "treasurer",
+      "media",
+      "events",
+      "workshop",
+      "industry"
+    ]
+  },
+  "roleProfiles": {
+    "president": {
+      "slug": "president",
+      "accentColor": "#FF5757",
+      "hoverColor": "#FF7A7A",
+      "trailColor": "#FF5757",
+      "pathVariant": "steady-loop",
+      "order": 1,
+      "music": {
+        "label": "gangnam style",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=9bZkp7q19f0",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Cyrus Forudi",
+          "photo": "/Assets/images/Cyrus.webp",
+          "photoWidth": 900,
+          "photoHeight": 1351,
+          "photoFocus": "50% 34%",
+          "linkedin": "https://www.linkedin.com/in/cyrus-forudi/",
+          "music": {
+            "label": "OIIA OIIA",
+            "source": "youtube",
+            "url": "https://www.youtube.com/watch?v=90DC_ri0WEY",
+            "volume": 0.35,
+            "start": 0,
+            "duration": 5
+          },
+          "order": 1
+        }
+      ]
+    },
+    "secretary": {
+      "slug": "secretary",
+      "accentColor": "#F59E0B",
+      "hoverColor": "#FBBF24",
+      "trailColor": "#F59E0B",
+      "pathVariant": "loop-buzz",
+      "order": 2,
+      "music": {
+        "label": "never gonna give you up",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Navya",
+          "photo": "/Assets/images/Navya.webp",
+          "photoWidth": 900,
+          "photoHeight": 1200,
+          "photoFocus": "50% 36%",
+          "linkedin": "https://www.linkedin.com/in/navpas/",
+          "order": 1
+        }
+      ]
+    },
+    "treasurer": {
+      "slug": "treasurer",
+      "accentColor": "#38BDF8",
+      "hoverColor": "#7DD3FC",
+      "trailColor": "#38BDF8",
+      "pathVariant": "hop-hop",
+      "order": 3,
+      "music": {
+        "label": "sandstorm",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=y6120QOlsfU",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Amna",
+          "photo": "/Assets/images/Amna.webp",
+          "photoWidth": 900,
+          "photoHeight": 1200,
+          "photoFocus": "50% 36%",
+          "linkedin": "https://www.linkedin.com/in/amna-ar/",
+          "order": 1
+        }
+      ]
+    },
+    "media": {
+      "slug": "media",
+      "accentColor": "#A78BFA",
+      "hoverColor": "#C4B5FD",
+      "trailColor": "#A78BFA",
+      "pathVariant": "spiral-pop",
+      "order": 4,
+      "music": {
+        "label": "nyan cat",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=QH2-TGUlwu4",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Chloe Lim",
+          "photo": "/Assets/images/Chloe.webp",
+          "photoWidth": 900,
+          "photoHeight": 1200,
+          "photoFocus": "50% 36%",
+          "linkedin": "https://www.linkedin.com/in/chloe-lim-10a840386/",
+          "order": 1
+        }
+      ]
+    },
+    "events": {
+      "slug": "events",
+      "accentColor": "#22C55E",
+      "hoverColor": "#4ADE80",
+      "trailColor": "#22C55E",
+      "pathVariant": "route-hop",
+      "order": 5,
+      "music": {
+        "label": "coffin dance",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=j9V78UbdzWI",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Clare Johnston-Koto",
+          "photo": "/Assets/images/Clare.webp",
+          "photoWidth": 900,
+          "photoHeight": 675,
+          "photoFocus": "50% 42%",
+          "linkedin": "https://www.linkedin.com/in/clare-johnston-koto/",
+          "order": 1
+        }
+      ]
+    },
+    "workshop": {
+      "slug": "workshop",
+      "accentColor": "#84CC16",
+      "hoverColor": "#A3E635",
+      "trailColor": "#84CC16",
+      "pathVariant": "ziggle-pop",
+      "order": 6,
+      "music": {
+        "label": "crab rave",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=LDU_Txk06tM",
+        "volume": 0.3,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Radhesh",
+          "photo": "/Assets/images/Radhesh.webp",
+          "photoWidth": 900,
+          "photoHeight": 1034,
+          "photoFocus": "50% 35%",
+          "linkedin": "https://www.linkedin.com/in/radhesh-g/",
+          "order": 1
+        }
+      ]
+    },
+    "industry": {
+      "slug": "industry",
+      "accentColor": "#14B8A6",
+      "hoverColor": "#2DD4BF",
+      "trailColor": "#14B8A6",
+      "pathVariant": "underline-swoop",
+      "order": 7,
+      "music": {
+        "label": "trololo",
+        "source": "youtube",
+        "url": "https://www.youtube.com/watch?v=oavMtUWDBTM",
+        "volume": 0.28,
+        "start": 0,
+        "duration": 5
+      },
+      "members": [
+        {
+          "name": "Doris Wei",
+          "photo": "/Assets/images/doris.jpg",
+          "photoWidth": 1280,
+          "photoHeight": 853,
+          "photoFocus": "50% 42%",
+          "linkedin": "https://www.linkedin.com/in/doriswei/",
+          "order": 1
+        }
+      ]
+    }
+  }
+}

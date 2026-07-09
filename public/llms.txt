@@ -1,0 +1,12 @@
+# UQ Reality Labs
+
+Australia's first Augmented and Virtual Reality Club.
+
+Public links:
+- https://en.uqrealitylabs.github.io/
+- https://es.uqrealitylabs.github.io/
+
+Policy:
+- Public search indexing is allowed.
+- Real-time AI search may use snippets and should link back to the site.
+- AI training, fine-tuning, dataset building, site cloning, and bulk reuse are not permitted without written permission.

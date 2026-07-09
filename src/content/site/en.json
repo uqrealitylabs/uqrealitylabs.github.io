@@ -1,0 +1,48 @@
+{
+  "$schema": "../generated/content.schema.json",
+  "locale": "en",
+  "seo": {
+    "defaultDescription": "Australia's first Augmented and Virtual Reality Club.",
+    "defaultSocialImage": {
+      "alt": "UQ Reality Labs logo"
+    }
+  },
+  "animationCopy": {
+    "joinUs": "JOIN US",
+    "nearThought": "AWWWW",
+    "sadThought": "aw.",
+    "ow": "ow.",
+    "yay": "yay",
+    "loading": "Loading scene"
+  },
+  "roles": {
+    "president": {
+      "role": "President",
+      "slugline": "Keeps the circus pointed forward."
+    },
+    "secretary": {
+      "role": "Secretary",
+      "slugline": "Minutes magician."
+    },
+    "treasurer": {
+      "role": "Treasurer",
+      "slugline": "Budget chaos audited."
+    },
+    "media": {
+      "role": "Media",
+      "slugline": "Makes pixels behave."
+    },
+    "events": {
+      "role": "Events",
+      "slugline": "Chaos scheduler."
+    },
+    "workshop": {
+      "role": "Workshop",
+      "slugline": "Demo duct-tape specialist."
+    },
+    "industry": {
+      "role": "Industry",
+      "slugline": "Handshake side quest."
+    }
+  }
+}

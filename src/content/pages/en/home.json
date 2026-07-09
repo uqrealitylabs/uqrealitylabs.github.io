@@ -1,0 +1,23 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "en",
+  "id": "home",
+  "meta": {
+    "title": "UQ Reality Labs est. 2022",
+    "description": "AR, VR, workshops, demos, and one suspicious headset cable."
+  },
+  "nav": {
+    "label": "Home",
+    "shortLabel": "Home"
+  },
+  "hero": {
+    "title": "UQ Reality Labs est. 2022",
+    "slugline": "AR/VR without the boring brochure voice.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "AR, VR, workshops, demos, and one suspicious headset cable."
+      }
+    ]
+  }
+}

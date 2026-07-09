@@ -1,0 +1,23 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "es",
+  "id": "committee",
+  "meta": {
+    "title": "Comité",
+    "description": "Las personas que mantienen en pie la pila de visores."
+  },
+  "nav": {
+    "label": "Comité",
+    "shortLabel": "Equipo"
+  },
+  "hero": {
+    "title": "Comité",
+    "slugline": "Lista del equipo.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "Las personas que mantienen en pie la pila de visores."
+      }
+    ]
+  }
+}

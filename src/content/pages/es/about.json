@@ -1,0 +1,26 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "es",
+  "id": "about",
+  "meta": {
+    "title": "Acerca",
+    "description": "UQ Reality Labs es el primer club de realidad aumentada y virtual de Australia."
+  },
+  "nav": {
+    "label": "Acerca",
+    "shortLabel": "Info"
+  },
+  "hero": {
+    "title": "Acerca",
+    "slugline": "Entra al zumbido.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "UQ Reality Labs es el primer club de realidad aumentada y virtual de Australia.\nMejor Club de Facultad UQ Union (EAIT) 2024.\nMejor Club Pequeño UQ Union 2023.\nÚnete."
+      }
+    ],
+    "cta": {
+      "label": "Únete"
+    }
+  }
+}

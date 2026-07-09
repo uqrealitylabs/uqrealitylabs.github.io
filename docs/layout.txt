@@ -1,3 +1,76 @@
-about page
-contact us (have linkedin, instagram, email to)
-sponsors (nuaxion)
+better-resp layout
+
+Routes
+- /: React shell mounts the lazy legacy Three scene.
+- In-scene sections come from JSON pages: home, about, contact, sponsors, committee.
+- Rubrics content exists as JSON for routing/extraction and current external CTA use.
+
+Filesystem
+- index.html: React root plus generated home-page SEO head block.
+- public/: static assets plus generated robots/sitemap/llms crawler files.
+- src/app/: React boot shell.
+- src/content/generated/content.schema.json: editor schema.
+- src/content/pages/<locale>/*.json: page content.
+- src/content/site/<locale>.json: socials, committee, animation copy.
+- src/content/schema/contentSchema.ts: TS validation/types.
+- src/content/contentRegistry.ts: central content imports and locale fallback.
+- src/content/ContentRenderer.tsx: safe structured block renderer.
+- src/seo/seo.ts: pure robots/sitemap/canonical/social/JSON-LD builders.
+- src/features/legacy-three/: lazy Three scene and DOM scaffold.
+- src/shared/i18n/: shell/global UI strings.
+- src/shared/state/: coarse Zustand UI state.
+- src/shared/styles/: Tailwind v4 entry, tokens, base CSS, legacy CSS.
+- tools/configs/: explicit tool configs for Cypress, Cypress Vite, Rsbuild, Vitest, Biome, and Lighthouse.
+- tools/scripts/: TypeScript-only validation/asset/SEO scripts.
+- .github/workflows/ci.yml: quality, build, Cypress component, and E2E smoke.
+- .github/workflows/security.yml: workflow policy, npm audit, OSV, Dependency Review, CodeQL.
+- .github/workflows/benchmarks.yml: scheduled/manual build metrics and Lighthouse capture for `/`.
+- .github/workflows/deploy.yml: GitHub Pages deploy from validated dist on `main`.
+- .github/dependabot.yml: npm and GitHub Actions update automation.
+- tests/unit/: Vitest data/logic tests.
+- tests/e2e and tests/component: Cypress specs.
+
+Data flow
+- App sets locale metadata and lazy-loads legacy-main.
+- legacy-main reads `document.documentElement.lang`, then gets pages/site data from contentRegistry.
+- contentRegistry falls unknown locales back to English and throws for unknown pages.
+- ContentRenderer renders validated structured sections without raw HTML.
+- i18n owns shell labels; JSON owns page/body/social/member/animation copy.
+- SEO flow: JSON site/page content -> `src/seo` builders -> public crawler files and generated `index.html` head block.
+
+No-JS enforcement
+- `tools/scripts/assert-no-js.ts` scans first-party files.
+- `tsconfig.json` has `allowJs: false`.
+- `npm run test:ci` runs no-JS and content validation before typecheck/lint/tests/build.
+- `npm run seo:check` validates generated robots, sitemap, llms.txt, and the home-page head block.
+- `npm run check:workflows` enforces SHA-pinned workflow actions; permissions, cache, artifact, and deploy policies live directly in the workflow YAML.
+- `npm run check:budgets` reads `dist` and fails on shell/lazy chunk gzip budget violations.
+
+Removed legacy flow
+- No `public/content` markdown.
+- No frontmatter parser.
+- No markdown loader/renderer.
+- No `.js/.jsx/.mjs/.cjs` first-party source/config/script files.
+
+Lazy boundaries
+- Initial shell: React, Zustand, i18n, Motion loader, CSS.
+- Lazy visual chunk: Three, GSAP, Troika, static JSON content.
+- Validation tools/tests are not imported by App.
+- SEO generation tools/tests are not imported by App.
+
+Tests
+- Vitest: i18n, JSON content/schema/registry/renderer, no-JS scanner, scaling, and SEO builders.
+- SEO unit tests: robots, sitemap, metadata, JSON-LD escaping, duplicate canonical detection, stale generated files.
+- Cypress: shell/responsive/i18n and component-level behavior specs.
+
+CI artifact flow
+- Build stats: written to CI summaries and uploaded only by the benchmark workflow.
+- Lighthouse: `artifacts/lighthouse/` uploaded from benchmark workflow.
+- Cypress screenshots/videos: uploaded only when a Cypress job fails.
+- Pages deploy: `dist` uploaded through the Pages artifact action only.
+
+Security flow
+- Untrusted PRs run CI/security without secrets.
+- Dependency Review runs only on PRs.
+- CodeQL uploads security events with job-scoped permission.
+- Firebase secret-based deploy workflows were removed.

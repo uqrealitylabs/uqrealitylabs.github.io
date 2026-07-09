@@ -7,11 +7,15 @@ node_modules/
 
 # testing
 /coverage
+cypress/screenshots/
+cypress/videos/
 /test-results
 
 # production
 /build
 /dist
+artifacts/
+.lighthouseci/
 
 # misc
 .DS_Store

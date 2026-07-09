@@ -1,0 +1,23 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "en",
+  "id": "sponsors",
+  "meta": {
+    "title": "Sponsors",
+    "description": "Back the demos, workshops, and tiny pixel explosions."
+  },
+  "nav": {
+    "label": "Sponsors",
+    "shortLabel": "Sponsor"
+  },
+  "hero": {
+    "title": "Sponsors",
+    "slugline": "Back the demos.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "Back the demos, workshops, and tiny pixel explosions."
+      }
+    ]
+  }
+}

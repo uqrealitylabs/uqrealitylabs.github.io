@@ -1,0 +1,23 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "es",
+  "id": "sponsors",
+  "meta": {
+    "title": "Patrocinadores",
+    "description": "Apoya las demos, talleres y pequeñas explosiones de píxeles."
+  },
+  "nav": {
+    "label": "Patrocinadores",
+    "shortLabel": "Sponsor"
+  },
+  "hero": {
+    "title": "Patrocinadores",
+    "slugline": "Apoya las demos.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "Apoya las demos, talleres y pequeñas explosiones de píxeles."
+      }
+    ]
+  }
+}

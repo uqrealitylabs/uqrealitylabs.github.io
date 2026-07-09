@@ -2,97 +2,70 @@ name: Security
 
 on:
   pull_request:
-    branches: [prod]
   push:
-    branches: [prod]
+    branches: [main, better-resp, robotic-bees]
   schedule:
     - cron: "23 3 * * 1"
   workflow_dispatch:
 
-concurrency:
-  group: security-${{ github.ref }}
-  cancel-in-progress: true
-
 permissions:
   contents: read
 
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
-  workflow-lint:
+  workflow-policy:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          fetch-depth: 1
           persist-credentials: false
-
-      - name: Lint workflows
-        uses: reviewdog/action-actionlint@6fb7acc99f4a1008869fa8a0f09cfca740837d9d # v1.72.0
-        with:
-          fail_level: error
-          actionlint_flags: -color
-
-      - name: Run zizmor
-        uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa # v0.5.7
-        with:
-          inputs: .github/workflows
-          advanced-security: false
-          annotations: true
-          persona: auditor
-
       - name: Set up Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version-file: .nvmrc
+          node-version: 24
           cache: npm
-
+          cache-dependency-path: package-lock.json
       - name: Install dependencies
-        run: npm ci --ignore-scripts --no-audit
-
-      - name: Audit dependencies
-        run: npm audit --audit-level=high
+        run: npm ci
+      - name: Check workflow action pins
+        run: npm run check:workflows
+      - name: Run npm audit
+        run: npm run security:audit
 
   dependency-review:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       pull-requests: read
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          fetch-depth: 1
           persist-credentials: false
-
       - name: Dependency review
-        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        uses: actions/dependency-review-action@595b5aeba73380359d98a5e087f648dbb0edce1b # v4.7.3
         with:
-          fail-on-severity: high
+          fail-on-severity: moderate
 
-  osv-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          persist-credentials: false
-
-      - name: Scan dependencies
-        uses: google/osv-scanner-action@9a498708959aeaef5ef730655706c5a1df1edbc2 # v2.3.8
-
-  scorecard:
-    if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+  osv:
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@9a498708959aeaef5ef730655706c5a1df1edbc2 # v2.3.8
     permissions:
+      actions: read
       contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          persist-credentials: false
-
-      - name: Run Scorecard
-        uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
-        with:
-          results_file: scorecard.sarif
-          results_format: sarif
-          publish_results: false
+      security-events: write
+    with:
+      scan-args: |-
+        --lockfile=package-lock.json

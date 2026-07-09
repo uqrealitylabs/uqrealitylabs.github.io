@@ -1,0 +1,26 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "en",
+  "id": "about",
+  "meta": {
+    "title": "About",
+    "description": "UQ Reality Labs is Australia's first Augmented and Virtual Reality Club."
+  },
+  "nav": {
+    "label": "About",
+    "shortLabel": "Info"
+  },
+  "hero": {
+    "title": "About",
+    "slugline": "Buzz in, bestie.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "UQ Reality Labs is Australia's first Augmented and Virtual Reality Club.\nUQ Union Best Faculty Club (EAIT) 2024.\nUQ Union Best Small Club 2023.\nJoin Us!"
+      }
+    ],
+    "cta": {
+      "label": "Join Us"
+    }
+  }
+}

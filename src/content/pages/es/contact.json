@@ -1,0 +1,23 @@
+{
+  "$schema": "../../generated/content.schema.json",
+  "locale": "es",
+  "id": "contact",
+  "meta": {
+    "title": "Contacto",
+    "description": "Envía una señal. Revisamos la bandeja rara."
+  },
+  "nav": {
+    "label": "Contacto",
+    "shortLabel": "Contacto"
+  },
+  "hero": {
+    "title": "Contacto",
+    "slugline": "Envía una señal.",
+    "body": [
+      {
+        "type": "paragraph",
+        "text": "Envía una señal. Revisamos la bandeja rara."
+      }
+    ]
+  }
+}

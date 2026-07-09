@@ -1,0 +1,48 @@
+{
+  "$schema": "../generated/content.schema.json",
+  "locale": "es",
+  "seo": {
+    "defaultDescription": "El primer club de realidad aumentada y virtual de Australia.",
+    "defaultSocialImage": {
+      "alt": "Logotipo de UQ Reality Labs"
+    }
+  },
+  "animationCopy": {
+    "joinUs": "ÚNETE",
+    "nearThought": "AWWWW",
+    "sadThought": "aw.",
+    "ow": "ow.",
+    "yay": "yay",
+    "loading": "Cargando escena"
+  },
+  "roles": {
+    "president": {
+      "role": "Presidencia",
+      "slugline": "Mantiene el circo apuntando hacia adelante."
+    },
+    "secretary": {
+      "role": "Secretaría",
+      "slugline": "Magia de actas."
+    },
+    "treasurer": {
+      "role": "Tesorería",
+      "slugline": "Caos presupuestario auditado."
+    },
+    "media": {
+      "role": "Medios",
+      "slugline": "Hace que los píxeles se porten bien."
+    },
+    "events": {
+      "role": "Eventos",
+      "slugline": "Agenda el caos."
+    },
+    "workshop": {
+      "role": "Talleres",
+      "slugline": "Especialista en demos."
+    },
+    "industry": {
+      "role": "Industria",
+      "slugline": "Misión de apretones de manos."
+    }
+  }
+}

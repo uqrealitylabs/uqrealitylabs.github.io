@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="UQ Reality Labs">
+  <rect width="512" height="512" fill="#10131b"/>
+  <path d="M256 128 A128 128 0 1 1 129.8 286.2" fill="none" stroke="#f6f2ea" stroke-width="72" stroke-linecap="round"/>
+  <rect x="234" y="84" width="44" height="132" rx="22" fill="#f6f2ea"/>
+</svg>
