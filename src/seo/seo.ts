@@ -1,8 +1,24 @@
 import type {
+  Locale,
   PageContent,
   SiteContent,
   SocialImage,
 } from "../content/schema/contentSchema.ts";
+import {
+  buildAlternateLocaleUrls,
+  buildLocaleUrl,
+  type LocaleAlternate,
+  type LocaleDomainMode,
+  type LocaleUrlConfig,
+} from "../shared/i18n/localeUrls.ts";
+
+type SeoUrlOptions = {
+  mode?: LocaleDomainMode;
+  baseDomain?: string;
+  siteOrigin?: string;
+  supportedLocales?: readonly string[];
+  defaultLocale?: string;
+};
 
 function trimSlash(value: string) {
   return value.replace(/\/+$/, "");
@@ -29,12 +45,42 @@ export function canonicalPath(page: PageContent) {
   return page.meta.canonicalPath ?? page.route;
 }
 
-export function canonicalUrl(site: SiteContent, page: PageContent) {
-  return new URL(canonicalPath(page), `${trimSlash(site.seo.siteUrl)}/`).href;
+function uniqueLocales(site: SiteContent, pages: PageContent[] = []) {
+  return [...new Set([site.locale, ...pages.map((page) => page.locale)])];
 }
 
-export function assetUrl(site: SiteContent, asset: string) {
-  return new URL(asset, `${trimSlash(site.seo.siteUrl)}/`).href;
+function localeUrlConfig(
+  site: SiteContent,
+  pages: PageContent[] = [],
+  options: SeoUrlOptions = {},
+): LocaleUrlConfig {
+  return {
+    siteOrigin: options.siteOrigin ?? site.seo.siteUrl,
+    supportedLocales: options.supportedLocales ?? uniqueLocales(site, pages),
+    defaultLocale: options.defaultLocale ?? site.locale,
+    mode: options.mode ?? "subdomain",
+    ...(options.baseDomain ? { baseDomain: options.baseDomain } : {}),
+  };
+}
+
+export function canonicalUrl(
+  site: SiteContent,
+  page: PageContent,
+  options?: SeoUrlOptions,
+) {
+  return buildLocaleUrl(
+    page.locale,
+    canonicalPath(page),
+    localeUrlConfig(site, [page], options),
+  );
+}
+
+export function assetUrl(
+  site: SiteContent,
+  asset: string,
+  options?: SeoUrlOptions,
+) {
+  return buildLocaleUrl(site.locale, asset, localeUrlConfig(site, [], options));
 }
 
 export function isIndexable(page: PageContent) {
@@ -65,15 +111,25 @@ export function buildPageMetadata(site: SiteContent, page: PageContent) {
     canonical,
     image: assetUrl(site, image.src),
     imageAlt: image.alt,
+    alternates: buildHreflangAlternates(site, page, [page]),
     siteName: site.seo.siteName,
     type: "website",
   };
 }
 
-export function buildStructuredData(site: SiteContent, page: PageContent) {
-  const pageUrl = canonicalUrl(site, page);
-  const orgId = `${trimSlash(site.seo.siteUrl)}/#organization`;
-  const siteId = `${trimSlash(site.seo.siteUrl)}/#website`;
+export function buildStructuredData(
+  site: SiteContent,
+  page: PageContent,
+  options?: SeoUrlOptions,
+) {
+  const pageUrl = canonicalUrl(site, page, options);
+  const siteRoot = buildLocaleUrl(
+    site.locale,
+    "/",
+    localeUrlConfig(site, [page], options),
+  );
+  const orgId = `${trimSlash(siteRoot)}/#organization`;
+  const siteId = `${trimSlash(siteRoot)}/#website`;
 
   return [
     {
@@ -90,7 +146,7 @@ export function buildStructuredData(site: SiteContent, page: PageContent) {
       "@type": "WebSite",
       "@id": siteId,
       name: site.seo.siteName,
-      url: site.seo.siteUrl,
+      url: siteRoot,
       publisher: { "@id": orgId },
       inLanguage: site.locale,
     },
@@ -111,6 +167,7 @@ export function buildStructuredData(site: SiteContent, page: PageContent) {
 export function buildRobots(
   site: SiteContent,
   environment: "production" | "preview" = "production",
+  options?: SeoUrlOptions,
 ) {
   if (environment !== "production") {
     return ["User-agent: *", "Disallow: /", ""].join("\n");
@@ -131,7 +188,11 @@ export function buildRobots(
     "User-agent: *",
     "Allow: /",
     "",
-    `Sitemap: ${new URL("/sitemap.xml", site.seo.siteUrl).href}`,
+    `Sitemap: ${buildLocaleUrl(
+      site.locale,
+      "/sitemap.xml",
+      localeUrlConfig(site, [], options),
+    )}`,
     "",
   ].join("\n");
 }
@@ -139,24 +200,68 @@ export function buildRobots(
 export function indexablePages(pages: PageContent[]) {
   return pages
     .filter(isIndexable)
-    .sort((a, b) => canonicalPath(a).localeCompare(canonicalPath(b)));
+    .sort(
+      (a, b) =>
+        canonicalPath(a).localeCompare(canonicalPath(b)) ||
+        a.locale.localeCompare(b.locale),
+    );
 }
 
-export function buildSitemap(site: SiteContent, pages: PageContent[]) {
+export function buildHreflangAlternates(
+  site: SiteContent,
+  page: PageContent,
+  pages: PageContent[] = [page],
+  options?: SeoUrlOptions,
+): LocaleAlternate[] {
+  if (!isIndexable(page)) return [];
+
+  const relatedPages = pages.filter(
+    (candidate) => candidate.id === page.id && isIndexable(candidate),
+  );
+  const supportedLocales = relatedPages.map((candidate) => candidate.locale);
+  const config = localeUrlConfig(site, relatedPages, {
+    ...options,
+    supportedLocales:
+      supportedLocales.length > 0 ? supportedLocales : [page.locale],
+  });
+
+  return buildAlternateLocaleUrls(canonicalPath(page), config).filter(
+    (alternate) =>
+      alternate.hreflang === "x-default" ||
+      supportedLocales.includes(alternate.hreflang as Locale),
+  );
+}
+
+export function buildSitemap(
+  site: SiteContent,
+  pages: PageContent[],
+  options?: SeoUrlOptions,
+) {
   const urls = indexablePages(pages).map((page) => {
-    const lastmod = page.meta.updatedAt
-      ? `\n    <lastmod>${escapeHtml(page.meta.updatedAt)}</lastmod>`
+    const lastmodLine = page.meta.updatedAt
+      ? `    <lastmod>${escapeHtml(page.meta.updatedAt)}</lastmod>`
       : "";
+    const alternates = buildHreflangAlternates(site, page, pages, options)
+      .map(
+        (alternate) =>
+          `    <xhtml:link rel="alternate" hreflang="${escapeHtml(
+            alternate.hreflang,
+          )}" href="${escapeHtml(alternate.href)}" />`,
+      )
+      .join("\n");
+
     return [
       "  <url>",
-      `    <loc>${escapeHtml(canonicalUrl(site, page))}</loc>${lastmod}`,
+      `    <loc>${escapeHtml(canonicalUrl(site, page, options))}</loc>`,
+      ...(alternates ? [alternates] : []),
+      ...(lastmodLine ? [lastmodLine] : []),
       "  </url>",
     ].join("\n");
   });
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
     ...urls,
     "</urlset>",
     "",
@@ -182,9 +287,19 @@ export function buildLlms(site: SiteContent, pages: PageContent[]) {
   ].join("\n");
 }
 
-export function renderHeadBlock(site: SiteContent, page: PageContent) {
+export function renderHeadBlock(
+  site: SiteContent,
+  page: PageContent,
+  pages: PageContent[] = [page],
+) {
   const meta = buildPageMetadata(site, page);
   const jsonLd = serializeJsonLd(buildStructuredData(site, page));
+  const alternates = buildHreflangAlternates(site, page, pages).map(
+    (alternate) =>
+      `<link rel="alternate" hreflang="${escapeHtml(
+        alternate.hreflang,
+      )}" href="${escapeHtml(alternate.href)}" />`,
+  );
 
   return [
     "<!-- uqrl:seo:start -->",
@@ -192,6 +307,7 @@ export function renderHeadBlock(site: SiteContent, page: PageContent) {
     `<meta name="description" content="${escapeHtml(meta.description)}" />`,
     `<meta name="robots" content="${escapeHtml(meta.robots)}" />`,
     `<link rel="canonical" href="${escapeHtml(meta.canonical)}" />`,
+    ...alternates,
     `<meta property="og:site_name" content="${escapeHtml(meta.siteName)}" />`,
     `<meta property="og:type" content="${escapeHtml(meta.type)}" />`,
     `<meta property="og:title" content="${escapeHtml(meta.title)}" />`,
@@ -212,13 +328,18 @@ export function validateSeo(site: SiteContent, pages: PageContent[]) {
   const issues: string[] = [];
   const canonicals = new Set<string>();
   const publicPages = indexablePages(pages);
-  const siteOrigin = new URL(site.seo.siteUrl).origin;
+  const config = localeUrlConfig(site, publicPages);
+  const allowedOrigins = new Set(
+    config.supportedLocales.map(
+      (locale) => new URL(buildLocaleUrl(locale, "/", config)).origin,
+    ),
+  );
 
   if (publicPages.length === 0) issues.push("No indexable pages found.");
 
   for (const page of publicPages) {
     const url = canonicalUrl(site, page);
-    if (new URL(url).origin !== siteOrigin) {
+    if (!allowedOrigins.has(new URL(url).origin)) {
       issues.push(`Canonical URL outside site origin: ${url}`);
     }
     if (canonicals.has(url)) issues.push(`Duplicate canonical URL: ${url}`);
@@ -232,7 +353,11 @@ export function validateSeo(site: SiteContent, pages: PageContent[]) {
   if (!buildRobots(site).includes("ai-train=no")) {
     issues.push("robots.txt must reserve AI training rights.");
   }
-  if (!buildSitemap(site, pages).includes(trimSlash(site.seo.siteUrl))) {
+  if (
+    !buildSitemap(site, pages).includes(
+      new URL(buildLocaleUrl(site.locale, "/", config)).origin,
+    )
+  ) {
     issues.push("sitemap must use the production origin.");
   }
 

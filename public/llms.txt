@@ -3,7 +3,8 @@
 Australia's first Augmented and Virtual Reality Club.
 
 Public links:
-- https://uqrealitylabs.github.io/
+- https://en.uqrealitylabs.github.io/
+- https://es.uqrealitylabs.github.io/
 
 Policy:
 - Public search indexing is allowed.

@@ -1,5 +1,8 @@
+import { getLocaleFromHostname } from "./localeUrls";
+
 export const locales = ["en", "es"] as const;
 export type Locale = (typeof locales)[number];
+export const defaultLocale = "en" satisfies Locale;
 type Direction = "ltr" | "rtl";
 
 type Messages = Record<string, string>;
@@ -34,6 +37,16 @@ const localeMeta: Record<Locale, { lang: Locale; dir: Direction }> = {
 
 export function isLocale(value: string): value is Locale {
   return locales.includes(value as Locale);
+}
+
+export function getLocaleForHostname(hostname: string): Locale {
+  const locale = getLocaleFromHostname(hostname, locales, defaultLocale);
+  return isLocale(locale) ? locale : defaultLocale;
+}
+
+export function getInitialLocale(): Locale {
+  if (typeof window === "undefined") return defaultLocale;
+  return getLocaleForHostname(window.location.hostname);
 }
 
 export function getLocaleMeta(locale: Locale) {

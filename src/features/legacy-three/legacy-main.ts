@@ -383,6 +383,9 @@ if (DEBUG && statusLabel) {
 
 document.body.dataset.section = "0";
 document.body.dataset.joinState = joinUsStates.idleCurious;
+document.body.dataset.sceneReady = "false";
+document.body.dataset.socialMaterialsReady = "false";
+document.body.dataset.pokeState = "idle";
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(CLEAR_COLOUR);
@@ -486,6 +489,7 @@ let camHeightOffset = 0;
 let currentIndex = 0;
 let isAnimating = false;
 let entranceComplete = false;
+let queuedSectionIndex = null;
 let sectionTexts = [];
 let sectionDescriptionTexts = [];
 let socialCubes = [];
@@ -533,6 +537,15 @@ const coarsePointer = window.matchMedia("(pointer: coarse)");
 let animationFrame = 0;
 let resizeObserver = null;
 let scrollObserver = null;
+
+function syncReducedMotionState() {
+  document.body.dataset.reducedMotion = prefersReducedMotion.matches
+    ? "true"
+    : "false";
+}
+
+syncReducedMotionState();
+prefersReducedMotion.addEventListener?.("change", syncReducedMotionState);
 
 function motionDuration(seconds) {
   return prefersReducedMotion.matches ? 0 : seconds;
@@ -2193,6 +2206,7 @@ function updateHudState() {
   const tab = TABS[currentIndex];
 
   document.body.dataset.section = String(currentIndex);
+  document.body.dataset.sectionSlug = tab?.slug || String(currentIndex);
   document.body.dataset.contentVariant = tab?.pathVariant || "underline-swoop";
   document.body.style.setProperty(
     "--content-accent",
@@ -2499,10 +2513,31 @@ function setupNavbarCondense() {
 }
 
 function goToSection(index) {
-  if (!modelGroup || isAnimating || !entranceComplete) return;
   if (index < 0 || index >= MODEL_SECTIONS.length) return;
+  if (!modelGroup || isAnimating || !entranceComplete) {
+    queuedSectionIndex = index;
+    return;
+  }
 
   transitionToSection(index);
+}
+
+function flushQueuedSection() {
+  if (
+    queuedSectionIndex === null ||
+    !modelGroup ||
+    isAnimating ||
+    !entranceComplete
+  ) {
+    return;
+  }
+
+  const nextIndex = queuedSectionIndex;
+  queuedSectionIndex = null;
+
+  if (nextIndex !== currentIndex) {
+    transitionToSection(nextIndex);
+  }
 }
 
 function setupNavbar() {
@@ -3244,7 +3279,7 @@ function setupJoinAccessibleInteraction() {
     celebrateAndNavigateJoin(joinUsAccessibleLink.href || JOIN_LINK);
   });
   joinUsAccessibleLink.addEventListener("keydown", (event) => {
-    if (event.key !== " ") return;
+    if (event.key !== " " && event.key !== "Enter") return;
     event.preventDefault();
     celebrateAndNavigateJoin(joinUsAccessibleLink.href || JOIN_LINK);
   });
@@ -4004,6 +4039,7 @@ function setSocialCubeHovered(cube, hovered) {
 }
 
 function startSocialCubeEntrance() {
+  document.body.dataset.socialMaterialsReady = "false";
   socialCubes.forEach((cube, index) => {
     stopSocialCubeEntrance(cube);
     stopSocialCubeFloat(cube);
@@ -4017,9 +4053,21 @@ function startSocialCubeEntrance() {
       onComplete: () => {
         cube.userData.entranceTween = null;
         startSocialCubeFloat(cube, index * 0.15);
+        markSocialMaterialsReady();
       },
     });
   });
+}
+
+function markSocialMaterialsReady() {
+  if (
+    currentIndex === CONTACT_SECTION_INDEX &&
+    !isAnimating &&
+    socialCubes.length > 0 &&
+    socialCubes.every((cube) => cube.visible && !cube.userData.entranceTween)
+  ) {
+    document.body.dataset.socialMaterialsReady = "true";
+  }
 }
 
 function resetSocialCubeTransform(cube) {
@@ -4050,10 +4098,13 @@ function stopSocialCubeAnimations() {
 
 function hideSocialCubes() {
   canvas.style.cursor = "default";
+  document.body.dataset.socialMaterialsReady = "false";
   document.body.removeAttribute("data-content-hover");
   document.body.removeAttribute("data-material-type");
   document.body.removeAttribute("data-pointer-active");
   document.body.removeAttribute("data-interaction-state");
+  document.body.removeAttribute("data-active-material");
+  document.body.dataset.pokeState = "idle";
   hoveredSocialCube = null;
   socialHoverKey = "";
   stopActiveSound(false);
@@ -4106,12 +4157,15 @@ function setSocialCubesVisible(visible) {
   if (visible) {
     startSocialCubeEntrance();
   } else {
+    document.body.dataset.socialMaterialsReady = "false";
     stopSocialCubeAnimations();
     canvas.style.cursor = "default";
     document.body.removeAttribute("data-content-hover");
     document.body.removeAttribute("data-material-type");
     document.body.removeAttribute("data-pointer-active");
     document.body.removeAttribute("data-interaction-state");
+    document.body.removeAttribute("data-active-material");
+    document.body.dataset.pokeState = "idle";
   }
 }
 
@@ -4254,8 +4308,10 @@ function updateSocialCubeHover() {
           : Math.max(pointerPressure, 0.25);
         stampMaterialTouch(cube.userData.touchField, touchUv, hoveredHit.point, pressure);
         document.body.dataset.materialType = cube.userData.materialKind;
+        document.body.dataset.activeMaterial = cube.userData.materialKind;
         document.body.dataset.pointerActive = "true";
         document.body.dataset.interactionState = pointerIsDown ? "pressed" : "hover";
+        document.body.dataset.pokeState = pointerIsDown ? "pressed" : "hover";
       }
     } else if (cube.userData.hovered) {
       resetSocialCubeHover(cube);
@@ -4277,6 +4333,8 @@ function updateSocialCubeHover() {
     document.body.removeAttribute("data-material-type");
     document.body.removeAttribute("data-pointer-active");
     document.body.removeAttribute("data-interaction-state");
+    document.body.removeAttribute("data-active-material");
+    document.body.dataset.pokeState = "idle";
     document.body.style.removeProperty("--content-accent");
   }
 
@@ -4306,6 +4364,8 @@ function clearCanvasPointerHover() {
   document.body.removeAttribute("data-material-type");
   document.body.removeAttribute("data-pointer-active");
   document.body.removeAttribute("data-interaction-state");
+  document.body.removeAttribute("data-active-material");
+  document.body.dataset.pokeState = "idle";
   document.body.style.removeProperty("--content-accent");
 }
 
@@ -4436,6 +4496,8 @@ async function transitionToSection(newIndex) {
 
   isAnimating = false;
   pointerDirty = true;
+  markSocialMaterialsReady();
+  flushQueuedSection();
 }
 
 function goToNextSection() {
@@ -4530,10 +4592,12 @@ function animateModelEntrance(modelSize) {
       aimLightsAtModel();
       isAnimating = false;
       entranceComplete = true;
+      document.body.dataset.sceneReady = "true";
       updateStatus();
       await revealSectionContent(0);
       await showRainbowBackdrop();
       pointerDirty = true;
+      flushQueuedSection();
       logModelPosition("Model (entrance complete)");
     },
   });
@@ -4711,6 +4775,7 @@ window.addEventListener("pagehide", (event) => {
   stopJoinWink();
   scrollObserver?.kill();
   resizeObserver?.disconnect();
+  prefersReducedMotion.removeEventListener?.("change", syncReducedMotionState);
 
   if (resizeFrame) {
     cancelAnimationFrame(resizeFrame);

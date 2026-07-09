@@ -23,6 +23,20 @@ type SocialMaterialDebug = {
   screenY: number;
 };
 
+function expectRendered(selector: string) {
+  cy.get(selector).should(($element) => {
+    const element = $element[0];
+    const style = getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+
+    expect(style.display).not.to.eq("none");
+    expect(style.visibility).not.to.eq("hidden");
+    expect(Number.parseFloat(style.opacity || "1")).to.be.greaterThan(0);
+    expect(rect.width).to.be.greaterThan(0);
+    expect(rect.height).to.be.greaterThan(0);
+  });
+}
+
 describe("navigation shell", () => {
   it("loads the app shell and keeps JSON-backed nav available", () => {
     cy.visit("/");
@@ -59,7 +73,7 @@ describe("navigation shell", () => {
     cy.visit("/");
     cy.contains("#nav-links button", about.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "1");
-    cy.get(".bee-trail--join").should("be.visible");
+    expectRendered(".bee-trail--join");
     cy.get(".bee-trail--join").should("have.css", "color", "rgb(255, 87, 87)");
     cy.get(".bee-trail--join").invoke("outerWidth").should("be.gt", 150);
     cy.get(".bee-trail__bee").should("not.exist");
@@ -93,7 +107,7 @@ describe("navigation shell", () => {
   it("hides JOIN eyes and shows AWWWW when the pointer gets near", () => {
     cy.visit("/");
     cy.contains("#nav-links button", about.nav.label).click();
-    cy.get(".bee-trail--join").should("be.visible");
+    expectRendered(".bee-trail--join");
     cy.get(".bee-trail__join-word").then(([word]) => {
       const rect = word.getBoundingClientRect();
       cy.get("#canvas").trigger("pointermove", {
@@ -149,11 +163,11 @@ describe("navigation shell", () => {
     });
     cy.contains("#nav-links button", about.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "1");
-    cy.get(".bee-trail--join").should("be.visible");
+    expectRendered(".bee-trail--join");
     cy.get(".bee-trail--join").invoke("outerWidth").should("be.gt", 130);
     cy.get(".bee-trail__bee").should("not.exist");
     cy.get(".bee-trail--join .bee-trail__orb").should("exist");
-    cy.get(".bee-trail--join .bee-trail__dot").should("be.visible");
+    expectRendered(".bee-trail--join .bee-trail__orb-core");
     cy.get(".bee-trail--join .bee-trail__orb-drift").should(
       "have.css",
       "animation-name",
@@ -167,12 +181,12 @@ describe("navigation shell", () => {
   });
 
   it("drives JOIN US reactions from keyboard-safe RUBRICS activation", () => {
-    cy.clock();
     cy.visit("/");
     cy.contains("#nav-links button", about.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "1");
-    cy.get(".bee-trail--join").should("be.visible");
+    expectRendered(".bee-trail--join");
     cy.get("#nav-links button").should("have.length.gte", 5);
+    cy.clock();
     cy.get("#join-us-accessible-link").focus();
     cy.get("body").should(
       "have.attr",
@@ -229,10 +243,10 @@ describe("navigation shell", () => {
   });
 
   it("shows yay before delayed JOIN navigation", () => {
-    cy.clock();
     cy.visit("/");
     cy.contains("#nav-links button", about.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "1");
+    cy.clock();
     cy.window().then((win) => {
       cy.stub(win, "open").as("open");
     });
@@ -263,51 +277,57 @@ describe("navigation shell", () => {
     cy.visit("/");
     cy.contains("#nav-links button", contact.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "2");
+    cy.get("body").should("have.attr", "data-social-materials-ready", "true");
     cy.get("#canvas").should("be.visible");
-    cy.window()
-      .its("__uqrlSocialMaterials")
-      .should("be.a", "function")
-      .then((readMaterials) => {
-        const materials = (readMaterials as () => SocialMaterialDebug[])();
-        const visibleMaterials = materials.filter(
-          (material: SocialMaterialDebug) => material.visible,
-        );
+    cy.window().should((win) => {
+      const readMaterials = (
+        win as unknown as {
+          __uqrlSocialMaterials?: () => SocialMaterialDebug[];
+        }
+      ).__uqrlSocialMaterials;
 
-        expect(visibleMaterials).to.have.length(site.socialLinks.length);
-        expect(
-          new Set(
-            visibleMaterials.map(
-              (material: SocialMaterialDebug) => material.kind,
-            ),
+      expect(readMaterials).to.be.a("function");
+      const materials = readMaterials?.() ?? [];
+      const visibleMaterials = materials.filter(
+        (material: SocialMaterialDebug) => material.visible,
+      );
+
+      expect(visibleMaterials).to.have.length(site.socialLinks.length);
+      expect(
+        new Set(
+          visibleMaterials.map(
+            (material: SocialMaterialDebug) => material.kind,
           ),
-        ).to.eql(new Set(["cloth", "rubber", "glass", "grass", "mail"]));
-        visibleMaterials.forEach((material: SocialMaterialDebug) => {
-          expect(material.hasLogo).to.eq(true);
-          expect(material.hasUnderline).to.eq(true);
-          expect(material.logoFillRatio).to.be.greaterThan(0.95);
-        });
-        expect(
-          visibleMaterials.find(
-            (material: SocialMaterialDebug) => material.label === "Email",
-          ),
-        ).to.include({ kind: "mail" });
-        expect(
-          visibleMaterials.find(
-            (material: SocialMaterialDebug) => material.label === "Instagram",
-          ),
-        ).to.include({ kind: "grass", hasGrassLogo: true });
-        expect(
-          visibleMaterials.find(
-            (material: SocialMaterialDebug) => material.label === "Instagram",
-          )?.grassBladeCount,
-        ).to.be.greaterThan(300);
+        ),
+      ).to.eql(new Set(["cloth", "rubber", "glass", "grass", "mail"]));
+      visibleMaterials.forEach((material: SocialMaterialDebug) => {
+        expect(material.hasLogo).to.eq(true);
+        expect(material.hasUnderline).to.eq(true);
+        expect(material.logoFillRatio).to.be.greaterThan(0.95);
       });
+      expect(
+        visibleMaterials.find(
+          (material: SocialMaterialDebug) => material.label === "Email",
+        ),
+      ).to.include({ kind: "mail" });
+      expect(
+        visibleMaterials.find(
+          (material: SocialMaterialDebug) => material.label === "Instagram",
+        ),
+      ).to.include({ kind: "grass", hasGrassLogo: true });
+      expect(
+        visibleMaterials.find(
+          (material: SocialMaterialDebug) => material.label === "Instagram",
+        )?.grassBladeCount,
+      ).to.be.greaterThan(300);
+    });
   });
 
   it("pokes each live social material through the canvas", () => {
     cy.visit("/");
     cy.contains("#nav-links button", contact.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "2");
+    cy.get("body").should("have.attr", "data-social-materials-ready", "true");
     cy.window()
       .its("__uqrlSocialMaterials")
       .should("be.a", "function")
@@ -326,23 +346,7 @@ describe("navigation shell", () => {
     cy.get("@materials").then((subject) => {
       const materials = subject as unknown as SocialMaterialDebug[];
       materials.forEach((material) => {
-        cy.get("#canvas").trigger("pointermove", {
-          clientX: material.screenX,
-          clientY: material.screenY,
-          pointerId: 1,
-          pointerType: "mouse",
-          pressure: 0.35,
-        });
-        cy.get("#canvas").trigger("pointerdown", {
-          clientX: material.screenX,
-          clientY: material.screenY,
-          pointerId: 1,
-          pointerType: "mouse",
-          pressure: 0.9,
-        });
-        cy.get("body").should("have.attr", "data-material-type", material.kind);
-        cy.get("body").should("have.attr", "data-interaction-state", "pressed");
-        cy.window().should((win) => {
+        cy.window().then((win) => {
           const readMaterials = (
             win as unknown as {
               __uqrlSocialMaterials: () => SocialMaterialDebug[];
@@ -351,14 +355,52 @@ describe("navigation shell", () => {
           const current = readMaterials().find(
             (item) => item.label === material.label,
           );
-          expect(current?.pressure).to.be.greaterThan(0);
-          expect(current?.underlineScaleY).to.be.greaterThan(1);
-        });
-        cy.get("#canvas").trigger("pointerup", {
-          clientX: material.screenX,
-          clientY: material.screenY,
-          pointerId: 1,
-          pointerType: "mouse",
+
+          expect(current, material.label).to.exist;
+          if (!current) throw new Error(`Missing ${material.label}`);
+          expect(current?.visible).to.eq(true);
+          const { screenX, screenY } = current;
+          cy.get("#canvas").trigger("pointermove", {
+            clientX: screenX,
+            clientY: screenY,
+            pointerId: 1,
+            pointerType: "mouse",
+            pressure: 0.35,
+          });
+          cy.get("#canvas").trigger("pointerdown", {
+            clientX: screenX,
+            clientY: screenY,
+            pointerId: 1,
+            pointerType: "mouse",
+            pressure: 0.9,
+          });
+          cy.get("body").should(
+            "have.attr",
+            "data-material-type",
+            material.kind,
+          );
+          cy.get("body").should(
+            "have.attr",
+            "data-interaction-state",
+            "pressed",
+          );
+          cy.window().should((latestWindow) => {
+            const latest = (
+              latestWindow as unknown as {
+                __uqrlSocialMaterials: () => SocialMaterialDebug[];
+              }
+            )
+              .__uqrlSocialMaterials()
+              .find((item) => item.label === material.label);
+            expect(latest?.pressure).to.be.greaterThan(0);
+            expect(latest?.underlineScaleY).to.be.greaterThan(1);
+          });
+          cy.get("#canvas").trigger("pointerup", {
+            clientX: screenX,
+            clientY: screenY,
+            pointerId: 1,
+            pointerType: "mouse",
+          });
         });
       });
     });

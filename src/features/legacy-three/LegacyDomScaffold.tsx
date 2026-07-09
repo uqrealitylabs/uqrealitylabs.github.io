@@ -16,7 +16,7 @@ function BeeLineOrb({
   pathId: string;
 }) {
   return (
-    <g className="bee-trail__dot bee-trail__orb">
+    <g className="bee-trail__dot bee-trail__orb" data-cy="bee-line-glowing-orb">
       <animateMotion
         dur={duration}
         repeatCount="indefinite"
@@ -56,6 +56,7 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
         id="join-us-accessible-link"
         className="sr-only focus:not-sr-only"
         href="#nav-links"
+        data-cy="rubrics-button"
       >
         {labels.joinFallback}
       </a>
@@ -67,6 +68,7 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
       <div id="chalk-layer" aria-hidden="true">
         <svg
           className="bee-trail bee-trail--join"
+          data-cy="living-join-us"
           viewBox="0 0 220 120"
           focusable="false"
           aria-hidden="true"
@@ -78,6 +80,7 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
           <path
             id="bee-trail-join"
             className="bee-trail__path"
+            data-cy="bee-line-path"
             d="M12 88 C28 24 42 122 62 66 C78 14 96 108 118 56 C138 10 158 118 178 54 C192 30 204 36 214 64"
           />
           <g className="bee-trail__label-group bee-trail__join-word">
@@ -90,6 +93,7 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
             </text>
             <text
               className="bee-trail__label bee-trail__join-letter bee-trail__join-letter--o"
+              data-cy="join-us-letter-o"
               x="130"
               y="30"
             >
@@ -111,6 +115,7 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
             </text>
             <text
               className="bee-trail__label bee-trail__join-letter bee-trail__join-letter--u"
+              data-cy="join-us-letter-u"
               x="171"
               y="30"
             >
@@ -128,18 +133,32 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
               transform="translate(130 24)"
             >
               <circle className="bee-trail__eye-ring" cx="0" cy="0" r="4.8" />
-              <circle className="bee-trail__eye-pupil" cx="0" cy="0" r="1.6" />
+              <circle
+                className="bee-trail__eye-pupil"
+                data-cy="join-us-o-pupil"
+                cx="0"
+                cy="0"
+                r="1.6"
+              />
             </g>
             <g
               className="bee-trail__eye bee-trail__eye--u"
+              data-cy="join-us-u-eyelid"
               transform="translate(172 25)"
             >
               <circle className="bee-trail__eye-ring" cx="0" cy="0" r="4.3" />
-              <circle className="bee-trail__eye-pupil" cx="0" cy="0" r="1.45" />
+              <circle
+                className="bee-trail__eye-pupil"
+                data-cy="join-us-u-pupil"
+                cx="0"
+                cy="0"
+                r="1.45"
+              />
             </g>
             <path className="bee-trail__join-wink" d="M166 23 Q172 19 178 23" />
             <path
               className="bee-trail__join-smile"
+              data-cy="join-us-smile"
               d="M137 37 Q154 47 174 37"
             />
             <path
@@ -148,9 +167,13 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
             />
             <path
               className="bee-trail__join-tear"
+              data-cy="join-us-tear"
               d="M132 32 C128 38 127 43 132 47 C137 43 136 38 132 32"
             />
-            <g className="bee-trail__thought bee-trail__thought--near-awwww">
+            <g
+              className="bee-trail__thought bee-trail__thought--near-awwww"
+              data-cy="join-us-thought-awwww"
+            >
               <ellipse
                 className="bee-trail__thought-cloud"
                 cx="154"
@@ -174,7 +197,10 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
                 aw.
               </text>
             </g>
-            <g className="bee-trail__thought bee-trail__thought--sad-ow">
+            <g
+              className="bee-trail__thought bee-trail__thought--sad-ow"
+              data-cy="join-us-thought-ow"
+            >
               <circle
                 className="bee-trail__thought-cloud"
                 cx="208"
@@ -185,7 +211,10 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
                 ow.
               </text>
             </g>
-            <g className="bee-trail__thought bee-trail__thought--yay">
+            <g
+              className="bee-trail__thought bee-trail__thought--yay"
+              data-cy="join-us-thought-yay"
+            >
               <ellipse
                 className="bee-trail__thought-cloud"
                 cx="154"
@@ -197,11 +226,11 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
                 yay
               </text>
             </g>
-            <g className="bee-trail__kawaii-blush">
+            <g className="bee-trail__kawaii-blush" data-cy="join-us-blush">
               <ellipse cx="141" cy="35" rx="4.4" ry="2" />
               <ellipse cx="163" cy="35" rx="4.4" ry="2" />
             </g>
-            <g className="bee-trail__pom-poms">
+            <g className="bee-trail__pom-poms" data-cy="rubrics-pom-pom">
               <path d="M126 4 l-6 -5 M126 4 l-1 -8 M126 4 l7 -5" />
               <path d="M182 4 l-6 -5 M182 4 l1 -8 M182 4 l7 -5" />
               <circle cx="126" cy="4" r="3" />
@@ -217,6 +246,7 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
         </svg>
         <svg
           className="bee-trail bee-trail--social"
+          data-cy="bee-line-orb-social"
           viewBox="0 0 240 110"
           focusable="false"
           aria-hidden="true"
@@ -228,9 +258,10 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
           <path
             id="bee-trail-social"
             className="bee-trail__path"
+            data-cy="bee-line-path"
             d="M14 72 C42 18 82 92 104 48 C128 2 156 96 182 48 C204 10 222 18 232 36"
           />
-          <text className="bee-trail__label" x="18" y="24">
+          <text className="bee-trail__label" data-cy="buzz-buzz" x="18" y="24">
             buzz buzz
           </text>
           <BeeLineOrb duration="3.9s" pathId="bee-trail-social" />

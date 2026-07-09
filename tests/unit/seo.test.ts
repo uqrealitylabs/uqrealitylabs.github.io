@@ -1,16 +1,18 @@
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+  allPageEntries,
   getContentGraph,
   getPageContent,
   getSiteContent,
-  listPages,
 } from "../../src/content/contentRegistry";
 import {
   validatePageContent,
   validateSiteContent,
 } from "../../src/content/schema/contentSchema";
 import {
+  assetUrl,
+  buildHreflangAlternates,
   buildLlms,
   buildPageMetadata,
   buildRobots,
@@ -20,16 +22,21 @@ import {
   serializeJsonLd,
   validateSeo,
 } from "../../src/seo/seo";
+import { buildLocaleUrl } from "../../src/shared/i18n/localeUrls";
 import { seoPageMatrix } from "../../src/shared/testing/contentMatrices";
 
 const site = getSiteContent("en");
-const pages = listPages("en");
+const pages = allPageEntries().map((entry) => entry.content);
 const home = getPageContent("en", "home");
 const about = getPageContent("en", "about");
 
 describe("SEO signals", () => {
   it("generates production and preview robots policies", () => {
-    const sitemapUrl = new URL("/sitemap.xml", site.seo.siteUrl).href;
+    const sitemapUrl = buildLocaleUrl(site.locale, "/sitemap.xml", {
+      siteOrigin: site.seo.siteUrl,
+      supportedLocales: [site.locale],
+      defaultLocale: site.locale,
+    });
 
     expect(buildRobots(site)).toContain(
       "Content-Signal: search=yes, ai-input=yes, ai-train=no",
@@ -50,6 +57,26 @@ describe("SEO signals", () => {
     });
     expect(sitemap).not.toContain(canonicalUrl(site, about));
     expect(sitemap).toBe(readFileSync("public/sitemap.xml", "utf8"));
+  });
+
+  it("uses locale subdomains for canonical, hreflang, and sitemap URLs", () => {
+    const sitemap = buildSitemap(site, pages);
+    const esHome = getPageContent("es", "home");
+
+    expect(canonicalUrl(site, home)).toBe(
+      "https://en.uqrealitylabs.github.io/",
+    );
+    expect(canonicalUrl(getSiteContent("es"), esHome)).toBe(
+      "https://es.uqrealitylabs.github.io/",
+    );
+    expect(buildHreflangAlternates(site, home, pages)).toEqual([
+      { hreflang: "en", href: "https://en.uqrealitylabs.github.io/" },
+      { hreflang: "es", href: "https://es.uqrealitylabs.github.io/" },
+      { hreflang: "x-default", href: "https://en.uqrealitylabs.github.io/" },
+    ]);
+    expect(sitemap).toContain(
+      '<xhtml:link rel="alternate" hreflang="es" href="https://es.uqrealitylabs.github.io/" />',
+    );
   });
 
   it("keeps generated public SEO files in sync", () => {
@@ -86,7 +113,7 @@ describe("SEO signals", () => {
       page.meta.indexable ? "index,follow" : "noindex,follow",
     );
     expect(metadata.image).toBe(
-      new URL(site.seo.defaultSocialImage.src, `${site.seo.siteUrl}/`).href,
+      assetUrl(site, site.seo.defaultSocialImage.src),
     );
   });
 

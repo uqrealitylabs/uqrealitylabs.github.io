@@ -47,6 +47,9 @@ body {
 }
 
 #canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
   display: block;
   width: 100dvw;
   height: 100dvh;
@@ -226,7 +229,7 @@ body {
 #chalk-layer {
   position: fixed;
   inset: 0;
-  z-index: 14;
+  z-index: 20;
   pointer-events: none;
   contain: layout paint;
 }
@@ -740,6 +743,22 @@ body[data-content-hover="committee"] .bee-trail--committee .bee-trail__label {
 
 body[data-content-hover="committee"] .bee-trail--committee {
   transform: rotate(4deg) translateX(0.35rem) translateY(-0.45rem);
+}
+
+body[data-reduced-motion="true"] .bee-trail__path {
+  animation: none !important;
+  stroke-dashoffset: 0;
+}
+
+body[data-reduced-motion="true"] .bee-trail__label {
+  animation: none !important;
+  opacity: 1;
+  transform: none;
+}
+
+body[data-reduced-motion="true"] .bee-trail__orb-drift {
+  animation: none !important;
+  transform: none;
 }
 
 .member-popup {

@@ -5,4 +5,4 @@ Content-Signal: search=yes, ai-input=yes, ai-train=no
 User-agent: *
 Allow: /
 
-Sitemap: https://uqrealitylabs.github.io/sitemap.xml
+Sitemap: https://en.uqrealitylabs.github.io/sitemap.xml
