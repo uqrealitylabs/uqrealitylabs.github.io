@@ -120,12 +120,14 @@ describe("SEO signals", () => {
   it("builds truthful structured data and escapes JSON-LD safely", () => {
     const jsonLd = buildStructuredData(site, home);
 
-    expect(jsonLd.map((item) => item["@type"])).toEqual([
+    expect(jsonLd["@context"]).toBe("https://schema.org");
+    expect(jsonLd["@graph"].map((item) => item["@type"])).toEqual([
       "Organization",
       "WebSite",
       "WebPage",
     ]);
-    expect(jsonLd[1].inLanguage).toBe(site.locale);
+    expect(jsonLd["@graph"].every((item) => !("@context" in item))).toBe(true);
+    expect(jsonLd["@graph"][1].inLanguage).toBe(site.locale);
     expect(serializeJsonLd({ text: "</script><img src=x>" })).not.toContain(
       "</script>",
     );
