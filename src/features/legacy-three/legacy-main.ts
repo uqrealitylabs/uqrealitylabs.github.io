@@ -2223,6 +2223,29 @@ function updateHudState() {
   }
 }
 
+function showSectionShell(index) {
+  if (index < 0 || index >= MODEL_SECTIONS.length || index === currentIndex) {
+    return;
+  }
+
+  currentIndex = index;
+  updateStatus();
+  setNavbarCondensed(false);
+  scheduleNavbarCondense(900);
+
+  if (index === CONTACT_SECTION_INDEX) {
+    setSocialCubesVisible(true);
+  } else if (socialCubes.length > 0) {
+    setSocialCubesVisible(false);
+  }
+
+  if (index === ABOUT_SECTION_INDEX) {
+    restartChalkTrailMotion(".bee-trail--join");
+  } else {
+    restartChalkTrailMotion();
+  }
+}
+
 function restartChalkTrailMotion(selector = ".bee-trail") {
   document.body.dataset.trailsReady = "true";
   if (prefersReducedMotion.matches) return;
@@ -2514,7 +2537,11 @@ function setupNavbarCondense() {
 
 function goToSection(index) {
   if (index < 0 || index >= MODEL_SECTIONS.length) return;
-  if (!modelGroup || isAnimating || !entranceComplete) {
+  if (!modelGroup || !entranceComplete) {
+    showSectionShell(index);
+    return;
+  }
+  if (isAnimating) {
     queuedSectionIndex = index;
     return;
   }
@@ -2535,9 +2562,7 @@ function flushQueuedSection() {
   const nextIndex = queuedSectionIndex;
   queuedSectionIndex = null;
 
-  if (nextIndex !== currentIndex) {
-    transitionToSection(nextIndex);
-  }
+  transitionToSection(nextIndex);
 }
 
 function setupNavbar() {
@@ -4571,13 +4596,13 @@ function setupKeyboardNavigation() {
 function animateModelEntrance(modelSize) {
   if (!modelGroup) return;
 
-  const homePos = getSectionPos(0);
-  const finalY = homePos.y;
+  const sectionPos = getCurrentSectionPos();
+  const finalY = sectionPos.y;
   const startY = finalY - modelSize * MODEL_ENTRANCE_OFFSET_FACTOR;
   const animPos = { y: startY };
 
   isAnimating = true;
-  modelGroup.position.set(homePos.x, startY, homePos.z);
+  modelGroup.position.set(sectionPos.x, startY, sectionPos.z);
 
   gsap.to(animPos, {
     y: finalY,
@@ -4588,14 +4613,24 @@ function animateModelEntrance(modelSize) {
       aimLightsAtModel();
     },
     onComplete: async () => {
-      modelGroup.position.set(homePos.x, homePos.y, homePos.z);
+      const latestSectionPos = getCurrentSectionPos();
+      modelGroup.position.set(
+        latestSectionPos.x,
+        latestSectionPos.y,
+        latestSectionPos.z,
+      );
       aimLightsAtModel();
       isAnimating = false;
       entranceComplete = true;
       document.body.dataset.sceneReady = "true";
       updateStatus();
-      await revealSectionContent(0);
-      await showRainbowBackdrop();
+      await revealSectionContent(currentIndex);
+      if (currentIndex === CONTACT_SECTION_INDEX) {
+        setSocialCubesVisible(true);
+      }
+      if (currentIndex === 0) {
+        await showRainbowBackdrop();
+      }
       pointerDirty = true;
       flushQueuedSection();
       logModelPosition("Model (entrance complete)");
@@ -4676,7 +4711,7 @@ async function loadSceneModel() {
     rainbowBackdrop = createRainbowBackdrop(maxSize);
 
     await warmupSectionTexts();
-    setCameraOnModel(getSectionPos(0));
+    setCameraOnModel(getCurrentSectionPos());
     animateModelEntrance(maxSize);
     aimLightsAtModel();
     updateStatus();
@@ -4797,6 +4832,9 @@ async function init() {
   setupNavbar();
   setupMemberPopup();
   socialCubes = createSocialCubes();
+  if (currentIndex === CONTACT_SECTION_INDEX) {
+    setSocialCubesVisible(true);
+  }
   applyResponsiveLayout();
   exposeSocialMaterialTestState();
   setupJoinAccessibleInteraction();
