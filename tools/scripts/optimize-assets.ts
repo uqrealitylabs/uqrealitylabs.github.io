@@ -20,7 +20,15 @@ for (const model of models) {
   const output = join(outputDir, model);
   const result = spawnSync(
     "npx",
-    ["gltf-transform", "optimize", input, output, "--compress", "meshopt"],
+    [
+      "--no-install",
+      "gltf-transform",
+      "optimize",
+      input,
+      output,
+      "--compress",
+      "meshopt",
+    ],
     { stdio: "inherit" },
   );
 
