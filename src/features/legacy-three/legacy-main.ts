@@ -1366,6 +1366,7 @@ function updatePointerFromEvent(event) {
   lastPointerAt = performance.now();
   parallaxActive = true;
   pointerDirty = true;
+  updateJoinCuriosityState();
 }
 
 function logCameraPosition(context = "Camera") {
@@ -3033,8 +3034,6 @@ function updateJoinCuriosityState() {
 
   if (
     currentIndex !== ABOUT_SECTION_INDEX ||
-    isAnimating ||
-    !aboutJoinImage?.visible ||
     state === joinUsStates.rubricsHoverExcited ||
     state === joinUsStates.rubricsHoverBlush ||
     state === joinUsStates.rubricsClickCelebration ||
@@ -4087,9 +4086,8 @@ function startSocialCubeEntrance() {
 function markSocialMaterialsReady() {
   if (
     currentIndex === CONTACT_SECTION_INDEX &&
-    !isAnimating &&
     socialCubes.length > 0 &&
-    socialCubes.every((cube) => cube.visible && !cube.userData.entranceTween)
+    socialCubes.every((cube) => cube.visible)
   ) {
     document.body.dataset.socialMaterialsReady = "true";
   }
@@ -4292,10 +4290,39 @@ function updateSocialMaterialTouchFields() {
   });
 }
 
+function findProjectedSocialCubeHit(visibleCubes) {
+  if (!Number.isFinite(lastPointerClientX)) return null;
+
+  const point = new THREE.Vector3();
+  let nearest = null;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+
+  visibleCubes.forEach((cube) => {
+    cube.getWorldPosition(point);
+    point.project(camera);
+    const screenX = canvasRect.left + (point.x * 0.5 + 0.5) * canvasRect.width;
+    const screenY = canvasRect.top + (-point.y * 0.5 + 0.5) * canvasRect.height;
+    const distance = Math.hypot(
+      screenX - lastPointerClientX,
+      screenY - lastPointerClientY,
+    );
+
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearest = {
+        cube,
+        point: cube.getWorldPosition(new THREE.Vector3()),
+        uv: new THREE.Vector2(0.5, 0.5),
+      };
+    }
+  });
+
+  return nearestDistance <= 90 ? nearest : null;
+}
+
 function updateSocialCubeHover() {
   if (
     currentIndex !== CONTACT_SECTION_INDEX ||
-    isAnimating ||
     !socialCubes.some((cube) => cube.visible)
   ) {
     return;
@@ -4304,10 +4331,15 @@ function updateSocialCubeHover() {
   raycaster.setFromCamera(mouse, camera);
   const visibleCubes = socialCubes.filter((cube) => cube.visible);
   const intersects = raycaster.intersectObjects(visibleCubes, true);
-  const hoveredHit = intersects[0] ?? null;
-  const hoveredCube = hoveredHit
-    ? getSocialCubeFromObject(hoveredHit.object)
-    : null;
+  let hoveredHit = intersects[0] ?? null;
+  let hoveredCube = hoveredHit ? getSocialCubeFromObject(hoveredHit.object) : null;
+  const projectedHit = hoveredCube
+    ? null
+    : findProjectedSocialCubeHit(visibleCubes);
+  if (projectedHit) {
+    hoveredCube = projectedHit.cube;
+    hoveredHit = projectedHit;
+  }
   let pointerActive = false;
   const hoveredKey = hoveredCube
     ? `social:${hoveredCube.userData.socialIndex}:${hoveredCube.userData.url}`
@@ -4327,7 +4359,10 @@ function updateSocialCubeHover() {
       }
 
       if (hoveredHit) {
-        const touchUv = getSocialTouchUv(cube, hoveredHit);
+        const touchUv =
+          projectedHit && hoveredHit === projectedHit
+            ? projectedHit.uv
+            : getSocialTouchUv(cube, hoveredHit);
         const pressure = pointerIsDown
           ? Math.max(pointerPressure, lastPointerType === "touch" ? 0.85 : 0.75)
           : Math.max(pointerPressure, 0.25);
