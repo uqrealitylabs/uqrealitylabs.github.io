@@ -184,3 +184,13 @@ Requested passes only: Legacy Hunter, Security Researcher, Techstack Genius, and
 
 - Delete-list applied: did not import old app code, oversized favicon SVG, duplicate robots/sitemap files, README churn, or separate SEO tests.
 - Remaining useful source-branch gap after review: none found beyond the static icon links/files and accessible fallback links ported here.
+
+## final seo-robots-content-signals comparison pass
+
+Requested passes only: Legacy Hunter, Security Researcher, Techstack Genius, and @Ponytail Ultra.
+
+- Already copied: generated robots/content-signal policy, sitemap, `llms.txt`, canonical/social metadata, JSON-LD escaping, hidden JOIN/social fallback links, and touch/Safari icon links.
+- Ported now: the small non-base64 `favicon.svg` from `99340ff`.
+- Removed now: test-only `joinUsState`, `materialConfig`, and `beeLinePath` shards plus their tests; source branch's real runtime interaction work was either already in `legacy-main.ts` or rejected as old static-app code.
+- Tightened now: page JSON cannot own graph-owned `route`, `theme`, or `sections`; resolver ignores those fields and validation fails them if they reappear.
+- Rejected: `app/main.js`, `app/styles.css`, Node `.mjs` tests, Firebase deploy workflows, source static markdown/content paths, source-tip base64 favicon SVG, duplicate static robots/sitemap files, and README/process-doc churn.

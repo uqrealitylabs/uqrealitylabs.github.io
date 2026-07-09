@@ -17,9 +17,6 @@ Filesystem
 - src/content/ContentRenderer.tsx: safe structured block renderer.
 - src/seo/seo.ts: pure robots/sitemap/canonical/social/JSON-LD builders.
 - src/features/legacy-three/: lazy Three scene and DOM scaffold.
-- src/features/living-join-us/: extracted state reducer.
-- src/features/bee-line-orb/: path math helpers.
-- src/features/social-materials/: material config matrix.
 - src/shared/i18n/: shell/global UI strings.
 - src/shared/state/: coarse Zustand UI state.
 - src/shared/styles/: Tailwind v4 entry, tokens, base CSS, legacy CSS.

@@ -69,14 +69,11 @@ type RawPageContent = Omit<
   PageContent,
   "route" | "nav" | "hero" | "links" | "theme" | "sections"
 > & {
-  route?: string;
   nav: Omit<PageContent["nav"], "order"> & { order?: number };
   hero: Omit<PageContent["hero"], "cta"> & {
     cta?: { label: string; href?: string };
   };
   links?: Record<string, string>;
-  theme?: Theme;
-  sections?: ContentSection[];
 };
 type RawSiteContent = Pick<
   SiteContent,
@@ -161,7 +158,7 @@ function resolvePage(locale: Locale, pageId: PageId): PageContent {
 
   return {
     ...raw,
-    route: raw.route ?? shared.route,
+    route: shared.route,
     meta: {
       ...raw.meta,
       ...(shared.indexable !== undefined
@@ -175,8 +172,8 @@ function resolvePage(locale: Locale, pageId: PageId): PageContent {
       linkEntries.length > 0
         ? { ...Object.fromEntries(linkEntries), ...(raw.links ?? {}) }
         : raw.links,
-    theme: raw.theme ?? shared.theme,
-    sections: raw.sections ?? shared.sections ?? [],
+    theme: shared.theme,
+    sections: shared.sections ?? [],
   };
 }
 
@@ -283,6 +280,30 @@ export function allSiteEntries() {
     path: `src/content/site/${locale}.json`,
     content: sites[locale],
   }));
+}
+
+export function validateRawPageOverlays(
+  input: Record<string, Record<string, Record<string, unknown>>> = rawPages,
+): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const graphOwnedKeys = ["route", "theme", "sections"] as const;
+
+  Object.entries(input).forEach(([locale, pagesById]) => {
+    Object.entries(pagesById).forEach(([pageId, raw]) => {
+      graphOwnedKeys.forEach((key) => {
+        if (key in raw) {
+          issue(
+            issues,
+            `src/content/pages/${locale}/${pageId}.json.${key}`,
+            "owned by src/content/graph/shared.json",
+            raw[key],
+          );
+        }
+      });
+    });
+  });
+
+  return issues;
 }
 
 export function validateContentGraph(

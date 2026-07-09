@@ -2,6 +2,7 @@ import {
   allPageEntries,
   allSiteEntries,
   validateContentGraph,
+  validateRawPageOverlays,
 } from "./contentRegistry.ts";
 import {
   formatIssues,
@@ -11,6 +12,7 @@ import {
 
 export function validateAllContent() {
   const graphIssues = validateContentGraph();
+  const rawPageIssues = validateRawPageOverlays();
   const pageIssues = allPageEntries().flatMap(({ content, path }) =>
     validatePageContent(content, path),
   );
@@ -18,7 +20,7 @@ export function validateAllContent() {
     validateSiteContent(content, path),
   );
 
-  return [...graphIssues, ...pageIssues, ...siteIssues];
+  return [...graphIssues, ...rawPageIssues, ...pageIssues, ...siteIssues];
 }
 
 export function assertValidContent() {

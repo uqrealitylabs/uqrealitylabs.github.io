@@ -257,7 +257,7 @@
     "page": {
       "type": "object",
       "required": ["locale", "id", "meta", "nav", "hero"],
-      "additionalProperties": true,
+      "additionalProperties": false,
       "properties": {
         "$schema": {
           "type": "string"
@@ -274,10 +274,6 @@
             "committee",
             "rubrics"
           ]
-        },
-        "route": {
-          "$ref": "#/$defs/routePath",
-          "description": "Usually inherited from graph.routes"
         },
         "meta": {
           "type": "object",
@@ -374,10 +370,6 @@
               }
             }
           }
-        },
-        "sections": {
-          "type": "array",
-          "description": "Usually inherited from graph.routes"
         }
       }
     },

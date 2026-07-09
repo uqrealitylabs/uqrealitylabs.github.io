@@ -9,6 +9,7 @@ import {
   listPages,
   resolveLocale,
   validateContentGraph,
+  validateRawPageOverlays,
 } from "../../src/content/contentRegistry";
 import {
   type ContentBlock,
@@ -61,6 +62,18 @@ describe("JSON content system", () => {
     expect(about.hero.cta?.href).toBe(graph.ctas.joinRubrics.href);
     expect(site.socialLinks).toEqual(graph.socialLinks);
     expect(site.committee).toEqual(graph.committee);
+  });
+
+  it.each([
+    "route",
+    "theme",
+    "sections",
+  ] as const)("rejects page-level %s overrides", (key) => {
+    expect(
+      validateRawPageOverlays({
+        en: { home: { [key]: key === "sections" ? [] : "duplicate" } },
+      }).some((issue) => issue.path.endsWith(`home.json.${key}`)),
+    ).toBe(true);
   });
 
   it.each([
