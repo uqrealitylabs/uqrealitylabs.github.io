@@ -1,13 +1,15 @@
 import {
   constrainPupilOffset,
   getOrganicWinkDelayMs,
+} from "@uqrealitylabs/eyslie";
+import { describe, expect, it } from "vitest";
+import {
   JOIN_US_BLUSH_DELAY_MS,
   JOIN_US_NAVIGATION_DELAY_MS,
   joinUsStates,
   nextJoinUsState,
   shouldShowJoinBlush,
-} from "eyslie";
-import { describe, expect, it } from "vitest";
+} from "../../src/shared/lib/joinUsState";
 
 describe("living JOIN US state", () => {
   it("moves through the requested interaction states", () => {
@@ -24,9 +26,19 @@ describe("living JOIN US state", () => {
       nextJoinUsState(
         joinUsStates.rubricsHoverExcited,
         "rubricsHoverElapsed",
+        JOIN_US_BLUSH_DELAY_MS - 1,
+      ),
+    ).toBe(joinUsStates.rubricsHoverExcited);
+    expect(
+      nextJoinUsState(
+        joinUsStates.rubricsHoverExcited,
+        "rubricsHoverElapsed",
         JOIN_US_BLUSH_DELAY_MS,
       ),
     ).toBe(joinUsStates.rubricsHoverBlush);
+    expect(
+      nextJoinUsState(joinUsStates.rubricsHoverExcited, "pointerAway"),
+    ).toBe(joinUsStates.rubricsHoverExcited);
     expect(
       nextJoinUsState(joinUsStates.rubricsHoverBlush, "rubricsClick"),
     ).toBe(joinUsStates.rubricsClickCelebration);

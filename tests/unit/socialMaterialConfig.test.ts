@@ -1,4 +1,7 @@
-import { getMaterialKind, materialConfigs } from "materials-actually";
+import {
+  getMaterialKind,
+  materialConfigs,
+} from "@uqrealitylabs/materials-actually";
 import { describe, expect, it } from "vitest";
 import { getSiteContent } from "../../src/content/contentRegistry";
 

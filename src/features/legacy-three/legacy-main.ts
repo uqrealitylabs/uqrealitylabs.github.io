@@ -7,12 +7,9 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Text } from "troika-three-text";
 import {
-  JOIN_US_BLUSH_DELAY_MS,
-  JOIN_US_NAVIGATION_DELAY_MS,
   constrainPupilOffset,
   getOrganicWinkDelayMs,
-  joinUsStates,
-} from "eyslie";
+} from "@uqrealitylabs/eyslie";
 import {
   applyPoke,
   createPokeState,
@@ -24,8 +21,13 @@ import {
   shouldTriggerMaterialHaptic,
   stepPoke,
   triggerMaterialHaptic,
-} from "materials-actually";
+} from "@uqrealitylabs/materials-actually";
 import { getPageContent, getSiteContent } from "../../content/contentRegistry";
+import {
+  JOIN_US_BLUSH_DELAY_MS,
+  JOIN_US_NAVIGATION_DELAY_MS,
+  joinUsStates,
+} from "../../shared/lib/joinUsState";
 
 gsap.registerPlugin(Observer);
 
@@ -1648,12 +1650,15 @@ function stampMaterialTouch(field, uv, worldPoint, pressure = 0.25) {
   if (worldPoint) field.world.copy(worldPoint);
   const eventKind = getMaterialEventKind(field.config, field.poke, pressure);
   const now = performance.now();
-  if (shouldTriggerMaterialHaptic(field.lastHapticAt, now)) {
-    triggerMaterialHaptic(field.config.kind, eventKind, pressure, {
+  if (
+    eventKind !== field.lastHapticKind ||
+    shouldTriggerMaterialHaptic(field.lastHapticAt, now)
+  ) {
+    const hapticFired = triggerMaterialHaptic(field.config.kind, eventKind, pressure, {
       navigator,
       reducedMotion: prefersReducedMotion.matches,
     });
-    field.lastHapticAt = now;
+    if (hapticFired) field.lastHapticAt = now;
     field.lastHapticKind = eventKind;
   }
   field.touched = true;
@@ -3744,8 +3749,10 @@ function resizeSocialCard(card) {
 
   if (card.userData.grassLogo) {
     card.remove(card.userData.grassLogo);
-    card.userData.grassLogo.geometry.dispose();
-    card.userData.grassLogo.material.dispose();
+    card.userData.grassLogo.traverse((node) => {
+      node.geometry?.dispose?.();
+      node.material?.dispose?.();
+    });
     card.userData.grassLogo = createGrassLogoBlades(
       card.userData.touchField,
       layout,
@@ -4123,13 +4130,15 @@ function updateGrassLogoBlades(mesh) {
   );
   if (cutDelta > 0) {
     let remaining = cutDelta;
-    mesh.userData.lastCutCount = poke.cuts;
+    let cutBlades = 0;
     mesh.userData.blades.forEach((blade) => {
       if (remaining <= 0 || blade.cut) return;
       if (getPokeInfluence(poke, blade.uvx, blade.uvy, 0.2) <= 0.12) return;
       blade.cut = true;
       remaining -= 1;
+      cutBlades += 1;
     });
+    mesh.userData.lastCutCount += cutBlades;
   }
 
   mesh.userData.blades.forEach((blade, index) => {

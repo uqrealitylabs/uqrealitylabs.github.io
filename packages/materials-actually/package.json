@@ -1,10 +1,30 @@
 {
-  "name": "materials-actually",
-  "version": "0.0.0",
+  "name": "@uqrealitylabs/materials-actually",
+  "version": "0.1.0",
   "type": "module",
-  "description": "Pointer-local material interaction math and haptic patterns for feelable surfaces.",
+  "description": "Pointer-local material interaction math, haptics, and R3F-compatible adapters for feelable surfaces.",
   "license": "MIT",
   "sideEffects": false,
+  "author": "UQ Reality Labs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uqrealitylabs/uqrealitylabs.github.io.git",
+    "directory": "packages/materials-actually"
+  },
+  "bugs": {
+    "url": "https://github.com/uqrealitylabs/uqrealitylabs.github.io/issues"
+  },
+  "homepage": "https://github.com/uqrealitylabs/uqrealitylabs.github.io/tree/main/packages/materials-actually#readme",
+  "keywords": [
+    "three",
+    "r3f",
+    "haptics",
+    "materials",
+    "pointer"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "files": [
     "dist",
     "README.md",
@@ -16,8 +36,12 @@
       "import": "./dist/index.js"
     }
   },
+  "peerDependencies": {
+    "react": ">=18 || >=19"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepack": "npm run build",
     "test": "vitest run --config vitest.config.ts"
   }
 }

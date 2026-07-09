@@ -1,15 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
+  computePupilPosition,
   constrainPupilOffset,
-  getExpressionForJoinState,
+  createWinkSchedule,
+  Eye,
+  EyePair,
+  getEyeAriaLabel,
+  getExpressionState,
   getOrganicWinkDelayMs,
   isWithinHideRadius,
-  JOIN_US_BLUSH_DELAY_MS,
-  JOIN_US_NAVIGATION_DELAY_MS,
-  joinUsStates,
-  nextJoinUsState,
-  shouldShowJoinBlush,
+  useEyeTracking,
+  useWink,
 } from "../src/index";
+import type React from "react";
 
 describe("eyslie", () => {
   it("constrains pupils inside eye bounds", () => {
@@ -20,6 +23,8 @@ describe("eyslie", () => {
       x: 0,
       y: 0,
     });
+    expect(computePupilPosition({ width: 20, height: 16 }, { x: 100, y: 0 }).x)
+      .toBeLessThanOrEqual(5.6);
   });
 
   it("detects hide radius", () => {
@@ -27,54 +32,51 @@ describe("eyslie", () => {
     expect(isWithinHideRadius({ x: 6, y: 0 }, { x: 0, y: 0 }, 5)).toBe(false);
   });
 
-  it("moves through JOIN states", () => {
-    expect(nextJoinUsState(joinUsStates.idleCurious, "pointerNear")).toBe(
-      joinUsStates.joinNear,
-    );
-    expect(nextJoinUsState(joinUsStates.joinNear, "pointerAway")).toBe(
-      joinUsStates.idleCurious,
-    );
-    expect(nextJoinUsState(joinUsStates.idleCurious, "rubricsHover")).toBe(
-      joinUsStates.rubricsHoverExcited,
-    );
+  it("has deterministic timing and generic expressions", () => {
+    expect(createWinkSchedule(12)(0)).toBe(getOrganicWinkDelayMs(12, 0));
+    expect(getOrganicWinkDelayMs(12, 0)).toBe(getOrganicWinkDelayMs(12, 0));
+    expect(getOrganicWinkDelayMs(12, 0)).not.toBe(getOrganicWinkDelayMs(12, 1));
+    expect(getExpressionState("idle")).toMatchObject({ mode: "idle" });
+    expect(getExpressionState("happy")).toMatchObject({ smile: true });
+    expect(getExpressionState("sad")).toMatchObject({ tear: true });
+    expect(getEyeAriaLabel("JOIN US")).toBe("JOIN US (decorative)");
+  });
+
+  it("exposes React-friendly hooks as pure deterministic helpers in tests", () => {
+    const tracking = useEyeTracking({
+      eyeBounds: { width: 20, height: 16 },
+      pointer: { x: 10, y: 0 },
+    });
+    expect(tracking.hidden).toBe(false);
+    expect(tracking.pupil.x).toBeGreaterThan(0);
     expect(
-      nextJoinUsState(
-        joinUsStates.rubricsHoverExcited,
-        "rubricsHoverElapsed",
-        JOIN_US_BLUSH_DELAY_MS - 1,
-      ),
-    ).toBe(joinUsStates.rubricsHoverExcited);
-    expect(
-      nextJoinUsState(
-        joinUsStates.rubricsHoverExcited,
-        "rubricsHoverElapsed",
-        JOIN_US_BLUSH_DELAY_MS,
-      ),
-    ).toBe(joinUsStates.rubricsHoverBlush);
-    expect(
-      nextJoinUsState(joinUsStates.rubricsHoverBlush, "rubricsClick"),
-    ).toBe(joinUsStates.rubricsClickCelebration);
-    expect(
-      nextJoinUsState(joinUsStates.rubricsHoverExcited, "rubricsLeave"),
-    ).toBe(joinUsStates.sadShrivel);
-    expect(
-      nextJoinUsState(joinUsStates.rubricsHoverExcited, "pointerAway"),
-    ).toBe(joinUsStates.rubricsHoverExcited);
-    expect(nextJoinUsState(joinUsStates.recoveringToIdle, "recovered")).toBe(
-      joinUsStates.idleCurious,
+      useEyeTracking({
+        eyeBounds: { width: 20, height: 16 },
+        pointer: { x: 0, y: 0 },
+        target: { x: 0, y: 0 },
+        hideRadius: 5,
+      }).hidden,
+    ).toBe(true);
+    expect(useWink({ seed: 3, index: 0 })).toBe(getOrganicWinkDelayMs(3, 0));
+    expect(useWink({ seed: 3, index: 0, reducedMotion: true })).toBe(
+      Number.POSITIVE_INFINITY,
     );
   });
 
-  it("has deterministic timing and expressions", () => {
-    expect(shouldShowJoinBlush(JOIN_US_BLUSH_DELAY_MS - 1)).toBe(false);
-    expect(shouldShowJoinBlush(JOIN_US_BLUSH_DELAY_MS)).toBe(true);
-    expect(JOIN_US_NAVIGATION_DELAY_MS).toBe(500);
-    expect(getOrganicWinkDelayMs(12, 0)).toBe(getOrganicWinkDelayMs(12, 0));
-    expect(getOrganicWinkDelayMs(12, 0)).not.toBe(getOrganicWinkDelayMs(12, 1));
-    expect(getExpressionForJoinState(joinUsStates.idleCurious)).toBe("idle");
-    expect(getExpressionForJoinState(joinUsStates.rubricsHoverBlush)).toBe(
-      "happy",
-    );
-    expect(getExpressionForJoinState(joinUsStates.sadShrivel)).toBe("sad");
+  it("creates accessible O and U eye elements", () => {
+    const o = Eye({ shape: "o", label: "O", color: "red" }) as React.ReactElement;
+    const u = Eye({
+      shape: "u",
+      label: "U",
+      expression: "happy",
+    }) as React.ReactElement;
+    const pair = EyePair({ label: "JOIN US" }) as React.ReactElement;
+
+    expect(o.props).toMatchObject({ "aria-label": "O (decorative)" });
+    expect(u.props).toMatchObject({ "data-expression": "happy" });
+    expect(pair.props).toMatchObject({
+      role: "img",
+      "aria-label": "JOIN US (decorative)",
+    });
   });
 });

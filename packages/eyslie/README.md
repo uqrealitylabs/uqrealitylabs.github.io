@@ -7,7 +7,7 @@ The package does not copy xeyes source. The xorg xeyes project was reviewed as
 prior art and is identified upstream as X11 licensed.
 
 ```ts
-import { constrainPupilOffset, getOrganicWinkDelayMs } from "eyslie";
+import { constrainPupilOffset, getOrganicWinkDelayMs } from "@uqrealitylabs/eyslie";
 ```
 
-Build with `npm run build -w eyslie`; the package exports `dist`.
+Build with `npm run build -w @uqrealitylabs/eyslie`; the package exports `dist`.

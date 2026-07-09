@@ -1,18 +1,29 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   applyPoke,
+  addContact,
+  createContactHistory,
+  createMaterialPokeController,
   createPokeState,
+  getPointerUv,
+  MaterialLogoSurface,
   getMaterialConfig,
   getMaterialEventKind,
   getMaterialHapticPattern,
   getMaterialKind,
   getMaterialResponse,
   getPokeInfluence,
+  PokeSurface,
+  releasePoke,
   materialConfigs,
   shouldTriggerMaterialHaptic,
+  stepContactHistory,
   stepPoke,
   triggerMaterialHaptic,
+  updatePokeModel,
+  useMaterialPoke,
 } from "../src/index";
+import type React from "react";
 
 describe("materials-actually", () => {
   it("maps labels to material kinds", () => {
@@ -112,6 +123,7 @@ describe("materials-actually", () => {
     expect(getMaterialEventKind(materialConfigs.cloth, cloth, 0.2)).toBe(
       "contact",
     );
+    expect(getMaterialEventKind(materialConfigs.cloth, cloth, 0)).toBe("hover");
 
     expect(shouldTriggerMaterialHaptic(100, 279)).toBe(false);
     expect(shouldTriggerMaterialHaptic(100, 281)).toBe(true);
@@ -147,5 +159,71 @@ describe("materials-actually", () => {
         },
       }),
     ).toBe(false);
+  });
+
+  it("tracks contact history and generic poke updates", () => {
+    expect(createContactHistory()).toMatchObject({ maxPoints: 8, fadeMs: 1400 });
+    const history = createContactHistory({ maxPoints: 1, fadeMs: 20 });
+    addContact(history, { x: 0.2, y: 0.4 }, 4, "press");
+    addContact(history, { x: 0.8, y: 0.1 }, 0.5, "release");
+    expect(history.points).toHaveLength(1);
+    expect(history.points[0]).toMatchObject({
+      x: 0.8,
+      y: 0.1,
+      strength: 0.5,
+    });
+    stepContactHistory(history, 21);
+    expect(history.points).toHaveLength(0);
+
+    const state = createPokeState();
+    updatePokeModel(state, materialConfigs.mail, { x: 0.7, y: 0.4 }, 33.34);
+    expect(state.pressure).toBeGreaterThan(0);
+    updatePokeModel(
+      state,
+      materialConfigs.mail,
+      { x: 0.7, y: 0.4, active: false },
+      16.67,
+    );
+    expect(state.targetPressure).toBe(0);
+    updatePokeModel(state, materialConfigs.mail, null);
+    releasePoke(state);
+  });
+
+  it("exposes R3F-compatible pointer helpers without React state", () => {
+    expect(getPointerUv({ uv: { x: 0.25, y: 0.75 } })).toEqual({
+      x: 0.25,
+      y: 0.75,
+    });
+    expect(
+      getPointerUv({
+        currentTarget: { clientWidth: 100, clientHeight: 50 },
+        nativeEvent: { offsetX: 25, offsetY: 10 },
+      }),
+    ).toEqual({ x: 0.25, y: 0.8 });
+    expect(getPointerUv({})).toEqual({ x: 0.5, y: 0.5 });
+
+    const controller = createMaterialPokeController({ material: "rubber" });
+    controller.handlers.onPointerMove({ uv: { x: 0.5, y: 0.5 } });
+    controller.handlers.onPointerDown({ uv: { x: 0.9, y: 0.1 } });
+    controller.step();
+    expect(controller.state.pressure).toBeGreaterThan(0);
+    controller.handlers.onPointerUp();
+    controller.handlers.onPointerOut();
+    controller.step();
+    expect(controller.state.targetPressure).toBe(0);
+
+    const hookController = useMaterialPoke({ material: "cloth" });
+    hookController.handlers.onPointerDown({ uv: { x: 0.2, y: 0.2 } });
+    expect(hookController.state.targetPressure).toBeGreaterThan(0);
+
+    const surface = PokeSurface({ material: "glass", underline: true });
+    expect((surface as React.ReactElement).type).toBe("mesh");
+    expect((surface as React.ReactElement).props).toMatchObject({
+      "data-material": "glass",
+      "data-underline": "true",
+    });
+    expect(
+      (MaterialLogoSurface({ material: "mail" }) as React.ReactElement).props,
+    ).toMatchObject({ "data-material": "mail" });
   });
 });

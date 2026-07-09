@@ -1,10 +1,29 @@
 {
-  "name": "eyslie",
-  "version": "0.0.0",
+  "name": "@uqrealitylabs/eyslie",
+  "version": "0.1.0",
   "type": "module",
   "description": "Small xeyes-style eye tracking math and expression helpers.",
   "license": "MIT",
   "sideEffects": false,
+  "author": "UQ Reality Labs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uqrealitylabs/uqrealitylabs.github.io.git",
+    "directory": "packages/eyslie"
+  },
+  "bugs": {
+    "url": "https://github.com/uqrealitylabs/uqrealitylabs.github.io/issues"
+  },
+  "homepage": "https://github.com/uqrealitylabs/uqrealitylabs.github.io/tree/main/packages/eyslie#readme",
+  "keywords": [
+    "xeyes",
+    "cartoon-eyes",
+    "pointer-tracking",
+    "react"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "files": [
     "dist",
     "README.md",
@@ -17,8 +36,12 @@
       "import": "./dist/index.js"
     }
   },
+  "peerDependencies": {
+    "react": ">=18 || >=19"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepack": "npm run build",
     "test": "vitest run --config vitest.config.ts"
   }
 }

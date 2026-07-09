@@ -8,7 +8,7 @@ export default defineConfig({
       include: [
         "packages/eyslie/src/**/*.ts",
         "packages/materials-actually/src/**/*.ts",
-        "src/shared/lib/scale.ts",
+        "src/shared/lib/*.ts",
       ],
       thresholds: {
         statements: 100,
