@@ -46,7 +46,7 @@
     "motion": "^12.23.26",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "three": "^0.177.0",
+    "three": "^0.185.1",
     "troika-three-text": "^0.52.4",
     "zustand": "^5.0.9"
   },
