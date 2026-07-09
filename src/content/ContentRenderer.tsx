@@ -53,9 +53,8 @@ function renderBlock(block: ContentBlock, index: number) {
     case "rubricList":
       return (
         <dl key={index}>
-          {block.items.map((item) => (
-            <div key={item.title}>
-              <dt>{item.title}</dt>
+          {block.items.map((item, itemIndex) => (
+            <div key={`${item.title}-${itemIndex}`}>
               <dd>{item.text}</dd>
             </div>
           ))}
