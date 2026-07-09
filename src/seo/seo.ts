@@ -287,6 +287,19 @@ export function buildLlms(site: SiteContent, pages: PageContent[]) {
   ].join("\n");
 }
 
+export function selectIndexPage(
+  site: SiteContent,
+  pages: PageContent[],
+): PageContent {
+  const page =
+    pages.find((page) => page.id === "home" && page.locale === site.locale) ??
+    pages.find((page) => page.id === "home") ??
+    pages[0];
+
+  if (!page) throw new Error("Cannot render index SEO head without pages.");
+  return page;
+}
+
 export function renderHeadBlock(
   site: SiteContent,
   page: PageContent,

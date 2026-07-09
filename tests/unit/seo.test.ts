@@ -19,6 +19,7 @@ import {
   buildSitemap,
   buildStructuredData,
   canonicalUrl,
+  selectIndexPage,
   serializeJsonLd,
   validateSeo,
 } from "../../src/seo/seo";
@@ -83,6 +84,13 @@ describe("SEO signals", () => {
     expect(readFileSync("public/robots.txt", "utf8")).toBe(buildRobots(site));
     expect(readFileSync("public/llms.txt", "utf8")).toBe(
       buildLlms(site, pages),
+    );
+  });
+
+  it("selects the site-locale home page for the generated index head", () => {
+    expect(selectIndexPage(site, [about, home]).id).toBe("home");
+    expect(selectIndexPage(site, [getPageContent("es", "home"), home])).toBe(
+      home,
     );
   });
 

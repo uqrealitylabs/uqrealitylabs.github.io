@@ -4,6 +4,7 @@ import {
   buildRobots,
   buildSitemap,
   renderHeadBlock,
+  selectIndexPage,
 } from "../../src/seo/seo.ts";
 import { loadSeoInputs } from "./seo-inputs.ts";
 
@@ -13,7 +14,7 @@ const { site, pages } = loadSeoInputs();
 function updateIndex() {
   const indexPath = "index.html";
   const html = readFileSync(indexPath, "utf8");
-  const block = `    ${renderHeadBlock(site, pages[0], pages)}`;
+  const block = `    ${renderHeadBlock(site, selectIndexPage(site, pages), pages)}`;
   const next = headPattern.test(html)
     ? html.replace(headPattern, block)
     : html.replace("    <title>UQ Reality Labs</title>", block);

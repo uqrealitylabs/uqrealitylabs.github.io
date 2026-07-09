@@ -28,10 +28,15 @@ export function App() {
       return;
     }
 
-    import("../features/legacy-three/legacy-main").then(() => {
-      window.__uqrlLegacySceneLoaded = true;
-      if (!cancelled) setSceneReady(true);
-    });
+    import("../features/legacy-three/legacy-main")
+      .then(() => {
+        window.__uqrlLegacySceneLoaded = true;
+        if (!cancelled) setSceneReady(true);
+      })
+      .catch((error) => {
+        console.error("Failed to load the legacy scene.", error);
+        if (!cancelled) setSceneReady(true);
+      });
 
     return () => {
       cancelled = true;
