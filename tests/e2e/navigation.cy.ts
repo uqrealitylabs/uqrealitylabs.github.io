@@ -15,6 +15,9 @@ type SocialMaterialDebug = {
   hasLogo: boolean;
   hasUnderline: boolean;
   hasGrassLogo: boolean;
+  grassBladeCount: number;
+  logoFillRatio: number;
+  underlineScaleY: number;
   pressure: number;
   screenX: number;
   screenY: number;
@@ -57,6 +60,7 @@ describe("navigation shell", () => {
     cy.contains("#nav-links button", about.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "1");
     cy.get(".bee-trail--join").should("be.visible");
+    cy.get(".bee-trail--join").should("have.css", "color", "rgb(255, 87, 87)");
     cy.get(".bee-trail--join").invoke("outerWidth").should("be.gt", 150);
     cy.get(".bee-trail__bee").should("not.exist");
     cy.get(".bee-trail--join .bee-trail__orb").should("exist");
@@ -66,10 +70,19 @@ describe("navigation shell", () => {
       );
     });
     cy.get(".bee-trail--join .bee-trail__eye--o .bee-trail__eye-ring").should(
-      "exist",
+      "have.css",
+      "fill",
+      "rgb(255, 243, 210)",
     );
     cy.get(".bee-trail--join .bee-trail__eye--o .bee-trail__eye-pupil").should(
-      "exist",
+      "have.css",
+      "fill",
+      "rgb(107, 63, 31)",
+    );
+    cy.get(".bee-trail--join .bee-trail__eye--u").should(
+      "have.css",
+      "opacity",
+      "1",
     );
     cy.get(".bee-trail--join .bee-trail__thought--near-awwww").should(
       "contain",
@@ -95,6 +108,11 @@ describe("navigation shell", () => {
       "have.css",
       "opacity",
       "0",
+    );
+    cy.get(".bee-trail--join .bee-trail__eye").should(
+      "have.css",
+      "transition-property",
+      "none",
     );
     cy.get(".bee-trail--join .bee-trail__thought--near-awwww").should(
       "contain",
@@ -135,7 +153,12 @@ describe("navigation shell", () => {
     cy.get(".bee-trail--join").invoke("outerWidth").should("be.gt", 130);
     cy.get(".bee-trail__bee").should("not.exist");
     cy.get(".bee-trail--join .bee-trail__orb").should("exist");
-    cy.get(".bee-trail--join .bee-trail__dot").should("not.be.visible");
+    cy.get(".bee-trail--join .bee-trail__dot").should("be.visible");
+    cy.get(".bee-trail--join .bee-trail__orb-drift").should(
+      "have.css",
+      "animation-name",
+      "none",
+    );
     cy.get(".bee-trail--join .bee-trail__path").should(
       "have.css",
       "stroke-dashoffset",
@@ -161,6 +184,11 @@ describe("navigation shell", () => {
       "opacity",
       "1",
     );
+    cy.get(".bee-trail--join .bee-trail__eye--u").should(
+      "have.css",
+      "animation-name",
+      "join-u-hover-wink",
+    );
     cy.tick(3000);
     cy.get("body").should("have.attr", "data-join-state", "rubricsHoverBlush");
     cy.get(".bee-trail--join .bee-trail__kawaii-blush").should(
@@ -170,12 +198,33 @@ describe("navigation shell", () => {
     );
     cy.get("#join-us-accessible-link").blur();
     cy.get("body").should("have.attr", "data-join-state", "sadShrivel");
+    cy.get(".bee-trail--join").should("have.css", "color", "rgb(56, 189, 248)");
     cy.get(".bee-trail--join .bee-trail__join-frown").should(
       "have.css",
       "opacity",
       "1",
     );
-    cy.tick(1000);
+    cy.get(".bee-trail--join .bee-trail__join-tear").should(
+      "have.css",
+      "opacity",
+      "1",
+    );
+    cy.get(".bee-trail--join .bee-trail__thought--sad-ow").should(
+      "contain",
+      site.animationCopy.ow,
+    );
+    cy.get(".bee-trail--join .bee-trail__thought--sad-aw").should(
+      "contain",
+      site.animationCopy.sadThought,
+    );
+    cy.get(".bee-trail--join .bee-trail__dust").should(
+      "have.css",
+      "opacity",
+      "1",
+    );
+    cy.tick(760);
+    cy.get("body").should("have.attr", "data-join-state", "recoveringToIdle");
+    cy.tick(180);
     cy.get("body").should("have.attr", "data-join-state", "idleCurious");
   });
 
@@ -235,6 +284,7 @@ describe("navigation shell", () => {
         visibleMaterials.forEach((material: SocialMaterialDebug) => {
           expect(material.hasLogo).to.eq(true);
           expect(material.hasUnderline).to.eq(true);
+          expect(material.logoFillRatio).to.be.greaterThan(0.95);
         });
         expect(
           visibleMaterials.find(
@@ -246,10 +296,15 @@ describe("navigation shell", () => {
             (material: SocialMaterialDebug) => material.label === "Instagram",
           ),
         ).to.include({ kind: "grass", hasGrassLogo: true });
+        expect(
+          visibleMaterials.find(
+            (material: SocialMaterialDebug) => material.label === "Instagram",
+          )?.grassBladeCount,
+        ).to.be.greaterThan(300);
       });
   });
 
-  it("pokes a live grass social card through the canvas", () => {
+  it("pokes each live social material through the canvas", () => {
     cy.visit("/");
     cy.contains("#nav-links button", contact.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "2");
@@ -257,38 +312,55 @@ describe("navigation shell", () => {
       .its("__uqrlSocialMaterials")
       .should("be.a", "function")
       .then((readMaterials) => {
-        const grass = (readMaterials as () => SocialMaterialDebug[])().find(
-          (material) => material.kind === "grass" && material.visible,
+        const materials = (
+          readMaterials as () => SocialMaterialDebug[]
+        )().filter((material) => material.visible);
+        expect(new Set(materials.map((material) => material.kind))).to.eql(
+          new Set(["cloth", "rubber", "glass", "grass", "mail"]),
         );
-        expect(grass).to.exist;
-        cy.wrap(grass).as("grassMaterial");
+        cy.wrap(materials.sort((a, b) => a.kind.localeCompare(b.kind))).as(
+          "materials",
+        );
       });
 
-    cy.get<SocialMaterialDebug>("@grassMaterial").then((grass) => {
-      cy.get("#canvas").trigger("pointermove", {
-        clientX: grass.screenX,
-        clientY: grass.screenY,
-        pointerId: 1,
-        pointerType: "mouse",
-        pressure: 0.35,
-      });
-      cy.get("#canvas").trigger("pointerdown", {
-        clientX: grass.screenX,
-        clientY: grass.screenY,
-        pointerId: 1,
-        pointerType: "mouse",
-        pressure: 0.9,
+    cy.get("@materials").then((subject) => {
+      const materials = subject as unknown as SocialMaterialDebug[];
+      materials.forEach((material) => {
+        cy.get("#canvas").trigger("pointermove", {
+          clientX: material.screenX,
+          clientY: material.screenY,
+          pointerId: 1,
+          pointerType: "mouse",
+          pressure: 0.35,
+        });
+        cy.get("#canvas").trigger("pointerdown", {
+          clientX: material.screenX,
+          clientY: material.screenY,
+          pointerId: 1,
+          pointerType: "mouse",
+          pressure: 0.9,
+        });
+        cy.get("body").should("have.attr", "data-material-type", material.kind);
+        cy.get("body").should("have.attr", "data-interaction-state", "pressed");
+        cy.window().should((win) => {
+          const readMaterials = (
+            win as unknown as {
+              __uqrlSocialMaterials: () => SocialMaterialDebug[];
+            }
+          ).__uqrlSocialMaterials;
+          const current = readMaterials().find(
+            (item) => item.label === material.label,
+          );
+          expect(current?.pressure).to.be.greaterThan(0);
+          expect(current?.underlineScaleY).to.be.greaterThan(1);
+        });
+        cy.get("#canvas").trigger("pointerup", {
+          clientX: material.screenX,
+          clientY: material.screenY,
+          pointerId: 1,
+          pointerType: "mouse",
+        });
       });
     });
-    cy.get("body").should("have.attr", "data-material-type", "grass");
-    cy.get("body").should("have.attr", "data-interaction-state", "pressed");
-    cy.window()
-      .its("__uqrlSocialMaterials")
-      .should((readMaterials) => {
-        const grass = (readMaterials as () => SocialMaterialDebug[])().find(
-          (material) => material.kind === "grass" && material.visible,
-        );
-        expect(grass?.pressure).to.be.greaterThan(0);
-      });
   });
 });

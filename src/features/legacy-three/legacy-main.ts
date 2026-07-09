@@ -1579,7 +1579,24 @@ function getSocialMaterialProfile(label = "") {
     };
   }
 
-  if (kind === "mail" || kind === "grass") {
+  if (kind === "mail") {
+    return {
+      base: 0xd89a28,
+      top: 0xf7c948,
+      bottom: 0x8f5f16,
+      back: 0xb7791f,
+      roughness: 0.88,
+      metalness: 0.01,
+      clearcoat: 0.08,
+      clearcoatRoughness: 0.82,
+      sheen: 0.34,
+      sheenColor: new THREE.Color(0xfff1b8),
+      sheenRoughness: 0.9,
+      roughnessMap: createClothTexture(),
+    };
+  }
+
+  if (kind === "grass") {
     return {
       base: 0x385629,
       top: 0x4f7837,
@@ -1810,7 +1827,7 @@ function tuneLogoMaterial(material, label, touchField) {
   if (kind === "glass") {
     material.transparent = true;
     material.opacity = 0.86;
-  } else if (kind === "mail" || kind === "grass") {
+  } else if (kind === "grass") {
     material.transparent = true;
     material.opacity = 0.18;
   }
@@ -3870,6 +3887,16 @@ function exposeSocialMaterialTestState() {
         hasLogo: Boolean(cube.userData.logoMesh),
         hasUnderline: Boolean(cube.userData.underline),
         hasGrassLogo: Boolean(cube.userData.grassLogo),
+        grassBladeCount: cube.userData.grassLogo?.count || 0,
+        logoFillRatio: cube.userData.logoMesh
+          ? Math.min(
+              (cube.userData.logoMesh.geometry?.parameters?.width || 0) /
+                (cube.userData.width || 1),
+              (cube.userData.logoMesh.geometry?.parameters?.height || 0) /
+                (cube.userData.height || 1),
+            )
+          : 0,
+        underlineScaleY: cube.userData.underline?.scale?.y || 0,
         pressure: cube.userData.touchField?.poke?.pressure || 0,
         screenX: canvasRect.left + (point.x * 0.5 + 0.5) * canvasRect.width,
         screenY: canvasRect.top + (-point.y * 0.5 + 0.5) * canvasRect.height,
