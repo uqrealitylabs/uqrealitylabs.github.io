@@ -8,4 +8,4 @@ patterns.
 import { applyPoke, createPokeState, materialHaptics } from "materials-actually";
 ```
 
-The package is source-only in this repo. Build with `npm run build -w materials-actually`.
+Build with `npm run build -w materials-actually`; the package exports `dist`.

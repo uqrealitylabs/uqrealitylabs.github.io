@@ -13,6 +13,7 @@ cypress/videos/
 # production
 /build
 /dist
+packages/*/dist/
 artifacts/
 .lighthouseci/
 

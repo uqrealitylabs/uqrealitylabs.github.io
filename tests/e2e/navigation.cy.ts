@@ -19,6 +19,11 @@ type SocialMaterialDebug = {
   logoFillRatio: number;
   underlineScaleY: number;
   pressure: number;
+  stains: number;
+  scratches: number;
+  cuts: number;
+  cutBladeCount: number;
+  lastHapticKind: string;
   screenX: number;
   screenY: number;
 };
@@ -213,10 +218,7 @@ describe("navigation shell", () => {
       "contain",
       site.animationCopy.ow,
     );
-    cy.get(".bee-trail--join .bee-trail__thought--sad-aw").should(
-      "contain",
-      site.animationCopy.sadThought,
-    );
+    cy.get(".bee-trail--join .bee-trail__thought--sad-aw").should("not.exist");
     cy.get(".bee-trail--join .bee-trail__dust").should(
       "have.css",
       "opacity",
@@ -353,6 +355,15 @@ describe("navigation shell", () => {
           );
           expect(current?.pressure).to.be.greaterThan(0);
           expect(current?.underlineScaleY).to.be.greaterThan(1);
+          if (material.kind === "glass") {
+            expect(current?.stains).to.be.greaterThan(0);
+          }
+          if (material.kind === "rubber" || material.kind === "cloth") {
+            expect(current?.lastHapticKind).to.match(/press|damage|contact/);
+          }
+          if (material.kind === "grass") {
+            expect(current?.grassBladeCount).to.be.greaterThan(300);
+          }
         });
         cy.get("#canvas").trigger("pointerup", {
           clientX: material.screenX,

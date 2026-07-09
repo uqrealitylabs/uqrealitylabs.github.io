@@ -17,6 +17,7 @@ import {
 describe("materials-actually", () => {
   it("maps labels to material kinds", () => {
     expect(getMaterialKind("LinkedIn")).toBe("glass");
+    expect(getMaterialKind("glass")).toBe("glass");
     expect(getMaterialKind("Discord")).toBe("rubber");
     expect(getMaterialKind("Email")).toBe("mail");
     expect(getMaterialKind("grass field")).toBe("grass");

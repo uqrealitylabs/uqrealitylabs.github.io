@@ -9,3 +9,5 @@ prior art and is identified upstream as X11 licensed.
 ```ts
 import { constrainPupilOffset, getOrganicWinkDelayMs } from "eyslie";
 ```
+
+Build with `npm run build -w eyslie`; the package exports `dist`.

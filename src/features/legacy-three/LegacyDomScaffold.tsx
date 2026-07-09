@@ -134,7 +134,10 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
               className="bee-trail__eye bee-trail__eye--u"
               transform="translate(172 25)"
             >
-              <circle className="bee-trail__eye-ring" cx="0" cy="0" r="4.3" />
+              <path
+                className="bee-trail__eye-ring bee-trail__eye-lid"
+                d="M-5 -2 C-4 5 4 5 5 -2"
+              />
               <circle className="bee-trail__eye-pupil" cx="0" cy="0" r="1.45" />
             </g>
             <path className="bee-trail__join-wink" d="M166 23 Q172 19 178 23" />
@@ -162,18 +165,6 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
                 AWWWW
               </text>
             </g>
-            <g className="bee-trail__thought bee-trail__thought--sad-aw">
-              <ellipse
-                className="bee-trail__thought-cloud"
-                cx="198"
-                cy="-12"
-                rx="18"
-                ry="10"
-              />
-              <text className="bee-trail__thought-text" x="187" y="-9">
-                aw.
-              </text>
-            </g>
             <g className="bee-trail__thought bee-trail__thought--sad-ow">
               <circle
                 className="bee-trail__thought-cloud"
@@ -181,8 +172,8 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
                 cy="12"
                 r="10"
               />
-              <text className="bee-trail__thought-text" x="199" y="16">
-                ow.
+              <text className="bee-trail__thought-text" x="198" y="16">
+                ow!
               </text>
             </g>
             <g className="bee-trail__thought bee-trail__thought--yay">

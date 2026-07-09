@@ -20,6 +20,7 @@ import {
   getMaterialEventKind,
   getMaterialKind as getSocialMaterialKind,
   getPokeInfluence,
+  getPokeVelocity,
   shouldTriggerMaterialHaptic,
   stepPoke,
   triggerMaterialHaptic,
@@ -1244,63 +1245,6 @@ function getCommitteeHoverProfile(roleSlug = "") {
   };
 }
 
-function getSocialHoverProfile(label = "") {
-  const name = label.toLowerCase();
-
-  if (name.includes("discord")) {
-    return {
-      scaleX: 1.08,
-      scaleY: 1.03,
-      scaleZ: 1.04,
-      z: 1.2,
-      rotate: 0.02,
-      lift: 0.13,
-    };
-  }
-
-  if (name.includes("email")) {
-    return {
-      scaleX: 1.03,
-      scaleY: 1.08,
-      scaleZ: 1.03,
-      z: 1.05,
-      rotate: -0.015,
-      lift: 0.1,
-    };
-  }
-
-  if (name.includes("instagram")) {
-    return {
-      scaleX: 1.05,
-      scaleY: 1.05,
-      scaleZ: 1.05,
-      z: 1.15,
-      rotate: -0.022,
-      lift: 0.12,
-    };
-  }
-
-  if (name.includes("linkedin")) {
-    return {
-      scaleX: 1.06,
-      scaleY: 1.04,
-      scaleZ: 1.03,
-      z: 1.1,
-      rotate: 0.016,
-      lift: 0.09,
-    };
-  }
-
-  return {
-    scaleX: 1.05,
-    scaleY: 1.05,
-    scaleZ: 1.04,
-    z: 1.1,
-    rotate: 0.02,
-    lift: 0.11,
-  };
-}
-
 function getResponsiveSection(section, index, compactLayouts) {
   if (!isCompactViewport()) return section;
 
@@ -1692,6 +1636,8 @@ function createMaterialTouchField(label = "") {
     world: new THREE.Vector3(),
     touched: false,
     lastHapticAt: 0,
+    lastHapticKind: "contact",
+    renderedScratches: 0,
   };
 }
 
@@ -1708,6 +1654,7 @@ function stampMaterialTouch(field, uv, worldPoint, pressure = 0.25) {
       reducedMotion: prefersReducedMotion.matches,
     });
     field.lastHapticAt = now;
+    field.lastHapticKind = eventKind;
   }
   field.touched = true;
 }
@@ -1794,6 +1741,33 @@ function drawMaterialTouchField(field) {
       ctx.stroke();
     }
   }
+
+  const damageCount = poke.scratches - (field.renderedScratches || 0);
+  if (damageCount > 0 || velocity.length >= config.damageVelocity) {
+    field.renderedScratches = poke.scratches;
+    ctx.globalCompositeOperation =
+      config.kind === "rubber" ? "multiply" : "screen";
+    ctx.strokeStyle =
+      config.kind === "rubber"
+        ? "rgba(42,18,12,0.55)"
+        : "rgba(255,255,255,0.58)";
+    ctx.lineWidth = config.kind === "rubber" ? 1.35 : 0.9;
+    const angle = Math.atan2(-velocity.y || 0.12, velocity.x || 0.18);
+    for (let i = 0; i < 4; i += 1) {
+      const jitter = (i - 1.5) * 5;
+      const length = config.kind === "rubber" ? 24 : 16;
+      ctx.beginPath();
+      ctx.moveTo(
+        x + Math.cos(angle + 1.3) * jitter - Math.cos(angle) * length * 0.5,
+        y + Math.sin(angle + 1.3) * jitter - Math.sin(angle) * length * 0.5,
+      );
+      ctx.lineTo(
+        x + Math.cos(angle + 1.3) * jitter + Math.cos(angle) * length * 0.5,
+        y + Math.sin(angle + 1.3) * jitter + Math.sin(angle) * length * 0.5,
+      );
+      ctx.stroke();
+    }
+  }
 }
 
 function updateMaterialTouchField(field) {
@@ -1806,11 +1780,11 @@ function updateMaterialTouchField(field) {
     return;
   }
 
-  stepPoke(field.poke, field.config);
   fadeMaterialTouchField(field);
   if (field.poke.active || field.poke.pressure > 0.015) {
     drawMaterialTouchField(field);
   }
+  stepPoke(field.poke, field.config);
   field.texture.needsUpdate = true;
 }
 
@@ -1905,6 +1879,8 @@ function createGrassLogoBlades(touchField, layout) {
       angle: (random(i + 29) - 0.5) * 0.28,
       stiffness: 0.55 + random(i + 41) * 0.38,
       highlight: random(i + 53) > 0.72,
+      cut: false,
+      fall: 0,
     });
   }
 
@@ -1934,6 +1910,23 @@ function createGrassLogoBlades(touchField, layout) {
   mesh.userData.blades = blades;
   mesh.userData.touchField = touchField;
   mesh.userData.isSocialGrass = true;
+  mesh.userData.lastCutCount = 0;
+  const outline = new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-logoWidth * 0.34, -logoHeight * 0.34, 0.02),
+      new THREE.Vector3(logoWidth * 0.34, -logoHeight * 0.34, 0.02),
+      new THREE.Vector3(logoWidth * 0.34, logoHeight * 0.34, 0.02),
+      new THREE.Vector3(-logoWidth * 0.34, logoHeight * 0.34, 0.02),
+    ]),
+    new THREE.LineBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.88,
+      depthWrite: false,
+    }),
+  );
+  outline.userData.isGrassOutline = true;
+  mesh.add(outline);
   mesh.renderOrder = 45;
   return mesh;
 }
@@ -2949,30 +2942,25 @@ function scheduleJoinWink() {
 
 function updateJoinEyes() {
   if (!joinWord || joinEyePupils.length === 0) return;
-  if (
-    document.body.dataset.joinState === joinUsStates.joinNear ||
-    document.body.dataset.joinState === joinUsStates.sadShrivel
-  ) {
+  if (document.body.dataset.joinState === joinUsStates.joinNear) {
     joinEyePupils.forEach((pupil) => pupil.removeAttribute("transform"));
     return;
   }
 
-  const rect = joinWord.getBoundingClientRect();
-  if (!rect.width || !Number.isFinite(lastPointerClientX)) return;
+  if (!Number.isFinite(lastPointerClientX)) return;
 
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  const offset = constrainPupilOffset(
-    (lastPointerClientX - centerX) * 0.035,
-    (lastPointerClientY - centerY) * 0.035,
-    { width: 11, height: 10 },
-  );
-
-  joinEyePupils.forEach((pupil, index) => {
-    const sideBias = index === 0 ? -0.25 : 0.25;
+  joinEyePupils.forEach((pupil) => {
+    const eye = pupil.closest?.(".bee-trail__eye");
+    const rect = eye?.getBoundingClientRect?.();
+    if (!rect?.width) return;
+    const offset = constrainPupilOffset(
+      (lastPointerClientX - (rect.left + rect.width / 2)) * 0.035,
+      (lastPointerClientY - (rect.top + rect.height / 2)) * 0.035,
+      { width: rect.width, height: rect.height },
+    );
     pupil.setAttribute(
       "transform",
-      `translate(${(offset.x + sideBias).toFixed(2)} ${offset.y.toFixed(2)})`,
+      `translate(${offset.x.toFixed(2)} ${offset.y.toFixed(2)})`,
     );
   });
 }
@@ -3856,7 +3844,6 @@ function createSocialCubes() {
     cube.userData.hovered = false;
     cube.userData.music = config.music || null;
     cube.userData.floatTween = null;
-    cube.userData.growTween = null;
     cube.userData.entranceTween = null;
     cube.userData.exitTween = null;
     cube.visible = false;
@@ -3908,6 +3895,13 @@ function exposeSocialMaterialTestState() {
           : 0,
         underlineScaleY: cube.userData.underline?.scale?.y || 0,
         pressure: cube.userData.touchField?.poke?.pressure || 0,
+        stains: cube.userData.touchField?.poke?.stains || 0,
+        scratches: cube.userData.touchField?.poke?.scratches || 0,
+        cuts: cube.userData.touchField?.poke?.cuts || 0,
+        cutBladeCount:
+          cube.userData.grassLogo?.userData?.blades?.filter((blade) => blade.cut)
+            .length || 0,
+        lastHapticKind: cube.userData.touchField?.lastHapticKind || "contact",
         screenX: canvasRect.left + (point.x * 0.5 + 0.5) * canvasRect.width,
         screenY: canvasRect.top + (-point.y * 0.5 + 0.5) * canvasRect.height,
       };
@@ -3956,58 +3950,16 @@ function startSocialCubeFloat(cube, delay = 0) {
   });
 }
 
-function stopSocialCubeGrow(cube) {
-  if (cube.userData.growTween) {
-    cube.userData.growTween.kill();
-    cube.userData.growTween = null;
-  }
-
-  gsap.killTweensOf(cube.position, "y,z");
-  gsap.killTweensOf(cube.rotation);
-}
-
 function setSocialCubeHovered(cube, hovered) {
-  stopSocialCubeGrow(cube);
-  const profile = getSocialHoverProfile(cube.userData.label || "");
-
-  if (hovered) {
-    cube.userData.growTween = gsap.to(cube.scale, {
-      x: SOCIAL_CUBE_SCALE_MAX * profile.scaleX,
-      y: SOCIAL_CUBE_SCALE_MAX * profile.scaleY,
-      z: SOCIAL_CUBE_SCALE_MAX * profile.scaleZ,
-      duration: 0.2,
-      ease: "back.out(1.8)",
-    });
-    gsap.to(cube.position, {
-      z: SOCIAL_CUBE_BASE.z + profile.z,
-      y: cube.userData.baseY + profile.lift,
-      duration: 0.2,
-      ease: "power2.out",
-    });
-    gsap.to(cube.rotation, {
-      z: (cube.userData.socialIndex % 2 === 0 ? 0.04 : -0.04) + profile.rotate,
-      duration: 0.2,
-      ease: "power2.out",
-    });
-  } else {
-    gsap.to(cube.scale, {
-      x: SOCIAL_CUBE_SCALE_MIN,
-      y: SOCIAL_CUBE_SCALE_MIN,
-      z: SOCIAL_CUBE_SCALE_MIN,
-      duration: 0.3,
-      ease: "power2.out",
-    });
-    gsap.to(cube.position, {
-      z: SOCIAL_CUBE_BASE.z,
-      y: cube.userData.baseY,
-      duration: 0.22,
-      ease: "power2.out",
-    });
-    gsap.to(cube.rotation, {
-      z: 0,
-      duration: 0.2,
-      ease: "power2.out",
-    });
+  if (!hovered) {
+    cube.position.z = SOCIAL_CUBE_BASE.z;
+    cube.position.y = cube.userData.baseY;
+    cube.rotation.z = 0;
+    cube.scale.set(
+      SOCIAL_CUBE_SCALE_MIN,
+      SOCIAL_CUBE_SCALE_MIN,
+      SOCIAL_CUBE_SCALE_MIN,
+    );
   }
 
   cube.userData.hovered = hovered;
@@ -4046,7 +3998,6 @@ function stopSocialCubeAnimations() {
     stopSocialCubeEntrance(cube);
     stopSocialCubeExit(cube);
     stopSocialCubeFloat(cube);
-    stopSocialCubeGrow(cube);
     cube.userData.hovered = false;
     resetSocialCubeTransform(cube);
     cube.scale.set(
@@ -4080,7 +4031,6 @@ function hideSocialCubes() {
       stopSocialCubeEntrance(cube);
       stopSocialCubeExit(cube);
       stopSocialCubeFloat(cube);
-      stopSocialCubeGrow(cube);
       cube.userData.hovered = false;
       cube.scale.set(
         SOCIAL_CUBE_SCALE_MIN,
@@ -4167,6 +4117,20 @@ function updateGrassLogoBlades(mesh) {
   const poke = field?.poke;
   const velocity = poke ? getPokeVelocity(poke) : { x: 0, y: 0, length: 0 };
   const time = performance.now() * 0.002;
+  const cutDelta = Math.max(
+    0,
+    (poke?.cuts || 0) - (mesh.userData.lastCutCount || 0),
+  );
+  if (cutDelta > 0) {
+    let remaining = cutDelta;
+    mesh.userData.lastCutCount = poke.cuts;
+    mesh.userData.blades.forEach((blade) => {
+      if (remaining <= 0 || blade.cut) return;
+      if (getPokeInfluence(poke, blade.uvx, blade.uvy, 0.2) <= 0.12) return;
+      blade.cut = true;
+      remaining -= 1;
+    });
+  }
 
   mesh.userData.blades.forEach((blade, index) => {
     const influence = poke
@@ -4176,20 +4140,22 @@ function updateGrassLogoBlades(mesh) {
     const dx = blade.uvx - (poke?.x ?? 0.5);
     const dy = blade.uvy - (poke?.y ?? 0.5);
     const wind = Math.sin(time + index * 0.37) * 0.025;
+    if (blade.cut) blade.fall = Math.min(1, blade.fall + 0.035);
 
     grassBladeDummy.position.set(
       blade.x + dx * comb * 0.48,
-      blade.y + dy * comb * 0.32,
-      influence * -0.055,
+      blade.y + dy * comb * 0.32 - blade.fall * 0.42,
+      influence * -0.055 - blade.fall * 0.25,
     );
     grassBladeDummy.rotation.set(
-      influence * (0.85 + blade.stiffness) + wind,
-      0,
+      influence * (0.85 + blade.stiffness) + wind + blade.fall * 1.4,
+      blade.fall * 0.8,
       blade.angle + dx * influence * 1.8,
     );
     grassBladeDummy.scale.set(
       1,
-      (blade.height / 0.18) * Math.max(0.28, 1 - influence * 0.68),
+      (blade.height / 0.18) *
+        Math.max(0.03, 1 - influence * 0.68 - blade.fall * 0.95),
       1,
     );
     grassBladeDummy.updateMatrix();

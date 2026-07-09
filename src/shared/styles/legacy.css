@@ -379,6 +379,11 @@ body[data-section="1"] .bee-trail--join {
   stroke-width: 2;
 }
 
+.bee-trail__eye-lid {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .bee-trail__eye-pupil {
   fill: #6b3f1f;
 }
@@ -466,6 +471,8 @@ body[data-section="1"][data-join-state="idleCurious"] .bee-trail__eye,
 body[data-section="1"][data-join-state="rubricsHoverExcited"] .bee-trail__eye,
 body[data-section="1"][data-join-state="rubricsHoverBlush"] .bee-trail__eye,
 body[data-section="1"][data-join-state="rubricsClickCelebration"]
+  .bee-trail__eye,
+body[data-section="1"][data-join-state="sadShrivel"]
   .bee-trail__eye {
   opacity: 1;
 }
@@ -554,8 +561,6 @@ body[data-section="1"][data-join-state="sadShrivel"]
   .bee-trail__join-frown,
 body[data-section="1"][data-join-state="sadShrivel"]
   .bee-trail__join-tear,
-body[data-section="1"][data-join-state="sadShrivel"]
-  .bee-trail__thought--sad-aw,
 body[data-section="1"][data-join-state="sadShrivel"]
   .bee-trail__thought--sad-ow,
 body[data-section="1"][data-join-state="sadShrivel"] .bee-trail__dust {
@@ -1188,8 +1193,8 @@ body[data-content-hover="committee"] .bee-trail--committee {
   }
 
   .nav-links button {
-    min-width: 2.3rem;
-    min-height: 2.3rem;
+    min-width: var(--tap-target-min);
+    min-height: var(--tap-target-min);
     padding: 0.38rem 0.5rem;
     font-size: 0.78rem;
   }
@@ -1311,7 +1316,8 @@ body[data-content-hover="committee"] .bee-trail--committee {
   }
 
   .nav-links button {
-    min-width: 2.28rem;
+    min-width: var(--tap-target-min);
+    min-height: var(--tap-target-min);
   }
 
   .nav-links button.is-active span {

@@ -23,7 +23,6 @@ export const blockTypes = [
 const animationCopyKeys = [
   "joinUs",
   "nearThought",
-  "sadThought",
   "ow",
   "yay",
   "loading",
@@ -160,7 +159,7 @@ export type SiteContent = {
     };
   };
   animationCopy: Record<
-    "joinUs" | "nearThought" | "sadThought" | "ow" | "yay" | "loading",
+    "joinUs" | "nearThought" | "ow" | "yay" | "loading",
     string
   >;
   socialLinks: {
