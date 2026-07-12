@@ -8,10 +8,73 @@ const about = getPageContent("en", "about");
 const contact = getPageContent("en", "contact");
 const joinCta = about.hero.cta ?? { href: "", label: "" };
 const site = getSiteContent("en");
+
+function waitForSceneReady() {
+  cy.get("body", { timeout: 15000 }).should(
+    "have.attr",
+    "data-scene-ready",
+    "true",
+  );
+}
+
+function waitForSectionReady() {
+  cy.get("body", { timeout: 15000 }).should(
+    "have.attr",
+    "data-section-ready",
+    "true",
+  );
+}
+
+function expectRendered(selector: string) {
+  cy.get(selector).should(($node) => {
+    const element = $node[0];
+    const rect = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+
+    expect(style.display).not.to.eq("none");
+    expect(Number.parseFloat(style.opacity)).to.be.greaterThan(0);
+    expect(rect.width).to.be.greaterThan(0);
+    expect(rect.height).to.be.greaterThan(0);
+  });
+}
+
+function dispatchMaterialPointer(
+  win: Window,
+  material: SocialMaterialDebug,
+  type: "pointermove" | "pointerdown" | "pointerup",
+  pressure: number,
+) {
+  const canvas = win.document.querySelector("#canvas");
+  const pointerWindow = win as Window & {
+    MouseEvent: typeof MouseEvent;
+    PointerEvent?: typeof PointerEvent;
+  };
+  const eventInit = {
+    bubbles: true,
+    cancelable: true,
+    clientX: material.screenX,
+    clientY: material.screenY,
+    buttons: type === "pointerup" ? 0 : 1,
+  };
+  expect(canvas).to.exist;
+  canvas?.dispatchEvent(
+    pointerWindow.PointerEvent
+      ? new pointerWindow.PointerEvent(type, {
+          ...eventInit,
+          isPrimary: true,
+          pointerId: 1,
+          pointerType: "mouse",
+          pressure,
+        })
+      : new pointerWindow.MouseEvent(type, eventInit),
+  );
+}
+
 type SocialMaterialDebug = {
   label: string;
   kind: string;
   visible: boolean;
+  settled: boolean;
   hasLogo: boolean;
   hasUnderline: boolean;
   hasGrassLogo: boolean;
@@ -62,9 +125,11 @@ describe("navigation shell", () => {
 
   it("renders the visible living JOIN US face scaffold", () => {
     cy.visit("/");
+    waitForSceneReady();
     cy.contains("#nav-links button", about.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "1");
-    cy.get(".bee-trail--join").should("be.visible");
+    waitForSectionReady();
+    expectRendered(".bee-trail--join");
     cy.get(".bee-trail--join").should("have.css", "color", "rgb(255, 87, 87)");
     cy.get(".bee-trail--join").invoke("outerWidth").should("be.gt", 150);
     cy.get(".bee-trail__bee").should("not.exist");
@@ -97,8 +162,11 @@ describe("navigation shell", () => {
 
   it("hides JOIN eyes and shows AWWWW when the pointer gets near", () => {
     cy.visit("/");
+    waitForSceneReady();
     cy.contains("#nav-links button", about.nav.label).click();
-    cy.get(".bee-trail--join").should("be.visible");
+    cy.get("body").should("have.attr", "data-section", "1");
+    waitForSectionReady();
+    expectRendered(".bee-trail--join");
     cy.get(".bee-trail__join-word").then(([word]) => {
       const rect = word.getBoundingClientRect();
       cy.get("#canvas").trigger("pointermove", {
@@ -152,13 +220,16 @@ describe("navigation shell", () => {
         }));
       },
     });
+    waitForSceneReady();
     cy.contains("#nav-links button", about.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "1");
-    cy.get(".bee-trail--join").should("be.visible");
+    waitForSectionReady();
+    cy.get("body").should("have.attr", "data-reduced-motion", "true");
+    expectRendered(".bee-trail--join");
     cy.get(".bee-trail--join").invoke("outerWidth").should("be.gt", 130);
     cy.get(".bee-trail__bee").should("not.exist");
     cy.get(".bee-trail--join .bee-trail__orb").should("exist");
-    cy.get(".bee-trail--join .bee-trail__dot").should("be.visible");
+    expectRendered(".bee-trail--join .bee-trail__dot");
     cy.get(".bee-trail--join .bee-trail__orb-drift").should(
       "have.css",
       "animation-name",
@@ -172,11 +243,13 @@ describe("navigation shell", () => {
   });
 
   it("drives JOIN US reactions from keyboard-safe RUBRICS activation", () => {
-    cy.clock();
     cy.visit("/");
+    waitForSceneReady();
     cy.contains("#nav-links button", about.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "1");
-    cy.get(".bee-trail--join").should("be.visible");
+    waitForSectionReady();
+    cy.clock();
+    expectRendered(".bee-trail--join");
     cy.get("#nav-links button").should("have.length.gte", 5);
     cy.get("#join-us-accessible-link").focus();
     cy.get("body").should(
@@ -231,10 +304,12 @@ describe("navigation shell", () => {
   });
 
   it("shows yay before delayed JOIN navigation", () => {
-    cy.clock();
     cy.visit("/");
+    waitForSceneReady();
     cy.contains("#nav-links button", about.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "1");
+    waitForSectionReady();
+    cy.clock();
     cy.window().then((win) => {
       cy.stub(win, "open").as("open");
     });
@@ -263,26 +338,35 @@ describe("navigation shell", () => {
 
   it("creates visible feelable social material cards from live content", () => {
     cy.visit("/");
+    waitForSceneReady();
     cy.contains("#nav-links button", contact.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "2");
+    waitForSectionReady();
     cy.get("#canvas").should("be.visible");
-    cy.window()
-      .its("__uqrlSocialMaterials")
-      .should("be.a", "function")
-      .then((readMaterials) => {
-        const materials = (readMaterials as () => SocialMaterialDebug[])();
+    cy.window({ timeout: 15000 }).should((win) => {
+      const readMaterials = (
+        win as unknown as {
+          __uqrlSocialMaterials?: () => SocialMaterialDebug[];
+        }
+      ).__uqrlSocialMaterials;
+      expect(readMaterials).to.be.a("function");
+      if (readMaterials) {
+        const materials = readMaterials();
         const visibleMaterials = materials.filter(
           (material: SocialMaterialDebug) => material.visible,
         );
 
         expect(visibleMaterials).to.have.length(site.socialLinks.length);
+        expect(visibleMaterials.every((material) => material.settled)).to.eq(
+          true,
+        );
         expect(
           new Set(
             visibleMaterials.map(
               (material: SocialMaterialDebug) => material.kind,
             ),
           ),
-        ).to.eql(new Set(["cloth", "rubber", "glass", "grass", "mail"]));
+        ).to.eql(new Set(["cloth", "rubber", "glass", "grass"]));
         visibleMaterials.forEach((material: SocialMaterialDebug) => {
           expect(material.hasLogo).to.eq(true);
           expect(material.hasUnderline).to.eq(true);
@@ -292,34 +376,43 @@ describe("navigation shell", () => {
           visibleMaterials.find(
             (material: SocialMaterialDebug) => material.label === "Email",
           ),
-        ).to.include({ kind: "mail" });
-        expect(
-          visibleMaterials.find(
-            (material: SocialMaterialDebug) => material.label === "Instagram",
-          ),
         ).to.include({ kind: "grass", hasGrassLogo: true });
         expect(
           visibleMaterials.find(
             (material: SocialMaterialDebug) => material.label === "Instagram",
+          ),
+        ).to.include({ kind: "cloth", hasGrassLogo: false });
+        expect(
+          visibleMaterials.find(
+            (material: SocialMaterialDebug) => material.label === "Email",
           )?.grassBladeCount,
         ).to.be.greaterThan(300);
-      });
+      }
+    });
   });
 
   it("pokes each live social material through the canvas", () => {
     cy.visit("/");
+    waitForSceneReady();
     cy.contains("#nav-links button", contact.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "2");
+    waitForSectionReady();
     cy.window()
       .its("__uqrlSocialMaterials")
       .should("be.a", "function")
-      .then((readMaterials) => {
+      .should((readMaterials) => {
         const materials = (
           readMaterials as () => SocialMaterialDebug[]
         )().filter((material) => material.visible);
+        expect(materials.every((material) => material.settled)).to.eq(true);
         expect(new Set(materials.map((material) => material.kind))).to.eql(
-          new Set(["cloth", "rubber", "glass", "grass", "mail"]),
+          new Set(["cloth", "rubber", "glass", "grass"]),
         );
+      })
+      .then((readMaterials) => {
+        const materials = (
+          readMaterials as unknown as () => SocialMaterialDebug[]
+        )().filter((material) => material.visible);
         cy.wrap(materials.sort((a, b) => a.kind.localeCompare(b.kind))).as(
           "materials",
         );
@@ -328,19 +421,17 @@ describe("navigation shell", () => {
     cy.get("@materials").then((subject) => {
       const materials = subject as unknown as SocialMaterialDebug[];
       materials.forEach((material) => {
-        cy.get("#canvas").trigger("pointermove", {
-          clientX: material.screenX,
-          clientY: material.screenY,
-          pointerId: 1,
-          pointerType: "mouse",
-          pressure: 0.35,
-        });
-        cy.get("#canvas").trigger("pointerdown", {
-          clientX: material.screenX,
-          clientY: material.screenY,
-          pointerId: 1,
-          pointerType: "mouse",
-          pressure: 0.9,
+        cy.window().then((win) => {
+          const current =
+            (
+              win as unknown as {
+                __uqrlSocialMaterials: () => SocialMaterialDebug[];
+              }
+            )
+              .__uqrlSocialMaterials()
+              .find((item) => item.label === material.label) ?? material;
+          dispatchMaterialPointer(win, current, "pointermove", 0.35);
+          dispatchMaterialPointer(win, current, "pointerdown", 0.9);
         });
         cy.get("body").should("have.attr", "data-material-type", material.kind);
         cy.get("body").should("have.attr", "data-interaction-state", "pressed");
@@ -365,11 +456,16 @@ describe("navigation shell", () => {
             expect(current?.grassBladeCount).to.be.greaterThan(300);
           }
         });
-        cy.get("#canvas").trigger("pointerup", {
-          clientX: material.screenX,
-          clientY: material.screenY,
-          pointerId: 1,
-          pointerType: "mouse",
+        cy.window().then((win) => {
+          const current =
+            (
+              win as unknown as {
+                __uqrlSocialMaterials: () => SocialMaterialDebug[];
+              }
+            )
+              .__uqrlSocialMaterials()
+              .find((item) => item.label === material.label) ?? material;
+          dispatchMaterialPointer(win, current, "pointerup", 0);
         });
       });
     });

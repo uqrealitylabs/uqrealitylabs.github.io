@@ -13,8 +13,6 @@ const ignored = new Set([
   "cypress/videos",
   "dist",
   "node_modules",
-  "packages/eyslie/dist",
-  "packages/materials-actually/dist",
 ]);
 
 function isIgnored(path: string) {

@@ -21,7 +21,6 @@
   },
   "include": [
     "src",
-    "packages",
     "scripts",
     "tests",
     "rsbuild.config.ts",

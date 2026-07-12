@@ -1,7 +1,7 @@
 import {
   getMaterialKind,
   type MaterialKind,
-} from "@uqrealitylabs/materials-actually";
+} from "@uqrealitylabs/feelable-materials";
 
 export type SocialMaterialSource = {
   label?: string;
@@ -10,10 +10,10 @@ export type SocialMaterialSource = {
 
 const socialMaterialFallbacks: Record<string, MaterialKind> = {
   discord: "rubber",
-  email: "mail",
-  instagram: "grass",
+  email: "grass",
+  instagram: "cloth",
   linkedin: "glass",
-  mail: "mail",
+  mail: "grass",
 };
 
 export function resolveSocialMaterialKind(

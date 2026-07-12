@@ -134,7 +134,7 @@
       "label": "Instagram",
       "url": "https://www.instagram.com/uqrealitylabs/",
       "texture": "/Assets/images/instagram.jpg",
-      "material": "grass",
+      "material": "cloth",
       "accent": "#E1306C",
       "music": {
         "label": "nyan cat sparkle",
@@ -164,7 +164,7 @@
       "label": "Email",
       "url": "mailto:uqrealitylabs@gmail.com",
       "texture": "/Assets/images/email.jpg",
-      "material": "mail",
+      "material": "grass",
       "accent": "#F59E0B",
       "music": {
         "label": "crab rave mail",

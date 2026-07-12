@@ -664,16 +664,6 @@ body[data-section="2"][data-material-type="grass"]
   animation: buzz-grass-rustle 0.38s steps(2, end) infinite alternate;
 }
 
-body[data-section="2"][data-material-type="mail"] .bee-trail--social {
-  color: #facc15;
-}
-
-body[data-section="2"][data-material-type="mail"]
-  .bee-trail--social
-  .bee-trail__label {
-  animation: buzz-mail-pop 0.6s ease-in-out infinite alternate;
-}
-
 body[data-content-variant="route-hop"] .bee-trail--social {
   transform: rotate(5deg) translateY(-0.2rem);
 }
@@ -1069,15 +1059,6 @@ body[data-content-hover="committee"] .bee-trail--committee {
   }
 }
 
-@keyframes buzz-mail-pop {
-  from {
-    transform: translateY(0) scale(0.96);
-  }
-  to {
-    transform: translateY(-0.12rem) scale(1.08);
-  }
-}
-
 @keyframes join-excited-jump {
   0% {
     transform: translateY(0) scale(1);
@@ -1350,4 +1331,15 @@ body[data-content-hover="committee"] .bee-trail--committee {
     animation: none !important;
     transform: none;
   }
+}
+
+body[data-reduced-motion="true"] .bee-trail__path {
+  animation: none !important;
+  stroke-dashoffset: 0;
+}
+
+body[data-reduced-motion="true"] .bee-trail__label,
+body[data-reduced-motion="true"] .bee-trail__orb-drift {
+  animation: none !important;
+  transform: none;
 }

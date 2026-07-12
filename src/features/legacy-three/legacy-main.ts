@@ -20,7 +20,7 @@ import {
   shouldTriggerMaterialHaptic,
   stepPoke,
   triggerMaterialHaptic,
-} from "@uqrealitylabs/materials-actually";
+} from "@uqrealitylabs/feelable-materials";
 import { getPageContent, getSiteContent } from "../../content/contentRegistry";
 import {
   JOIN_US_BLUSH_DELAY_MS,
@@ -50,7 +50,7 @@ const CAM_HEIGHT_FACTOR = 0.05;
 
 const SCROLL_DURATION = 1;
 const SCROLL_TOLERANCE = 30;
-const STAR_COUNT = 90;
+const STAR_COUNT = 150;
 const STAR_RADIUS = 0.16;
 const STAR_DRIFT_DISTANCE = 200;
 const SECTION_Y_STEP = 200;
@@ -352,12 +352,12 @@ const MODEL_ENTRANCE_OFFSET_FACTOR = 200; // distance below final position (× m
 const KEY_LIGHT_OFFSET = { x: 2, y: 10, z: 40 };
 const FILL_LIGHT_OFFSET = { x: -12, y: 4, z: 25 };
 const RAINBOW_Z_OFFSET = -80; // behind model (home model z -20 → light z -100)
-const RAINBOW_FADE_DURATION = 0.6;
-const RAINBOW_GLOW_SCALE = 11.8;
-const RAINBOW_OUTER_GLOW_SCALE = 17.6;
+const RAINBOW_FADE_DURATION = 0.9;
+const RAINBOW_GLOW_SCALE = 17.8;
+const RAINBOW_OUTER_GLOW_SCALE = 26.4;
 const RAINBOW_LIGHT_INTENSITY = 3.1;
 const RAINBOW_LIGHT_DISTANCE = 114;
-const RAINBOW_LIGHT_DECAY = 0.62;
+const RAINBOW_LIGHT_DECAY = 0.42;
 
 const canvas = document.querySelector("#canvas");
 const statusLabel = document.querySelector("#status");
@@ -385,6 +385,8 @@ if (DEBUG && statusLabel) {
 }
 
 document.body.dataset.section = "0";
+document.body.dataset.sceneReady = "false";
+document.body.dataset.sectionReady = "false";
 document.body.dataset.joinState = joinUsStates.idleCurious;
 
 const scene = new THREE.Scene();
@@ -394,34 +396,55 @@ let viewportWidth = Math.max(canvas.clientWidth || window.innerWidth, 320);
 let viewportHeight = Math.max(canvas.clientHeight || window.innerHeight, 320);
 
 const stars = [];
-const starGeometry = new THREE.SphereGeometry(STAR_RADIUS, 8, 8);
-const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const starPositions = new Float32Array(STAR_COUNT * 3);
+const starGeometry = new THREE.BufferGeometry();
+const starMaterial = new THREE.PointsMaterial({
+  color: 0xffffff,
+  size: STAR_RADIUS * 6,
+  sizeAttenuation: true,
+  transparent: true,
+  opacity: 0.84,
+});
 
-function generateStars() {
-  const star = new THREE.Mesh(starGeometry, starMaterial);
+function writeStarPosition(star) {
+  const offset = star.index * 3;
+  starPositions[offset] = star.x;
+  starPositions[offset + 1] = star.y;
+  starPositions[offset + 2] = star.z;
+  if (starGeometry.attributes.position) {
+    starGeometry.attributes.position.needsUpdate = true;
+  }
+}
+
+function generateStar(index) {
   const [x, y, z] = Array(3)
     .fill()
     .map(() => THREE.MathUtils.randFloatSpread(800));
+  const star = { index, x, y, z };
 
-  star.position.set(x, y, z);
-  scene.add(star);
+  writeStarPosition(star);
   stars.push(star);
 }
 
 function animateStarsOnTransition() {
+  if (prefersReducedMotion.matches) return;
+
   stars.forEach((star) => {
-    gsap.killTweensOf(star.position);
-    gsap.to(star.position, {
-      x: star.position.x + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
-      y: star.position.y + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
-      z: star.position.z + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
+    gsap.killTweensOf(star);
+    gsap.to(star, {
+      x: star.x + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
+      y: star.y + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
+      z: star.z + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
       duration: SCROLL_DURATION,
       ease: "power2.inOut",
+      onUpdate: () => writeStarPosition(star),
     });
   });
 }
 
-Array(STAR_COUNT).fill().forEach(generateStars);
+Array.from({ length: STAR_COUNT }, (_, index) => generateStar(index));
+starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+scene.add(new THREE.Points(starGeometry, starMaterial));
 
 const camera = new THREE.PerspectiveCamera(
   CAM_FOV,
@@ -489,6 +512,7 @@ let camHeightOffset = 0;
 let currentIndex = 0;
 let isAnimating = false;
 let entranceComplete = false;
+let pendingSectionIndex = null;
 let sectionTexts = [];
 let sectionDescriptionTexts = [];
 let socialCubes = [];
@@ -532,6 +556,10 @@ let parallaxActive = false;
 const prefersReducedMotion = window.matchMedia(
   "(prefers-reduced-motion: reduce)",
 );
+document.body.dataset.reducedMotion = String(prefersReducedMotion.matches);
+prefersReducedMotion.addEventListener?.("change", (event) => {
+  document.body.dataset.reducedMotion = String(event.matches);
+});
 const coarsePointer = window.matchMedia("(pointer: coarse)");
 let animationFrame = 0;
 let resizeObserver = null;
@@ -1273,7 +1301,7 @@ function debugLog(...args) {
 }
 
 function updatePointerFromEvent(event) {
-  const rect = canvasRect.width ? canvasRect : canvas.getBoundingClientRect();
+  const rect = canvas.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
 
   lastPointerClientX = event.clientX;
@@ -2047,18 +2075,18 @@ function resizeRainbowBackdrop(target = rainbowBackdrop) {
   const layout = getViewportLayout();
   const baseSize = target.userData.baseSize;
   const innerScale = layout.narrow
-    ? 4.8
+    ? 7.2
     : layout.compact
-      ? 5.2
+      ? 7.8
       : layout.wide
-        ? 6.4
+        ? 9.6
         : RAINBOW_GLOW_SCALE;
   const outerScale = layout.narrow
-    ? 6.6
+    ? 9.9
     : layout.compact
-      ? 7.2
+      ? 10.8
       : layout.wide
-        ? 9.2
+        ? 13.8
         : RAINBOW_OUTER_GLOW_SCALE;
 
   resizeSquarePlane(target.userData.glowMeshes[0], baseSize * innerScale);
@@ -2503,12 +2531,15 @@ function setupNavbarCondense() {
   });
 
   setNavbarCondensed(false);
-  scheduleNavbarCondense(1400);
 }
 
 function goToSection(index) {
-  if (!modelGroup || isAnimating || !entranceComplete) return;
   if (index < 0 || index >= MODEL_SECTIONS.length) return;
+  if (!modelGroup || !entranceComplete) {
+    pendingSectionIndex = index;
+    return;
+  }
+  if (isAnimating) return;
 
   transitionToSection(index);
 }
@@ -3247,7 +3278,7 @@ function setupJoinAccessibleInteraction() {
     celebrateAndNavigateJoin(joinUsAccessibleLink.href || JOIN_LINK);
   });
   joinUsAccessibleLink.addEventListener("keydown", (event) => {
-    if (event.key !== " ") return;
+    if (event.key !== " " && event.key !== "Enter") return;
     event.preventDefault();
     celebrateAndNavigateJoin(joinUsAccessibleLink.href || JOIN_LINK);
   });
@@ -3880,14 +3911,16 @@ function exposeSocialMaterialTestState() {
 
   window.__uqrlSocialMaterials = () => {
     const point = new THREE.Vector3();
+    const rect = canvas.getBoundingClientRect();
 
     return socialCubes.map((cube) => {
-      cube.getWorldPosition(point);
+      (cube.userData.logoMesh || cube).getWorldPosition(point);
       point.project(camera);
       return {
         label: cube.userData.label,
         kind: cube.userData.touchField?.config?.kind,
         visible: cube.visible,
+        settled: !cube.userData.entranceTween && !cube.userData.exitTween,
         hasLogo: Boolean(cube.userData.logoMesh),
         hasUnderline: Boolean(cube.userData.underline),
         hasGrassLogo: Boolean(cube.userData.grassLogo),
@@ -3909,8 +3942,8 @@ function exposeSocialMaterialTestState() {
           cube.userData.grassLogo?.userData?.blades?.filter((blade) => blade.cut)
             .length || 0,
         lastHapticKind: cube.userData.touchField?.lastHapticKind || "contact",
-        screenX: canvasRect.left + (point.x * 0.5 + 0.5) * canvasRect.width,
-        screenY: canvasRect.top + (-point.y * 0.5 + 0.5) * canvasRect.height,
+        screenX: rect.left + (point.x * 0.5 + 0.5) * rect.width,
+        screenY: rect.top + (-point.y * 0.5 + 0.5) * rect.height,
       };
     });
   };
@@ -4234,13 +4267,19 @@ function updateSocialCubeHover() {
 
       if (hoveredHit) {
         const touchUv = getSocialTouchUv(cube, hoveredHit);
-        const pressure = pointerIsDown
-          ? Math.max(pointerPressure, lastPointerType === "touch" ? 0.85 : 0.75)
-          : Math.max(pointerPressure, 0.25);
-        stampMaterialTouch(cube.userData.touchField, touchUv, hoveredHit.point, pressure);
-        document.body.dataset.materialType = cube.userData.materialKind;
-        document.body.dataset.pointerActive = "true";
-        document.body.dataset.interactionState = pointerIsDown ? "pressed" : "hover";
+        if (touchUv) {
+          const pressure = pointerIsDown
+            ? Math.max(pointerPressure, lastPointerType === "touch" ? 0.85 : 0.75)
+            : Math.max(pointerPressure, 0.25);
+          stampMaterialTouch(cube.userData.touchField, touchUv, hoveredHit.point, pressure);
+          document.body.dataset.materialType = cube.userData.materialKind;
+          document.body.dataset.pointerActive = "true";
+          document.body.dataset.interactionState = pointerIsDown ? "pressed" : "hover";
+        } else {
+          document.body.removeAttribute("data-material-type");
+          document.body.removeAttribute("data-pointer-active");
+          document.body.removeAttribute("data-interaction-state");
+        }
       }
     } else if (cube.userData.hovered) {
       resetSocialCubeHover(cube);
@@ -4305,6 +4344,7 @@ function setupSocialCubeInteraction() {
       pointerPressure = Math.max(event.pressure || 0, 0.55);
       lastPointerType = event.pointerType || lastPointerType;
       updatePointerFromEvent(event);
+      updateSocialCubeHover();
     },
     { passive: true },
   );
@@ -4361,6 +4401,7 @@ async function transitionToSection(newIndex) {
   if (newIndex < 0 || newIndex >= MODEL_SECTIONS.length) return;
 
   isAnimating = true;
+  document.body.dataset.sectionReady = "false";
   const oldIndex = currentIndex;
 
   await hideSectionContent(oldIndex);
@@ -4420,6 +4461,7 @@ async function transitionToSection(newIndex) {
   }
 
   isAnimating = false;
+  document.body.dataset.sectionReady = "true";
   pointerDirty = true;
 }
 
@@ -4515,10 +4557,17 @@ function animateModelEntrance(modelSize) {
       aimLightsAtModel();
       isAnimating = false;
       entranceComplete = true;
+      document.body.dataset.sceneReady = "true";
+      document.body.dataset.sectionReady = "true";
       updateStatus();
       await revealSectionContent(0);
       await showRainbowBackdrop();
       pointerDirty = true;
+      const queuedSectionIndex = pendingSectionIndex;
+      pendingSectionIndex = null;
+      if (queuedSectionIndex !== null && queuedSectionIndex !== currentIndex) {
+        transitionToSection(queuedSectionIndex);
+      }
       logModelPosition("Model (entrance complete)");
     },
   });
@@ -4548,6 +4597,7 @@ function restoreLogoBoxMaterials(root, logoTexture) {
     } else {
       child.material.map = null;
       child.material.emissiveMap = null;
+      if (child.material.color) child.material.color.set(0x050608);
       child.material.roughness = 0.18;
       child.material.metalness = 0.58;
       child.material.clearcoat = 0.86;

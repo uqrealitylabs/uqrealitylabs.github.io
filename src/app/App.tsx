@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { LegacyDomScaffold } from "../features/legacy-three/LegacyDomScaffold";
 import { getLocaleMeta, t } from "../shared/i18n/runtime";
-import { useUiStore } from "../shared/state/uiStore";
 import { LoadingExperience } from "../shared/ui/LoadingExperience";
 
 declare global {
@@ -11,7 +10,7 @@ declare global {
 }
 
 export function App() {
-  const locale = useUiStore((state) => state.locale);
+  const locale = "en";
   const [sceneReady, setSceneReady] = useState(false);
   const meta = getLocaleMeta(locale);
 
