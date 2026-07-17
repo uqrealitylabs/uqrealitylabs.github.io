@@ -1,7 +1,13 @@
-import { materialConfigs } from "@uqrealitylabs/feelable-materials";
+import {
+  listRegionMaterials,
+  materialConfigs,
+} from "@uqrealitylabs/feelable-materials";
 import { describe, expect, it } from "vitest";
 import { getSiteContent } from "../../src/content/contentRegistry";
-import { resolveSocialMaterialKind } from "../../src/shared/lib/socialMaterials";
+import {
+  resolveSocialMaterial,
+  resolveSocialMaterialKind,
+} from "../../src/shared/lib/socialMaterials";
 
 describe("social material configs", () => {
   it.each([
@@ -38,5 +44,28 @@ describe("social material configs", () => {
       "cloth",
     );
     expect(resolveSocialMaterialKind({})).toBe("cloth");
+  });
+
+  it("maps LinkedIn to reusable glass and enamel regions", () => {
+    const linkedin = resolveSocialMaterial({ label: "LinkedIn" });
+
+    expect(linkedin.kind).toBe("glass");
+    expect(linkedin.regions).toBeDefined();
+    expect(linkedin.regionKinds).toEqual(["enamel", "glass"]);
+    if (!linkedin.regions) throw new Error("LinkedIn regions missing");
+    expect(listRegionMaterials(linkedin.regions)).toEqual(["enamel", "glass"]);
+  });
+
+  it("keeps non-region social materials single-material", () => {
+    expect(resolveSocialMaterial({ label: "Instagram" })).toMatchObject({
+      kind: "cloth",
+      regions: undefined,
+      regionKinds: ["cloth"],
+    });
+    expect(resolveSocialMaterial({})).toMatchObject({
+      kind: "cloth",
+      regions: undefined,
+      regionKinds: ["cloth"],
+    });
   });
 });

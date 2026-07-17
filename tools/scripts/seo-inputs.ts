@@ -1,4 +1,7 @@
-import { getSiteContent, listPages } from "../src/content/contentRegistry.ts";
+import {
+  getSiteContent,
+  listPages,
+} from "../../src/content/contentRegistry.ts";
 
 export function loadSeoInputs(locale = "en") {
   return {

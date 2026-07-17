@@ -4,7 +4,7 @@ import {
   buildRobots,
   buildSitemap,
   renderHeadBlock,
-} from "../src/seo/seo.ts";
+} from "../../src/seo/seo.ts";
 import { loadSeoInputs } from "./seo-inputs.ts";
 
 const headPattern = / {4}<!-- uqrl:seo:start -->[\s\S]*?<!-- uqrl:seo:end -->/;

@@ -90,8 +90,8 @@ jobs:
         with:
           name: cypress-component-failure
           path: |
-            cypress/screenshots
-            cypress/videos
+            test-results/cypress/screenshots
+            test-results/cypress/videos
           if-no-files-found: ignore
           retention-days: 7
 
@@ -135,7 +135,7 @@ jobs:
         with:
           name: cypress-e2e-failure
           path: |
-            cypress/screenshots
-            cypress/videos
+            test-results/cypress/screenshots
+            test-results/cypress/videos
           if-no-files-found: ignore
           retention-days: 7

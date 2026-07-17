@@ -176,6 +176,18 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
                 ow!
               </text>
             </g>
+            <g className="bee-trail__thought bee-trail__thought--sad-aw">
+              <ellipse
+                className="bee-trail__thought-cloud"
+                cx="198"
+                cy="-18"
+                rx="15"
+                ry="9"
+              />
+              <text className="bee-trail__thought-text" x="189" y="-15">
+                aw.
+              </text>
+            </g>
             <g className="bee-trail__thought bee-trail__thought--yay">
               <ellipse
                 className="bee-trail__thought-cloud"
@@ -189,8 +201,8 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
               </text>
             </g>
             <g className="bee-trail__kawaii-blush">
-              <ellipse cx="141" cy="35" rx="4.4" ry="2" />
-              <ellipse cx="163" cy="35" rx="4.4" ry="2" />
+              <ellipse cx="121" cy="38" rx="6.2" ry="2.4" />
+              <ellipse cx="184" cy="38" rx="6.2" ry="2.4" />
             </g>
             <g className="bee-trail__pom-poms">
               <path d="M126 4 l-6 -5 M126 4 l-1 -8 M126 4 l7 -5" />

@@ -1,7 +1,7 @@
 import {
   getPageContent,
   getSiteContent,
-} from "../../src/content/contentRegistry";
+} from "../../../src/content/contentRegistry";
 
 const home = getPageContent("en", "home");
 const about = getPageContent("en", "about");
@@ -291,7 +291,10 @@ describe("navigation shell", () => {
       "contain",
       site.animationCopy.ow,
     );
-    cy.get(".bee-trail--join .bee-trail__thought--sad-aw").should("not.exist");
+    cy.get(".bee-trail--join .bee-trail__thought--sad-aw").should(
+      "contain",
+      "aw.",
+    );
     cy.get(".bee-trail--join .bee-trail__dust").should(
       "have.css",
       "opacity",

@@ -5,7 +5,7 @@ import {
   buildSitemap,
   renderHeadBlock,
   validateSeo,
-} from "../src/seo/seo.ts";
+} from "../../src/seo/seo.ts";
 import { loadSeoInputs } from "./seo-inputs.ts";
 
 const { site, pages } = loadSeoInputs();

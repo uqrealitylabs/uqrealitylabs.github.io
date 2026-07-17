@@ -1,7 +1,7 @@
 import { mount } from "cypress/react";
-import { ContentRenderer } from "../../src/content/ContentRenderer";
-import { getPageContent } from "../../src/content/contentRegistry";
-import type { ContentBlock } from "../../src/content/schema/contentSchema";
+import { ContentRenderer } from "../../../src/content/ContentRenderer";
+import { getPageContent } from "../../../src/content/contentRegistry";
+import type { ContentBlock } from "../../../src/content/schema/contentSchema";
 
 describe("ContentRenderer", () => {
   it("mounts resolved JSON content blocks", () => {

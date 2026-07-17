@@ -9,10 +9,9 @@ const ignored = new Set([
   ".vite",
   "build",
   "coverage",
-  "cypress/screenshots",
-  "cypress/videos",
   "dist",
   "node_modules",
+  "test-results",
 ]);
 
 function isIgnored(path: string) {

@@ -418,7 +418,7 @@ body[data-section="1"] .bee-trail--join {
 }
 
 .bee-trail__kawaii-blush {
-  fill: rgba(255, 128, 171, 0.88);
+  fill: rgba(255, 128, 171, 0.38);
 }
 
 .bee-trail__pom-poms {
@@ -563,6 +563,8 @@ body[data-section="1"][data-join-state="sadShrivel"]
   .bee-trail__join-tear,
 body[data-section="1"][data-join-state="sadShrivel"]
   .bee-trail__thought--sad-ow,
+body[data-section="1"][data-join-state="sadShrivel"]
+  .bee-trail__thought--sad-aw,
 body[data-section="1"][data-join-state="sadShrivel"] .bee-trail__dust {
   opacity: 1;
 }

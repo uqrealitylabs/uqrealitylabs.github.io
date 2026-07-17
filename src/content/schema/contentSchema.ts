@@ -105,7 +105,14 @@ export type MusicCue = {
   duration?: number;
 };
 
-const socialMaterialKinds = ["cloth", "rubber", "glass", "grass", "mail"];
+const socialMaterialKinds = [
+  "cloth",
+  "rubber",
+  "glass",
+  "grass",
+  "mail",
+  "enamel",
+];
 
 export type MemberContent = {
   name: string;
@@ -166,7 +173,7 @@ export type SiteContent = {
     label: string;
     url: string;
     texture: string;
-    material?: "cloth" | "rubber" | "glass" | "grass" | "mail";
+    material?: "cloth" | "rubber" | "glass" | "grass" | "mail" | "enamel";
     accent: string;
     accentColor?: string;
     music?: MusicCue;

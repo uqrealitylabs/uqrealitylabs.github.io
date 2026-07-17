@@ -1,5 +1,5 @@
-import { formatIssues } from "../src/content/schema/contentSchema.ts";
-import { validateAllContent } from "../src/content/validateContent.ts";
+import { formatIssues } from "../../src/content/schema/contentSchema.ts";
+import { validateAllContent } from "../../src/content/validateContent.ts";
 
 export function validateContentFiles() {
   return validateAllContent();

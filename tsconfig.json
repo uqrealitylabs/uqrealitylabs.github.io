@@ -1,30 +1,12 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "useDefineForClassFields": true,
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "allowJs": false,
-    "checkJs": false,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "allowImportingTsExtensions": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "types": ["node", "vitest/globals", "cypress"]
-  },
+  "//": "Root shim for editor and TypeScript discovery; compiler options live in tools/config/tsconfig.base.json.",
+  "extends": "./tools/config/tsconfig.base.json",
   "include": [
     "src",
-    "scripts",
+    "tools",
     "tests",
-    "rsbuild.config.ts",
-    "vitest.config.ts",
-    "cypress.config.ts"
+    "tools/config/rsbuild.config.ts",
+    "tools/config/vitest.config.ts",
+    "tools/config/cypress.config.ts"
   ]
 }
