@@ -75,37 +75,37 @@ export function buildStructuredData(site: SiteContent, page: PageContent) {
   const orgId = `${trimSlash(site.seo.siteUrl)}/#organization`;
   const siteId = `${trimSlash(site.seo.siteUrl)}/#website`;
 
-  return [
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "@id": orgId,
-      name: site.seo.organization.name,
-      url: site.seo.organization.url,
-      logo: assetUrl(site, site.seo.organization.logo),
-      sameAs: site.seo.organization.sameAs,
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "@id": siteId,
-      name: site.seo.siteName,
-      url: site.seo.siteUrl,
-      publisher: { "@id": orgId },
-      inLanguage: site.locale,
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      "@id": `${pageUrl}#webpage`,
-      url: pageUrl,
-      name: page.meta.title,
-      description: page.meta.description,
-      isPartOf: { "@id": siteId },
-      about: { "@id": orgId },
-      inLanguage: page.locale,
-    },
-  ];
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": orgId,
+        name: site.seo.organization.name,
+        url: site.seo.organization.url,
+        logo: assetUrl(site, site.seo.organization.logo),
+        sameAs: site.seo.organization.sameAs,
+      },
+      {
+        "@type": "WebSite",
+        "@id": siteId,
+        name: site.seo.siteName,
+        url: site.seo.siteUrl,
+        publisher: { "@id": orgId },
+        inLanguage: site.locale,
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${pageUrl}#webpage`,
+        url: pageUrl,
+        name: page.meta.title,
+        description: page.meta.description,
+        isPartOf: { "@id": siteId },
+        about: { "@id": orgId },
+        inLanguage: page.locale,
+      },
+    ],
+  };
 }
 
 export function buildRobots(
