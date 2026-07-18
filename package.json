@@ -46,7 +46,7 @@
     "wiki:check": "node tools/scripts/wiki/validate-wiki.ts"
   },
   "dependencies": {
-    "@uqrealitylabs/eyslie": "git+https://github.com/uqrealitylabs/eyslie.git#61cb27e54f4fc7e9b4efd075fd2473e43e03a9bc",
+    "@uqrealitylabs/eyslie": "git+https://github.com/uqrealitylabs/eyslie.git#e69149302a14887d7d1824549e216e69c635555c",
     "@uqrealitylabs/feelable-materials": "git+https://github.com/uqrealitylabs/feelable-materials.git#68363f093ac9cb49bb21773b0ebda16a3715ddab",
     "gsap": "^3.15.0",
     "react": "^19.2.1",
