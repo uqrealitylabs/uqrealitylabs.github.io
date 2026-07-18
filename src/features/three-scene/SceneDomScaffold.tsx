@@ -1,4 +1,6 @@
-type LegacyLabels = {
+import type { ReactNode } from "react";
+
+type SceneLabels = {
   mainNav: string;
   joinFallback: string;
   logoAlt: string;
@@ -6,6 +8,40 @@ type LegacyLabels = {
   sceneLabel: string;
   closeProfile: string;
   linkedIn: string;
+};
+
+export type SceneNavItem = {
+  id: string;
+  label: string;
+  shortLabel: string;
+};
+
+export type SceneSocialLink = {
+  label: string;
+  url: string;
+};
+
+export type SceneMember = {
+  image: string;
+  name: string;
+  title: string;
+  body: string;
+  url: string;
+};
+
+export type SceneDomScaffoldProps = {
+  labels: SceneLabels;
+  navItems: SceneNavItem[];
+  activeSection: number;
+  joinHref: string;
+  joinLabel: string;
+  socialLinks: SceneSocialLink[];
+  sectionTitle: string;
+  sectionDescription: string;
+  selectedMember: SceneMember | null;
+  onNavigate: (index: number) => void;
+  onCloseMember: () => void;
+  children: ReactNode;
 };
 
 function BeeLineOrb({
@@ -42,28 +78,79 @@ function BeeLineOrb({
   );
 }
 
-export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
+export function SceneDomScaffold({
+  labels,
+  navItems,
+  activeSection,
+  joinHref,
+  joinLabel,
+  socialLinks,
+  sectionTitle,
+  sectionDescription,
+  selectedMember,
+  onNavigate,
+  onCloseMember,
+  children,
+}: SceneDomScaffoldProps) {
   return (
     <>
       <nav id="navbar" aria-label={labels.mainNav}>
-        <a href="/" className="nav-logo" data-section="0">
-          <img id="nav-logo-img" src="" alt={labels.logoAlt} />
+        <a
+          href="/"
+          className="nav-logo"
+          data-section="0"
+          onClick={(event) => {
+            event.preventDefault();
+            onNavigate(0);
+          }}
+        >
+          <img
+            id="nav-logo-img"
+            src="/Assets/images/labs_logo.png"
+            alt={labels.logoAlt}
+            width="240"
+            height="80"
+          />
         </a>
-        <div id="nav-links" className="nav-links" />
+        <div id="nav-links" className="nav-links">
+          {navItems.map((item, index) => (
+            <button
+              key={item.id}
+              type="button"
+              className={index === activeSection ? "is-active" : undefined}
+              data-section={index}
+              data-short={item.shortLabel}
+              aria-current={index === activeSection ? "page" : undefined}
+              onClick={() => onNavigate(index)}
+            >
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
       </nav>
-      <canvas id="canvas" aria-label={labels.sceneLabel} />
+      {children}
+      <section className="scene-copy" aria-live="polite">
+        <h1>{sectionTitle}</h1>
+        <p>{sectionDescription}</p>
+      </section>
       <a
         id="join-us-accessible-link"
         className="sr-only focus:not-sr-only"
-        href="#nav-links"
+        href={joinHref}
       >
-        {labels.joinFallback}
+        {joinLabel || labels.joinFallback}
       </a>
       <nav
         id="social-accessible-links"
         className="sr-only focus-within:not-sr-only"
         aria-label={labels.socialLinks}
-      />
+      >
+        {socialLinks.map((social) => (
+          <a key={social.label} href={social.url} rel="noopener noreferrer">
+            {social.label}
+          </a>
+        ))}
+      </nav>
       <div id="chalk-layer" aria-hidden="true">
         <svg
           className="bee-trail bee-trail--join"
@@ -259,48 +346,57 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
           <BeeLineOrb duration="3.7s" pathId="bee-trail-committee" />
         </svg>
       </div>
-      <div id="member-popup" className="member-popup" hidden>
-        <div className="member-popup__backdrop" data-popup-close />
-        <article
-          className="member-popup__card"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="member-popup-title"
-          tabIndex={-1}
-        >
+      {selectedMember ? (
+        <div id="member-popup" className="member-popup is-open">
           <button
-            className="member-popup__close"
+            className="member-popup__backdrop"
             type="button"
             aria-label={labels.closeProfile}
-            data-popup-close
-          >
-            &times;
-          </button>
-          <img
-            id="member-popup-image"
-            alt=""
-            width="900"
-            height="900"
-            loading="lazy"
-            decoding="async"
-            sizes="(max-width: 860px) 82vw, 9rem"
+            onClick={onCloseMember}
           />
-          <div>
-            <h2 id="member-popup-title">Profile</h2>
-            <p id="member-popup-role" />
-            <p id="member-popup-copy" className="member-popup__copy" />
-            <a
-              id="member-popup-link"
-              href="https://www.linkedin.com/company/uq-reality-labs"
-              target="_blank"
-              rel="noopener noreferrer"
+          <article
+            className="member-popup__card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="member-popup-title"
+            tabIndex={-1}
+          >
+            <button
+              className="member-popup__close"
+              type="button"
+              aria-label={labels.closeProfile}
+              onClick={onCloseMember}
             >
-              {labels.linkedIn}
-            </a>
-          </div>
-        </article>
-      </div>
-      <div id="status" hidden />
+              &times;
+            </button>
+            <img
+              id="member-popup-image"
+              src={selectedMember.image}
+              alt={selectedMember.name}
+              width="900"
+              height="900"
+              loading="lazy"
+              decoding="async"
+              sizes="(max-width: 860px) 82vw, 9rem"
+            />
+            <div>
+              <h2 id="member-popup-title">{selectedMember.name}</h2>
+              <p id="member-popup-role">{selectedMember.title}</p>
+              <p id="member-popup-copy" className="member-popup__copy">
+                {selectedMember.body}
+              </p>
+              <a
+                id="member-popup-link"
+                href={selectedMember.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {labels.linkedIn}
+              </a>
+            </div>
+          </article>
+        </div>
+      ) : null}
     </>
   );
 }

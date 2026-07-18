@@ -9,7 +9,6 @@
       "*.ts",
       "*.tsx",
       "*.json",
-      "!src/features/legacy-three/legacy-main.ts",
       "!src/shared/styles/legacy.css"
     ]
   },

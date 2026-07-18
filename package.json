@@ -48,11 +48,10 @@
   "dependencies": {
     "@uqrealitylabs/eyslie": "git+https://github.com/uqrealitylabs/eyslie.git#e69149302a14887d7d1824549e216e69c635555c",
     "@uqrealitylabs/feelable-materials": "git+https://github.com/uqrealitylabs/feelable-materials.git#68363f093ac9cb49bb21773b0ebda16a3715ddab",
-    "gsap": "^3.15.0",
+    "@react-three/fiber": "^9.6.1",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "three": "^0.177.0",
-    "troika-three-text": "^0.52.4"
+    "three": "^0.177.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",
@@ -63,6 +62,7 @@
     "@rsdoctor/rspack-plugin": "^1.5.17",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.177.0",
     "@vitest/coverage-v8": "^4.1.10",
     "cypress": "^15.7.0",
     "tailwindcss": "^4.1.17",
