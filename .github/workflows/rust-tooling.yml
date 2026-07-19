@@ -1,4 +1,4 @@
-name: Rust Tooling Quality
+name: Quality
 
 on:
   pull_request:
@@ -19,7 +19,7 @@ env:
 
 jobs:
   format:
-    name: Rust Tooling / Format
+    name: Format
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -28,7 +28,7 @@ jobs:
         with: { version: ${{ env.MISE_VERSION }}, sha256: ${{ env.MISE_SHA256 }}, cache: true }
       - run: mise run format-check
   lint:
-    name: Rust Tooling / Lint
+    name: Lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -37,7 +37,7 @@ jobs:
         with: { version: ${{ env.MISE_VERSION }}, sha256: ${{ env.MISE_SHA256 }}, cache: true }
       - run: mise run lint
   spelling:
-    name: Rust Tooling / Spelling
+    name: Spelling
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -46,7 +46,7 @@ jobs:
         with: { version: ${{ env.MISE_VERSION }}, sha256: ${{ env.MISE_SHA256 }}, cache: true }
       - run: mise run spell
   workflows:
-    name: Rust Tooling / Workflows
+    name: Workflows
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -55,7 +55,7 @@ jobs:
         with: { version: ${{ env.MISE_VERSION }}, sha256: ${{ env.MISE_SHA256 }}, cache: true }
       - run: mise run workflow-check
   typecheck:
-    name: Rust Tooling / Typecheck
+    name: Typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -65,7 +65,7 @@ jobs:
       - run: mise run setup
       - run: mise run typecheck
   test:
-    name: Rust Tooling / Test
+    name: Test
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -75,7 +75,7 @@ jobs:
       - run: mise run setup
       - run: mise run test
   build:
-    name: Rust Tooling / Build
+    name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
