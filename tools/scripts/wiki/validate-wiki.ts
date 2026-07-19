@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const wikiIndex = process.argv.indexOf("--wiki");
@@ -22,21 +22,26 @@ const required = [
 ];
 const issues: string[] = [];
 
-if (!wiki || !existsSync(wiki)) {
+if (!wiki) {
   issues.push(`wiki path does not exist: ${wiki}`);
 } else {
   for (const file of required) {
     const path = join(wiki, file);
-    if (!existsSync(path)) {
-      issues.push(`missing wiki page: ${file}`);
-    } else if (statSync(path).size === 0) {
-      issues.push(`empty wiki page: ${file}`);
-    } else if (
-      /\/Users\/|BEGIN [A-Z ]*PRIVATE KEY|PRIVATE KEY-----/.test(
-        readFileSync(path, "utf8"),
-      )
-    ) {
-      issues.push(`unsafe wiki content: ${file}`);
+    try {
+      const content = readFileSync(path, "utf8");
+      if (content.length === 0) {
+        issues.push(`empty wiki page: ${file}`);
+      } else if (
+        /\/Users\/|BEGIN [A-Z ]*PRIVATE KEY|PRIVATE KEY-----/.test(content)
+      ) {
+        issues.push(`unsafe wiki content: ${file}`);
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        issues.push(`missing wiki page: ${file}`);
+      } else {
+        throw error;
+      }
     }
   }
 }
