@@ -673,10 +673,7 @@ function SocialCard({
       );
     }
     if (card.current) {
-      projected
-        .set(0, 0, 0)
-        .applyMatrix4(card.current.matrixWorld)
-        .project(state.camera);
+      card.current.getWorldPosition(projected).project(state.camera);
       const rect = state.gl.domElement.getBoundingClientRect();
       record.current.screenX =
         rect.left + (projected.x * 0.5 + 0.5) * rect.width;
