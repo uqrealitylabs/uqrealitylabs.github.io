@@ -75,20 +75,20 @@ describe("SEO signals", () => {
     expect(existsSync(file)).toBe(true);
   });
 
-  it.each(seoPageMatrix)("builds metadata for $locale/$page.id", ({
-    site,
-    page,
-  }) => {
-    const metadata = buildPageMetadata(site, page);
+  it.each(seoPageMatrix)(
+    "builds metadata for $locale/$page.id",
+    ({ site, page }) => {
+      const metadata = buildPageMetadata(site, page);
 
-    expect(metadata.canonical).toBe(canonicalUrl(site, page));
-    expect(metadata.robots).toBe(
-      page.meta.indexable ? "index,follow" : "noindex,follow",
-    );
-    expect(metadata.image).toBe(
-      new URL(site.seo.defaultSocialImage.src, `${site.seo.siteUrl}/`).href,
-    );
-  });
+      expect(metadata.canonical).toBe(canonicalUrl(site, page));
+      expect(metadata.robots).toBe(
+        page.meta.indexable ? "index,follow" : "noindex,follow",
+      );
+      expect(metadata.image).toBe(
+        new URL(site.seo.defaultSocialImage.src, `${site.seo.siteUrl}/`).href,
+      );
+    },
+  );
 
   it("builds truthful structured data and escapes JSON-LD safely", () => {
     const jsonLd = buildStructuredData(site, home);

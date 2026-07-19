@@ -46,8 +46,9 @@ function walk(dir: string, root = dir) {
 
 function initialScriptPaths() {
   const html = readFileSync("dist/index.html", "utf8");
-  return [...html.matchAll(/<script\b[^>]*\bsrc="\/([^"]+\.js)"/g)].map(
-    (match) => match[1],
+  return [...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+\.js)["']/g)].map(
+    (match) =>
+      new URL(match[1], "https://build.invalid/").pathname.replace(/^\/+/, ""),
   );
 }
 

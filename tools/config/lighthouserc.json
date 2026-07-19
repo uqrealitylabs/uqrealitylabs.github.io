@@ -2,7 +2,11 @@
   "ci": {
     "collect": {
       "numberOfRuns": 3,
-      "url": ["http://127.0.0.1:4173/"],
+      "url": [
+        "http://127.0.0.1:4173/",
+        "http://127.0.0.1:4173/project/eyslie/",
+        "http://127.0.0.1:4173/project/feelable-materials/"
+      ],
       "settings": {
         "chromeFlags": "--headless=new --no-sandbox",
         "preset": "desktop"

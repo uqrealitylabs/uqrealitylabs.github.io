@@ -20,7 +20,14 @@ export function App() {
 
   return (
     <>
-      <Suspense fallback={null}>
+      <Suspense
+        fallback={
+          <LoadingExperience
+            hidden={false}
+            label={t(locale, "loading.scene")}
+          />
+        }
+      >
         <ThreeSceneExperience
           locale={locale}
           onReady={() => setSceneReady(true)}

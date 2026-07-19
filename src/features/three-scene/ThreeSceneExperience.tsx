@@ -54,28 +54,12 @@ const TAB_ORDER = [
   "committee",
 ] as const;
 const CLEAR_COLOUR = "#0f1118";
-const SECTION_Y_STEP = 1.6;
-const SOCIAL_CARD_WIDTH = 2.55;
-const SOCIAL_CARD_HEIGHT = 1.72;
+const SECTION_Y_STEP = 200;
+const SOCIAL_CARD_WIDTH = 3.25;
+const SOCIAL_CARD_HEIGHT = 3.25;
 
 const STAR_LAYERS = [
-  { count: 72, spread: 55, depth: 55, size: 0.09, opacity: 0.94, speed: 0.002 },
-  {
-    count: 126,
-    spread: 90,
-    depth: 110,
-    size: 0.06,
-    opacity: 0.68,
-    speed: 0.0012,
-  },
-  {
-    count: 192,
-    spread: 140,
-    depth: 180,
-    size: 0.035,
-    opacity: 0.42,
-    speed: 0.0006,
-  },
+  { count: 150, spread: 140, depth: 180, size: 0.16, opacity: 0.8, speed: 0 },
 ] as const;
 
 const rainbowVertexShader = `
@@ -223,10 +207,11 @@ function KeythingModel({
   const gltf = useLoader(GLTFLoader, MODEL_PATH);
   const logoTexture = useLoader(THREE.TextureLoader, LABS_LOGO_PATH);
   const group = useRef<THREE.Group>(null);
+  const model = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
 
   useLayoutEffect(() => {
-    prepareModel(gltf.scene, logoTexture);
-  }, [gltf.scene, logoTexture]);
+    prepareModel(model, logoTexture);
+  }, [model, logoTexture]);
 
   useFrame((_, delta) => {
     const object = group.current;
@@ -238,7 +223,8 @@ function KeythingModel({
       3.2,
       delta,
     );
-    if (!reducedMotion) object.rotation.y += delta * 0.035;
+    void reducedMotion;
+    void delta;
   });
 
   return (
@@ -253,7 +239,7 @@ function KeythingModel({
       scale={0.1}
       userData={{ keything: true, bodyMaterial: "black", logo: "outer" }}
     >
-      <primitive object={gltf.scene} />
+      <primitive object={model} />
     </group>
   );
 }
@@ -295,8 +281,8 @@ function StarLayer({
 
   useFrame((_, delta) => {
     if (reducedMotion || !points.current) return;
-    points.current.rotation.y += delta * speed;
-    points.current.rotation.x += delta * speed * 0.35;
+    void delta;
+    void speed;
   });
 
   return (
@@ -459,11 +445,13 @@ function CommitteeMember({
     mesh.current.scale.setScalar(scale);
   });
 
-  const x = (member.column - (member.rowLength - 1) / 2) * 2.7;
-  const y = 1.2 - member.row * 2.55;
+  const x =
+    (member.column - (member.rowLength - 1) / 2) *
+    (member.rowLength === 3 ? 11.4 : 11.4);
+  const y = member.row === 0 ? 4 : -4.9;
 
   return (
-    <group position={[x, y, -8]}>
+    <group position={[x, y, -25]}>
       {/* biome-ignore lint/a11y/noStaticElementInteractions: the canvas has a keyboard-accessible profile fallback link. */}
       <mesh
         ref={mesh}
@@ -488,7 +476,7 @@ function CommitteeMember({
         onClick={() => onSelect(member)}
         userData={{ committeeMember: member.name, role: member.title }}
       >
-        <planeGeometry args={[1.9, 1.9]} />
+        <planeGeometry args={[5.6, 5.6]} />
         <meshBasicMaterial map={texture} transparent opacity={0.96} />
       </mesh>
     </group>
@@ -704,13 +692,11 @@ function SocialCard({
     record.current.settled = current.pressure < 0.01 && current.stains < 0.01;
   });
 
-  const row = Math.floor(index / 3);
-  const column = index % 3;
-  const x = (column - 1) * 3.3;
-  const y = row === 0 ? 1.7 : -1.1;
+  const x = (index - 2) * 4.35;
+  const y = -1;
 
   return (
-    <group position={[x, y, -8]} userData={{ socialLabel: label, material }}>
+    <group position={[x, y, -20]} userData={{ socialLabel: label, material }}>
       {/* biome-ignore lint/a11y/noStaticElementInteractions: the R3F mesh is the visible, keyboard-fallback-backed surface. */}
       <mesh
         ref={card}
@@ -754,12 +740,12 @@ function SocialCard({
           opacity={material === "glass" ? 0.84 : 1}
         />
       </mesh>
-      <mesh position={[0, 0.08, 0.24]} scale={[0.78, 0.74, 1]}>
-        <planeGeometry args={[1.8, 1.05]} />
+      <mesh position={[0, 0.08, 0.24]} scale={[0.9, 0.9, 1]}>
+        <planeGeometry args={[1.8, 1.8]} />
         <meshBasicMaterial map={logoTexture} transparent opacity={0.9} />
       </mesh>
-      <mesh ref={underline} position={[0, -0.78, 0.24]}>
-        <planeGeometry args={[1.42, 0.055]} />
+      <mesh ref={underline} position={[0, -1.48, 0.24]}>
+        <planeGeometry args={[1.8, 0.055]} />
         <meshBasicMaterial color="#fff3d2" transparent opacity={0.78} />
       </mesh>
       {material === "grass" ? (
@@ -845,14 +831,11 @@ function SceneContent({
   return (
     <>
       <color attach="background" args={[CLEAR_COLOUR]} />
-      <fog attach="fog" args={[CLEAR_COLOUR, 40, 180]} />
-      <ambientLight intensity={0.45} color="#e8edff" />
       <hemisphereLight args={["#ffffff", "#2a2f45", 0.95]} />
       <directionalLight
         position={[2, 10, 40]}
         intensity={1.45}
         color="#ffffff"
-        castShadow
       />
       <directionalLight
         position={[-12, 4, 25]}
@@ -870,8 +853,8 @@ function SceneContent({
       {sectionIndex === 1 ? (
         <SectionArtwork
           path="/Assets/images/rubric.png"
-          position={[2.25, -0.8, -9]}
-          size={[3.4, 2.15]}
+          position={[0, -5, -18.75]}
+          size={[5.2, 5.2]}
         />
       ) : null}
       {sectionIndex === 2 ? (
@@ -884,8 +867,8 @@ function SceneContent({
       {sectionIndex === 3 ? (
         <SectionArtwork
           path="/Assets/images/nuaxion_logo.avif"
-          position={[0, -0.8, -9]}
-          size={[4.2, 2.1]}
+          position={[0, 0, -20]}
+          size={[8.61538, 4.2]}
         />
       ) : null}
       {sectionIndex === 4 ? (
@@ -1173,8 +1156,14 @@ export function ThreeSceneExperience({
           id="canvas"
           aria-label={labels.sceneLabel}
           dpr={getRenderPixelRatio()}
-          camera={{ fov: 60, near: 0.1, far: 2000, position: [0, 0, 5] }}
+          camera={{
+            fov: 60,
+            near: 0.050675,
+            far: 2000,
+            position: [0, 0.253375, 0.952689],
+          }}
           gl={{
+            alpha: false,
             antialias: getRenderPixelRatio() <= 2,
             powerPreference: "high-performance",
           }}
