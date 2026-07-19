@@ -1,0 +1,7 @@
+[eyslie]
+route = "/project/eyslie/"
+target = "https://uqrealitylabs.github.io/eyslie/"
+
+[feelable-materials]
+route = "/project/feelable-materials/"
+target = "https://uqrealitylabs.github.io/feelable-materials/"

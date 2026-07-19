@@ -1,15 +1,12 @@
 # UQ Reality Labs Website
 
 This repository owns the UQ Reality Labs organization site. Library demos keep
-their source, build, tests, and GitHub Pages deployment in their own repositories:
+their source, build, tests, and GitHub Pages deployment in their own repositories.
 
-| Library | Public route | Source |
-| --- | --- | --- |
-| Eyslie | <https://uqrealitylabs.com/project/eyslie/> | <https://github.com/uqrealitylabs/eyslie> |
-| Feelable Materials | <https://uqrealitylabs.com/project/feelable-materials/> | <https://github.com/uqrealitylabs/feelable-materials> |
-
-The external site proxy maps those `/project/<slug>/` routes to the respective
-Pages deployments. This repository does not copy or rebuild either demo.
+The external site proxy reads [tools/config/projects.toml](tools/config/projects.toml).
+Each table is a library name with its own route and Pages target; there are no
+shared defaults or redundant `name` fields. This repository does not copy or
+rebuild project demos.
 
 ## Development
 
