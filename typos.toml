@@ -30,4 +30,4 @@ COLOUR = "COLOUR"
 shrivelled = "shrivelled"
 
 [files]
-extend-exclude = ["node_modules/**", "dist/**", "coverage/**", "demo-dist/**", "test-results/**", "artifacts/**", "LICENSE", "src/content/pages/es/**", "src/content/site/es.json"]
+extend-exclude = ["node_modules/**", "dist/**", "coverage/**", "test-results/**", "artifacts/**", "LICENSE", "src/content/pages/es/**", "src/content/site/es.json"]

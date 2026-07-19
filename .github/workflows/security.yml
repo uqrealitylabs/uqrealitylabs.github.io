@@ -40,7 +40,7 @@ jobs:
       - name: Check workflow action pins
         run: mise run workflow-check
       - name: Run npm audit
-        run: npm run security:audit
+        run: npm run security -- audit
 
   dependency-review:
     if: github.event_name == 'pull_request'

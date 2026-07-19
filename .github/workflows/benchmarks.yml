@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Collect build benchmark
-        run: npm run benchmark:build
+        run: npm run build && npm run benchmark -- report --out artifacts/benchmarks/build.json
       - name: Add benchmark summary
         run: |
           set -euo pipefail

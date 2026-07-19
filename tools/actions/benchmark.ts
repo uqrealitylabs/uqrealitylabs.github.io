@@ -8,7 +8,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { arch, cpus, platform, release } from "node:os";
-import { dirname, join, relative } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { brotliCompressSync, gzipSync } from "node:zlib";
 
 const budgets = {
@@ -74,7 +74,7 @@ function collect() {
   const baseJsGzip = assets
     .filter((asset) => initialScripts.has(asset.path))
     .reduce((total, asset) => total + asset.gzip, 0);
-  const css = assets
+  const cssGzip = assets
     .filter((asset) => asset.path.endsWith(".css"))
     .reduce((total, asset) => total + asset.gzip, 0);
   const lazyJs = assets
@@ -98,7 +98,7 @@ function collect() {
     initialScripts: [...initialScripts],
     summary: {
       baseJsGzip,
-      cssGzip: css,
+      cssGzip,
       largestLazyJsGzip: lazyJs?.gzip ?? 0,
       largestLazyJsPath: lazyJs?.path ?? "none",
     },
@@ -136,7 +136,6 @@ function budgetIssues(report: ReturnType<typeof collect>) {
       budgets.largestLazyJsGzip,
     ],
   ] as const;
-
   return checks
     .filter(([, actual, budget]) => actual > budget)
     .map(
@@ -145,24 +144,45 @@ function budgetIssues(report: ReturnType<typeof collect>) {
     );
 }
 
-const args = process.argv.slice(2);
+function outputPath(value?: string) {
+  if (!value) return undefined;
+  const output = resolve(value);
+  const root = resolve("artifacts/benchmarks");
+  if (output !== root && !output.startsWith(`${root}${sep}`)) {
+    throw new Error("--out must be inside artifacts/benchmarks");
+  }
+  if (!output.endsWith(".json")) {
+    throw new Error("--out must use a .json extension");
+  }
+  return output;
+}
 
 try {
+  const args = process.argv.slice(2);
+  const [part] = args;
+  const hasOutput = args.length === 3 && args[1] === "--out";
+  if (
+    !["report", "budgets", "all"].includes(part) ||
+    (args.length !== 1 && !hasOutput) ||
+    (hasOutput && !args[2])
+  ) {
+    throw new Error(
+      "Usage: npm run benchmark -- <report|budgets|all> [--out PATH]",
+    );
+  }
   const report = collect();
-  const issues = args.includes("--check-budgets") ? budgetIssues(report) : [];
-  const outIndex = args.indexOf("--out");
-  if (outIndex !== -1) {
-    const out = args[outIndex + 1];
+  const text = markdown(report);
+  const out = outputPath(hasOutput ? args[2] : undefined);
+  if (out) {
     mkdirSync(dirname(out), { recursive: true });
     writeFileSync(out, `${JSON.stringify(report, null, 2)}\n`);
-    writeFileSync(out.replace(/\.json$/, ".md"), markdown(report));
+    writeFileSync(out.replace(/\.json$/, ".md"), text);
   }
+  console.log(text);
 
-  console.log(markdown(report));
-
-  if (issues.length > 0) {
-    console.error(issues.join("\n"));
-    process.exit(1);
+  if (part === "budgets" || part === "all") {
+    const issues = budgetIssues(report);
+    if (issues.length > 0) throw new Error(issues.join("\n"));
   }
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));

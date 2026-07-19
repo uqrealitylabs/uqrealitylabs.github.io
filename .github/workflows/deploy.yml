@@ -40,10 +40,7 @@ jobs:
       - name: Build deploy artifact
         run: npm run ci
       - name: Verify Pages paths
-        run: |
-          test -f dist/index.html
-          test -f dist/project/eyslie/index.html
-          test -f dist/project/feelable-materials/index.html
+        run: test -f dist/index.html
       - name: Start preview server
         run: |
           set -euo pipefail

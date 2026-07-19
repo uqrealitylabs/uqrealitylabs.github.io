@@ -1,5 +1,4 @@
 import { defineConfig } from "cypress";
-import cypressViteConfig from "./cypress-vite.config";
 
 const e2eBaseUrl = process.env.CYPRESS_BASE_URL ?? "http://localhost:3000";
 
@@ -21,7 +20,12 @@ export default defineConfig({
     devServer: {
       framework: "react",
       bundler: "vite",
-      viteConfig: cypressViteConfig,
+      viteConfig: {
+        esbuild: {
+          jsx: "automatic",
+          jsxImportSource: "react",
+        },
+      },
     },
   },
 });
