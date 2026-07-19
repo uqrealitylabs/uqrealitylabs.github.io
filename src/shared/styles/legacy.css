@@ -56,6 +56,45 @@ body {
   touch-action: none;
 }
 
+.scene-copy {
+  position: fixed;
+  top: 22%;
+  left: 50%;
+  z-index: 8;
+  width: min(42rem, calc(100vw - 2rem));
+  color: var(--chalk);
+  text-align: center;
+  pointer-events: none;
+  transform: translateX(-50%);
+  text-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.38);
+}
+
+.scene-copy h1 {
+  color: var(--marker);
+  font: 700 clamp(1.5rem, 4.2vw, 3.2rem) / 1.05 "Pixelify Sans", system-ui,
+    sans-serif;
+}
+
+.scene-copy p {
+  max-width: 36rem;
+  margin: 0.8rem auto 0;
+  color: rgba(255, 243, 210, 0.8);
+  font: 400 clamp(0.82rem, 1.6vw, 1.08rem) / 1.35 "Pixelify Sans", system-ui,
+    sans-serif;
+}
+
+body[data-section="2"] .scene-copy h1 {
+  color: #38bdf8;
+}
+
+body[data-section="3"] .scene-copy h1 {
+  color: #a78bfa;
+}
+
+body[data-section="4"] .scene-copy h1 {
+  color: #22c55e;
+}
+
 #navbar {
   position: fixed;
   top: calc(var(--safe-top) + 0.65rem);
@@ -418,7 +457,7 @@ body[data-section="1"] .bee-trail--join {
 }
 
 .bee-trail__kawaii-blush {
-  fill: rgba(255, 128, 171, 0.88);
+  fill: rgba(255, 128, 171, 0.38);
 }
 
 .bee-trail__pom-poms {
@@ -563,6 +602,8 @@ body[data-section="1"][data-join-state="sadShrivel"]
   .bee-trail__join-tear,
 body[data-section="1"][data-join-state="sadShrivel"]
   .bee-trail__thought--sad-ow,
+body[data-section="1"][data-join-state="sadShrivel"]
+  .bee-trail__thought--sad-aw,
 body[data-section="1"][data-join-state="sadShrivel"] .bee-trail__dust {
   opacity: 1;
 }
@@ -948,23 +989,6 @@ body[data-content-hover="committee"] .bee-trail--committee {
   transform: rotate(90deg);
 }
 
-#status {
-  position: fixed;
-  left: max(1rem, env(safe-area-inset-left));
-  bottom: max(1rem, env(safe-area-inset-bottom));
-  z-index: 10;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  background: var(--glass-strong);
-  color: rgba(255, 255, 255, 0.85);
-  font:
-    0.8rem / 1.3 system-ui,
-    sans-serif;
-  pointer-events: none;
-  user-select: none;
-}
-
 @keyframes bee-draw {
   from {
     opacity: 0;
@@ -1089,7 +1113,7 @@ body[data-content-hover="committee"] .bee-trail--committee {
   }
   to {
     transform: translateY(18px);
-    opacity: 0;
+    opacity: 1;
   }
 }
 

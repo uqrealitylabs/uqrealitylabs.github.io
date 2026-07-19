@@ -1,0 +1,41 @@
+min_version = "2026.7.7"
+
+[tools]
+node = "24.18.0"
+npm = "11.12.1"
+biome = "2.5.4"
+typos = "1.48.0"
+zizmor = "1.27.0"
+
+[tasks.setup]
+run = "npm ci"
+
+[tasks.format]
+run = "biome check --write ."
+
+[tasks.format-check]
+run = "biome format ."
+
+[tasks.lint]
+run = "biome check --formatter-enabled=false ."
+
+[tasks.spell]
+run = "typos"
+
+[tasks.workflow-check]
+run = "if [ -d .github/workflows ]; then zizmor .github/workflows; fi"
+
+[tasks.typecheck]
+run = "npm run typecheck"
+
+[tasks.test]
+run = "npm run test:coverage"
+
+[tasks.build]
+run = "npm run build"
+
+[tasks.check]
+depends = ["format-check", "lint", "spell", "workflow-check", "typecheck", "test"]
+
+[tasks.ci]
+depends = ["check", "build"]

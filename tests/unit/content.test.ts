@@ -30,17 +30,17 @@ describe("JSON content system", () => {
     expect(validateAllContent()).toEqual([]);
   });
 
-  it.each(pageMatrix)("loads $locale/$page.id from the content graph", ({
-    locale,
-    page,
-  }) => {
-    expect(getPageContent(locale, page.id)).toMatchObject({
-      id: page.id,
-      locale,
-      route: page.route,
-      meta: { title: page.meta.title },
-    });
-  });
+  it.each(pageMatrix)(
+    "loads $locale/$page.id from the content graph",
+    ({ locale, page }) => {
+      expect(getPageContent(locale, page.id)).toMatchObject({
+        id: page.id,
+        locale,
+        route: page.route,
+        meta: { title: page.meta.title },
+      });
+    },
+  );
 
   it("falls unknown locales back to English and rejects unknown pages", () => {
     expect(resolveLocale("fr")).toBe("en");
@@ -80,17 +80,16 @@ describe("JSON content system", () => {
     }
   });
 
-  it.each([
-    "route",
-    "theme",
-    "sections",
-  ] as const)("rejects page-level %s overrides", (key) => {
-    expect(
-      validateRawPageOverlays({
-        en: { home: { [key]: key === "sections" ? [] : "duplicate" } },
-      }).some((issue) => issue.path.endsWith(`home.json.${key}`)),
-    ).toBe(true);
-  });
+  it.each(["route", "theme", "sections"] as const)(
+    "rejects page-level %s overrides",
+    (key) => {
+      expect(
+        validateRawPageOverlays({
+          en: { home: { [key]: key === "sections" ? [] : "duplicate" } },
+        }).some((issue) => issue.path.endsWith(`home.json.${key}`)),
+      ).toBe(true);
+    },
+  );
 
   it.each([
     [
@@ -262,16 +261,17 @@ describe("ContentRenderer", () => {
     expect(html).not.toContain("<script>alert(1)</script>");
   });
 
-  it.each(blockMatrix)("renders real $locale/$pageId $block.type blocks", ({
-    block,
-  }) => {
-    const html = renderToStaticMarkup(
-      createElement(ContentRenderer, {
-        sections: [{ id: "case", type: "richText", blocks: [block] }],
-      }),
-    );
+  it.each(blockMatrix)(
+    "renders real $locale/$pageId $block.type blocks",
+    ({ block }) => {
+      const html = renderToStaticMarkup(
+        createElement(ContentRenderer, {
+          sections: [{ id: "case", type: "richText", blocks: [block] }],
+        }),
+      );
 
-    expect(html).not.toContain("[object Object]");
-    if ("text" in block) expect(html).toContain(block.text.split(/\s+/)[0]);
-  });
+      expect(html).not.toContain("[object Object]");
+      if ("text" in block) expect(html).toContain(block.text.split(/\s+/)[0]);
+    },
+  );
 });

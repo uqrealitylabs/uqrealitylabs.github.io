@@ -27,12 +27,12 @@ jobs:
         with:
           fetch-depth: 1
           persist-credentials: false
-      - name: Set up Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - name: Set up pinned toolchain
+        uses: jdx/mise-action@dad1bfd3df957f44999b559dd69dc1671cb4e9ea # v4.2.1
         with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: package-lock.json
+          version: 2026.7.7
+          sha256: 429f71e7e989908bf975aafac9066329c16e2d8fc7cd8e74fdf21dd6300ffe7c
+          cache: true
       - name: Install dependencies
         run: npm ci
       - name: Run quality gate
@@ -90,8 +90,8 @@ jobs:
         with:
           name: cypress-component-failure
           path: |
-            cypress/screenshots
-            cypress/videos
+            test-results/cypress/screenshots
+            test-results/cypress/videos
           if-no-files-found: ignore
           retention-days: 7
 
@@ -135,7 +135,7 @@ jobs:
         with:
           name: cypress-e2e-failure
           path: |
-            cypress/screenshots
-            cypress/videos
+            test-results/cypress/screenshots
+            test-results/cypress/videos
           if-no-files-found: ignore
           retention-days: 7
