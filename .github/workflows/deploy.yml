@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [temp-mobile] # change to main when done lmao
 
 permissions:
   contents: read
