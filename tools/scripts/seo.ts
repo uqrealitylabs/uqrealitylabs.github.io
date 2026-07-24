@@ -1,8 +1,13 @@
+import { readFileSync, writeFileSync } from "node:fs";
+import {
+  getSiteContent,
+  listPages,
+} from "../../src/content/contentRegistry.ts";
 import type {
   PageContent,
   SiteContent,
   SocialImage,
-} from "../content/schema/contentSchema.ts";
+} from "../../src/content/schema/contentSchema.ts";
 
 function trimSlash(value: string) {
   return value.replace(/\/+$/, "");
@@ -237,4 +242,52 @@ export function validateSeo(site: SiteContent, pages: PageContent[]) {
   }
 
   return issues;
+}
+
+const command = process.argv[2];
+
+if (command === "generate" || command === "check") {
+  const site = getSiteContent("en");
+  const pages = listPages("en");
+  const head = renderHeadBlock(site, pages[0]);
+  const outputs = new Map([
+    ["public/robots.txt", buildRobots(site)],
+    ["public/sitemap.xml", buildSitemap(site, pages)],
+    ["public/llms.txt", buildLlms(site, pages)],
+  ]);
+  const headPattern =
+    / {4}<!-- uqrl:seo:start -->[\s\S]*?<!-- uqrl:seo:end -->/;
+
+  if (command === "generate") {
+    for (const [path, value] of outputs) writeFileSync(path, value);
+    const html = readFileSync("index.html", "utf8");
+    writeFileSync(
+      "index.html",
+      headPattern.test(html)
+        ? html.replace(headPattern, `    ${head}`)
+        : html.replace("    <title>UQ Reality Labs</title>", `    ${head}`),
+    );
+    console.log("SEO files generated.");
+  } else {
+    const issues = validateSeo(site, pages);
+    for (const [path, expected] of outputs) {
+      if (readFileSync(path, "utf8") !== expected) {
+        issues.push(`${path} is stale; run npm run seo:generate`);
+      }
+    }
+    if (!readFileSync("index.html", "utf8").includes(head)) {
+      issues.push(
+        "index.html SEO head block is stale; run npm run seo:generate",
+      );
+    }
+    if (issues.length > 0) {
+      console.error(issues.join("\n"));
+      process.exitCode = 1;
+    } else {
+      console.log("SEO output is valid.");
+    }
+  }
+} else if (process.argv[1]?.endsWith("seo.ts")) {
+  console.error("Usage: node tools/scripts/seo.ts <generate|check>");
+  process.exitCode = 1;
 }

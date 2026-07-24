@@ -10,6 +10,7 @@ import {
   validatePageContent,
   validateSiteContent,
 } from "../../src/content/schema/contentSchema";
+import { seoPageMatrix } from "../../src/shared/testing/contentMatrices";
 import {
   buildLlms,
   buildPageMetadata,
@@ -19,8 +20,7 @@ import {
   canonicalUrl,
   serializeJsonLd,
   validateSeo,
-} from "../../src/seo/seo";
-import { seoPageMatrix } from "../../src/shared/testing/contentMatrices";
+} from "../../tools/scripts/seo";
 
 const site = getSiteContent("en");
 const pages = listPages("en");
