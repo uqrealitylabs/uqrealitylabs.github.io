@@ -1,7 +1,8 @@
 # Scene Rendering Comparison
 
-Comparison: local `better-mobile@0c00044` against
-`temp-main@0560a10`.
+Comparison: the working tree based on `better-mobile@7267a8e` against local
+`temp-main@0560a10`. The scene is unchanged from `better-mobile@0c00044`;
+the newer remote `temp-main` tip changes workflows, not rendering code.
 
 ## Verdict
 
@@ -79,12 +80,16 @@ own visual-parity gate.
 
 ## Related Work
 
+- [Issue #78](https://github.com/uqrealitylabs/uqrealitylabs.github.io/issues/78)
+  — tracks the four parity repairs and their rendering gates.
+- [Issue #79](https://github.com/uqrealitylabs/uqrealitylabs.github.io/issues/79)
+  — tracks the static localized shell and decorative-scene boundary.
 - [Issue #50](https://github.com/uqrealitylabs/uqrealitylabs.github.io/issues/50)
   — content ownership and mobile/desktop parity.
 - [Issue #56](https://github.com/uqrealitylabs/uqrealitylabs.github.io/issues/56)
   — intentional loading and bundle-safe 3D.
 - [PR #72](https://github.com/uqrealitylabs/uqrealitylabs.github.io/pull/72)
-  — identifies the legacy/R3F migration boundary, but includes unrelated
-  changes.
+  — closed as superseded; it identifies the legacy/R3F migration boundary,
+  but includes unrelated changes.
 - [Three.js responsive rendering](https://threejs.org/manual/en/responsive.html)
   — let CSS own display size and update the drawing buffer to match.
