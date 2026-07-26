@@ -3699,29 +3699,6 @@ function setupCommitteeInteraction() {
   });
 }
 
-function warmupTextMeshes(textMeshes) {
-  return Promise.all(
-    textMeshes.map(
-      (textMesh) =>
-        new Promise((resolve) => {
-          textMesh.text = textMesh.userData.fullText;
-          textMesh.sync(() => {
-            textMesh.text = "";
-            textMesh.visible = false;
-            textMesh.sync(resolve);
-          });
-        }),
-    ),
-  );
-}
-
-function warmupSectionTexts() {
-  return Promise.all([
-    warmupTextMeshes(sectionTexts),
-    warmupTextMeshes(sectionDescriptionTexts),
-  ]);
-}
-
 function getSocialCubeBasePosition(index) {
   const layout = getViewportLayout();
   const xOffset =
@@ -4608,13 +4585,13 @@ function animateModelEntrance(modelSize) {
     onComplete: async () => {
       modelGroup.position.set(homePos.x, homePos.y, homePos.z);
       aimLightsAtModel();
-      isAnimating = false;
-      entranceComplete = true;
       document.body.dataset.sceneReady = "true";
-      document.body.dataset.sectionReady = "true";
       updateStatus();
       await revealSectionContent(0);
       await showRainbowBackdrop();
+      isAnimating = false;
+      entranceComplete = true;
+      document.body.dataset.sectionReady = "true";
       pointerDirty = true;
       flushPendingSection();
       logModelPosition("Model (entrance complete)");
@@ -4694,7 +4671,6 @@ async function loadSceneModel() {
 
     rainbowBackdrop = createRainbowBackdrop(maxSize);
 
-    await warmupSectionTexts();
     setCameraOnModel(getSectionPos(0));
     animateModelEntrance(maxSize);
     aimLightsAtModel();
