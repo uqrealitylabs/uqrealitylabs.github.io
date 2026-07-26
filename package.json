@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "npm@11.12.1",
   "allowScripts": {
-    "cypress@15.18.0": true,
+    "cypress@15.19.0": true,
     "esbuild@0.25.12": true,
     "fsevents@2.3.3": true,
     "github:uqrealitylabs/eyslie#e69149302a14887d7d1824549e216e69c635555c": true,
@@ -48,7 +48,7 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.1.10",
-    "cypress": "^15.7.0",
+    "cypress": "^15.19.0",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
     "vite": "^6.4.3",
