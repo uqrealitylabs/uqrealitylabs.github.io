@@ -4586,12 +4586,14 @@ function animateModelEntrance(modelSize) {
     onComplete: async () => {
       modelGroup.position.set(homePos.x, homePos.y, homePos.z);
       aimLightsAtModel();
-      document.body.dataset.sceneReady = "true";
+      document.body.dataset.sceneReady = "content";
       updateStatus();
       await revealSectionContent(0);
+      document.body.dataset.sceneReady = "backdrop";
       await showRainbowBackdrop();
       isAnimating = false;
       entranceComplete = true;
+      document.body.dataset.sceneReady = "true";
       document.body.dataset.sectionReady = "true";
       pointerDirty = true;
       flushPendingSection();
