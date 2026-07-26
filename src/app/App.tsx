@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { LegacyDomScaffold } from "../features/legacy-three/LegacyDomScaffold";
 import { getLocaleMeta, t } from "../shared/i18n/runtime";
-import { LoadingExperience } from "../shared/ui/LoadingExperience";
 
 declare global {
   interface Window {
@@ -11,7 +10,6 @@ declare global {
 
 export function App() {
   const locale = "en";
-  const [sceneReady, setSceneReady] = useState(false);
   const meta = getLocaleMeta(locale);
 
   useEffect(() => {
@@ -20,26 +18,16 @@ export function App() {
   }, [meta]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    if (window.__uqrlLegacySceneLoaded) {
-      setSceneReady(true);
-      return;
-    }
+    if (window.__uqrlLegacySceneLoaded) return;
 
     import("../features/legacy-three/legacy-main")
       .then(() => {
         window.__uqrlLegacySceneLoaded = true;
-        if (!cancelled) setSceneReady(true);
       })
       .catch((error) => {
         console.error("Failed to load the legacy scene.", error);
-        if (!cancelled) setSceneReady(true);
+        document.body.dataset.sceneReady = "error";
       });
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   return (
@@ -55,10 +43,10 @@ export function App() {
           linkedIn: t(locale, "profile.linkedin"),
         }}
       />
-      <LoadingExperience
-        hidden={sceneReady}
-        label={t(locale, "loading.scene")}
-      />
+      <div className="loading-experience" role="status" aria-live="polite">
+        <span className="loading-experience__orb" aria-hidden="true" />
+        <span>{t(locale, "loading.scene")}</span>
+      </div>
     </>
   );
 }

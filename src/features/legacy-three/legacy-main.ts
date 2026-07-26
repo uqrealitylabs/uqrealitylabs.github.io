@@ -2608,20 +2608,19 @@ function revealTextMesh(textMesh) {
   textMesh.visible = true;
   textMesh.text = full;
   textMesh.scale.setScalar(prefersReducedMotion.matches ? 1 : 0.94);
+  textMesh.sync();
 
   return new Promise((resolve) => {
-    textMesh.sync(() => {
-      textMesh.userData.textTween = gsap.to(textMesh.scale, {
-        x: 1,
-        y: 1,
-        z: 1,
-        duration: prefersReducedMotion.matches ? 0 : TEXT_REVEAL_DURATION,
-        ease: "power2.out",
-        onComplete: () => {
-          textMesh.userData.textTween = null;
-          resolve();
-        },
-      });
+    textMesh.userData.textTween = gsap.to(textMesh.scale, {
+      x: 1,
+      y: 1,
+      z: 1,
+      duration: prefersReducedMotion.matches ? 0 : TEXT_REVEAL_DURATION,
+      ease: "power2.out",
+      onComplete: () => {
+        textMesh.userData.textTween = null;
+        resolve();
+      },
     });
   });
 }
@@ -2726,7 +2725,6 @@ function createSectionText(section, options = {}) {
   outText.textAlign = textAlign;
   outText.anchorX = anchorX;
   outText.anchorY = anchorY;
-  outText.gpuAccelerateSDF = false;
   outText.visible = false;
   outText.sync();
 
@@ -4584,20 +4582,20 @@ function animateModelEntrance(modelSize) {
       modelGroup.position.y = animPos.y;
       aimLightsAtModel();
     },
-    onComplete: async () => {
+    onComplete: () => {
       modelGroup.position.set(homePos.x, homePos.y, homePos.z);
       aimLightsAtModel();
-      document.body.dataset.sceneReady = "content";
       updateStatus();
-      await revealSectionContent(0);
-      document.body.dataset.sceneReady = "backdrop";
-      await showRainbowBackdrop();
       isAnimating = false;
       entranceComplete = true;
       document.body.dataset.sceneReady = "true";
       document.body.dataset.sectionReady = "true";
       pointerDirty = true;
       flushPendingSection();
+      if (!isAnimating && currentIndex === 0) {
+        void revealSectionContent(0);
+        void showRainbowBackdrop();
+      }
       logModelPosition("Model (entrance complete)");
     },
   });
@@ -4643,7 +4641,6 @@ function restoreLogoBoxMaterials(root, logoTexture) {
 async function loadSceneModel() {
   try {
     const gltf = await loader.loadAsync(MODEL_PATH);
-    document.body.dataset.sceneReady = "logo";
     let logoTexture;
 
     try {
@@ -4652,7 +4649,6 @@ async function loadSceneModel() {
       console.warn("Logo texture fallback:", textureError);
       logoTexture = createLogoFallbackTexture();
     }
-    document.body.dataset.sceneReady = "setup";
 
     modelGroup = new THREE.Group();
 
@@ -4678,7 +4674,6 @@ async function loadSceneModel() {
     rainbowBackdrop = createRainbowBackdrop(maxSize);
 
     setCameraOnModel(getSectionPos(0));
-    document.body.dataset.sceneReady = "entrance";
     animateModelEntrance(maxSize);
     aimLightsAtModel();
     updateStatus();

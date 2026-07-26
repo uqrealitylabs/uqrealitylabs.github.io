@@ -112,9 +112,11 @@ describe("navigation shell", () => {
 
   it("keeps the latest nav click while the scene is moving", () => {
     cy.visit("/");
-    waitForSceneReady();
+    cy.get(".loading-experience").should("be.visible");
     cy.contains("#nav-links button", about.nav.label).click();
     cy.contains("#nav-links button", contact.nav.label).click();
+    waitForSceneReady();
+    cy.get(".loading-experience").should("not.be.visible");
     cy.get("body").should("have.attr", "data-section", "2");
     waitForSectionReady();
   });
