@@ -51,20 +51,20 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.3",
+    "@biomejs/biome": "^2.5.4",
     "@gltf-transform/cli": "^4.2.1",
-    "@rsbuild/core": "^2.1.5",
+    "@rsbuild/core": "^2.1.6",
     "@rsbuild/plugin-react": "^2.1.0",
     "@rsbuild/plugin-tailwindcss": "^2.0.3",
-    "@rsdoctor/rspack-plugin": "^1.5.18",
+    "@rsdoctor/rspack-plugin": "^1.6.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "cypress": "^15.18.1",
     "gltfpack": "^1.2.0",
     "meshoptimizer": "^1.2.0",
-    "tailwindcss": "^4.1.17",
+    "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite": "^8.1.4",
+    "vite": "^8.1.5",
     "vitest": "^4.0.15"
   }
 }
