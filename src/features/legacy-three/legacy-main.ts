@@ -2956,6 +2956,12 @@ function stopAboutJoinImageFade() {
 }
 
 function setJoinState(state) {
+  if (
+    aboutJoinImage?.userData.navigating &&
+    state !== joinUsStates.rubricsClickCelebration
+  ) {
+    return;
+  }
   if (document.body.dataset.joinState === state) return;
 
   document.body.dataset.joinState = state;
@@ -2964,6 +2970,23 @@ function setJoinState(state) {
 function clearJoinTimers() {
   window.clearTimeout(joinStateTimer);
   window.clearTimeout(joinBlushTimer);
+}
+
+function scheduleJoinRecovery() {
+  joinStateTimer = window.setTimeout(
+    () => {
+      if (document.body.dataset.joinState !== joinUsStates.sadShrivel) return;
+      setJoinState(joinUsStates.recoveringToIdle);
+      joinStateTimer = window.setTimeout(() => {
+        if (
+          document.body.dataset.joinState === joinUsStates.recoveringToIdle
+        ) {
+          setJoinState(joinUsStates.idleCurious);
+        }
+      }, prefersReducedMotion.matches ? 100 : 180);
+    },
+    prefersReducedMotion.matches ? 320 : 760,
+  );
 }
 
 function stopJoinWink() {
@@ -3173,18 +3196,7 @@ function setAboutJoinImageHovered(hovered) {
     stopRubricsDance();
     setJoinState(joinUsStates.sadShrivel);
     restartChalkTrailMotion(".bee-trail--join");
-    joinStateTimer = window.setTimeout(
-      () => {
-        setJoinState(joinUsStates.recoveringToIdle);
-        joinStateTimer = window.setTimeout(
-          () => {
-            setJoinState(joinUsStates.idleCurious);
-          },
-          prefersReducedMotion.matches ? 100 : 180,
-        );
-      },
-      prefersReducedMotion.matches ? 320 : 760,
-    );
+    scheduleJoinRecovery();
     aboutJoinImage.userData.tiltZ = 0;
     gsap.to(aboutJoinImage.scale, {
       x: 1,
@@ -3267,16 +3279,7 @@ function triggerJoinHoverFromKeyboard(active) {
   clearJoinTimers();
   stopRubricsDance();
   setJoinState(joinUsStates.sadShrivel);
-  joinStateTimer = window.setTimeout(
-    () => {
-      setJoinState(joinUsStates.recoveringToIdle);
-      joinStateTimer = window.setTimeout(
-        () => setJoinState(joinUsStates.idleCurious),
-        prefersReducedMotion.matches ? 100 : 180,
-      );
-    },
-    prefersReducedMotion.matches ? 320 : 760,
-  );
+  scheduleJoinRecovery();
 }
 
 function setupJoinAccessibleInteraction() {
@@ -4768,6 +4771,8 @@ window.addEventListener("pagehide", (event) => {
 
   stopAnimationLoop();
   stopActiveSound(true);
+  gsap.globalTimeline.clear();
+  void audioContext?.close();
   clearJoinTimers();
   window.clearTimeout(joinNavigationTimer);
   stopJoinWink();

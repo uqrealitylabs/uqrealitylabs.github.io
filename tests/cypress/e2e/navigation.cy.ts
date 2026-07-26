@@ -323,7 +323,6 @@ describe("navigation shell", () => {
     cy.contains("#nav-links button", about.nav.label).click();
     cy.get("body").should("have.attr", "data-section", "1");
     waitForSectionReady();
-    cy.clock();
     cy.window().then((win) => {
       cy.stub(win, "open").as("open");
     });
@@ -341,7 +340,6 @@ describe("navigation shell", () => {
       "contain",
       site.animationCopy.yay,
     );
-    cy.tick(500);
     cy.get("@open").should(
       "have.been.calledWith",
       joinCta.href,
