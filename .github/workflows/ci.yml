@@ -44,8 +44,6 @@ jobs:
       - name: Build production app
         run: npm run ci:build
       - name: Run Cypress E2E against preview
-        env:
-          LIBGL_ALWAYS_SOFTWARE: "1"
         run: |
           set -euo pipefail
           npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/rsbuild-preview.log 2>&1 &

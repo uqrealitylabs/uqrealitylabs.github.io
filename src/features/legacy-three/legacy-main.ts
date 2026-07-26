@@ -4639,6 +4639,7 @@ function restoreLogoBoxMaterials(root, logoTexture) {
 async function loadSceneModel() {
   try {
     const gltf = await loader.loadAsync(MODEL_PATH);
+    document.body.dataset.sceneReady = "logo";
     let logoTexture;
 
     try {
@@ -4647,6 +4648,7 @@ async function loadSceneModel() {
       console.warn("Logo texture fallback:", textureError);
       logoTexture = createLogoFallbackTexture();
     }
+    document.body.dataset.sceneReady = "setup";
 
     modelGroup = new THREE.Group();
 
@@ -4672,11 +4674,13 @@ async function loadSceneModel() {
     rainbowBackdrop = createRainbowBackdrop(maxSize);
 
     setCameraOnModel(getSectionPos(0));
+    document.body.dataset.sceneReady = "entrance";
     animateModelEntrance(maxSize);
     aimLightsAtModel();
     updateStatus();
     logModelPosition("Model (loaded)");
   } catch (error) {
+    document.body.dataset.sceneReady = "error";
     console.error("Failed to load GLB:", error);
   }
 }
