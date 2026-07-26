@@ -1,9 +1,0 @@
-{
-  "packages": {
-    ".": {
-      "release-type": "node",
-      "package-name": "uqrealitylabs",
-      "changelog-path": "CHANGELOG.md"
-    }
-  }
-}
