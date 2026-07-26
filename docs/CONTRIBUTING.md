@@ -9,7 +9,7 @@ Start with an issue before doing non-trivial work. If an issue already exists, c
 
 ## Local setup
 
-- `npm install`
+- `npx --yes npm@11.12.1 ci`
 - `npm run dev`
 
 ## Local checks
