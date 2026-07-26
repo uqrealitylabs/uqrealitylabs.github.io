@@ -42,7 +42,7 @@ jobs:
       - name: Run Cypress component tests
         run: npm run test:component
       - name: Build production app
-        run: npm run ci:build
+        run: npm run build
       - name: Run Cypress E2E against preview
         run: |
           set -euo pipefail

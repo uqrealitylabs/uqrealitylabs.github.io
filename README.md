@@ -20,7 +20,7 @@ Website for the University of Queensland Reality Labs society. It covers the com
 - Dev: `npm run dev`
 - Format: `npm run format`
 - Lint: `npm run lint`
-- Test: `npm run test:unit`
+- Test: `npm test`
 - Build: `npm run build`
 
 ## Deploy
