@@ -146,6 +146,9 @@ function resolvePage(locale: Locale, pageId: PageId): PageContent {
   const shared = graph.routes[pageId];
   const ctaRef = shared.heroCtaRef;
   const { cta: rawCta, ...hero } = raw.hero;
+  if (rawCta && !rawCta.href && !ctaRef) {
+    throw new Error(`Missing heroCtaRef for ${locale}/${pageId}`);
+  }
   const cta: PageContent["hero"]["cta"] | undefined = rawCta
     ? {
         label: rawCta.label,

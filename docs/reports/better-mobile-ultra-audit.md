@@ -129,6 +129,11 @@ See [`scene_rendering.md`](./scene_rendering.md) for the direct
 | P1 | The scene reads locale once at initialization; hardcoded scaffold copy and duplicate `runtime.ts` labels can diverge from content/SEO. | Pass one build-resolved locale entry to the shell; keep copy out of the scene. |
 | P2 | Pixelify declares weight 400 while UI CSS requests 700. | Declare the variable range or consistently use 400. |
 
+The integration patch resolves the canvas, material-colour, glow-scale,
+coarse-pointer, and dropped-section-input regressions. It also handles a
+rejected scene import. Issue #78 remains open because GLB/texture readiness,
+the semantic fallback, and screenshot verification are not complete.
+
 ## Migration Order and Gates
 
 1. Apply the four parity repairs: fixed canvas, authored GLB colors, original

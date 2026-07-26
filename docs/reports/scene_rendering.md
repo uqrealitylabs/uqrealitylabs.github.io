@@ -62,6 +62,13 @@ Verify one 1440×900 screenshot, one 390×844 screenshot, keyboard navigation,
 reduced motion, a blocked GLB request, and a rejected scene chunk. Existing
 tests mainly inspect implementation state and do not prove pixel parity.
 
+## Integration Status
+
+`better-mobile` now restores the fixed canvas, authored GLB colours, original
+glow scales, coarse-pointer social hit area, and queued section input. A
+rejected scene import also dismisses the loader. Issue #78 remains open for
+asset-aware readiness, a usable semantic fallback, and visual verification.
+
 ## Lean Migration
 
 1. Keep the repaired legacy scene temporarily.

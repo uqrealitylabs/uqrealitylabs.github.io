@@ -1,0 +1,50 @@
+name: Work item
+description: A focused task for the website
+title: ""
+labels: []
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary line
+      description: One sentence explaining what needs to be built or changed
+      placeholder: Add a footer so the website has a useful ending
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What files, pages, components, content, or behavior this issue covers
+      placeholder: Footer component, site links, social/contact links, mobile layout
+    validations:
+      required: true
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Requirements
+      description: Grouped checklist of what needs to happen
+      value: |
+        ### Content
+        - [ ]
+        ### UI / UX
+        - [ ]
+        ### Engineering
+        - [ ]
+        ### Accessibility / responsiveness
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: What must be true before this issue is done
+      value: |
+        - [ ] The work is complete and visible in the site
+        - [ ] It works on mobile and desktop
+        - [ ] It does not break existing pages or tabs
+        - [ ] It does not add unnecessary UI clutter
+        - [ ] Relevant checks pass
+    validations:
+      required: true

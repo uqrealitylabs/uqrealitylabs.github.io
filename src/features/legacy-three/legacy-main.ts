@@ -353,8 +353,8 @@ const KEY_LIGHT_OFFSET = { x: 2, y: 10, z: 40 };
 const FILL_LIGHT_OFFSET = { x: -12, y: 4, z: 25 };
 const RAINBOW_Z_OFFSET = -80; // behind model (home model z -20 → light z -100)
 const RAINBOW_FADE_DURATION = 0.9;
-const RAINBOW_GLOW_SCALE = 17.8;
-const RAINBOW_OUTER_GLOW_SCALE = 26.4;
+const RAINBOW_GLOW_SCALE = 11.8;
+const RAINBOW_OUTER_GLOW_SCALE = 17.6;
 const RAINBOW_LIGHT_INTENSITY = 3.1;
 const RAINBOW_LIGHT_DISTANCE = 114;
 const RAINBOW_LIGHT_DECAY = 0.42;
@@ -2535,13 +2535,27 @@ function setupNavbarCondense() {
 
 function goToSection(index) {
   if (index < 0 || index >= MODEL_SECTIONS.length) return;
-  if (!modelGroup || !entranceComplete) {
+  if (!modelGroup || !entranceComplete || isAnimating) {
     pendingSectionIndex = index;
     return;
   }
-  if (isAnimating) return;
 
   transitionToSection(index);
+}
+
+function flushPendingSection() {
+  if (
+    pendingSectionIndex === null ||
+    !modelGroup ||
+    !entranceComplete ||
+    isAnimating
+  ) {
+    return;
+  }
+
+  const nextIndex = pendingSectionIndex;
+  pendingSectionIndex = null;
+  if (nextIndex !== currentIndex) transitionToSection(nextIndex);
 }
 
 function setupNavbar() {
@@ -4231,6 +4245,49 @@ function updateSocialMaterialTouchFields() {
   });
 }
 
+function findSocialCubeHit(visibleCubes) {
+  const rayHit = raycaster.intersectObjects(visibleCubes, true)[0];
+  if (rayHit) {
+    const cube = getSocialCubeFromObject(rayHit.object);
+    return cube
+      ? { cube, point: rayHit.point, uv: getSocialTouchUv(cube, rayHit) }
+      : null;
+  }
+
+  if (
+    (!coarsePointer.matches && lastPointerType !== "touch") ||
+    !Number.isFinite(lastPointerClientX)
+  ) {
+    return null;
+  }
+
+  const point = new THREE.Vector3();
+  let nearest = null;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+
+  visibleCubes.forEach((cube) => {
+    cube.getWorldPosition(point);
+    point.project(camera);
+    const screenX = canvasRect.left + (point.x * 0.5 + 0.5) * canvasRect.width;
+    const screenY = canvasRect.top + (-point.y * 0.5 + 0.5) * canvasRect.height;
+    const distance = Math.hypot(
+      screenX - lastPointerClientX,
+      screenY - lastPointerClientY,
+    );
+
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearest = {
+        cube,
+        point: cube.getWorldPosition(new THREE.Vector3()),
+        uv: new THREE.Vector2(0.5, 0.5),
+      };
+    }
+  });
+
+  return nearestDistance <= 90 ? nearest : null;
+}
+
 function updateSocialCubeHover() {
   if (
     currentIndex !== CONTACT_SECTION_INDEX ||
@@ -4242,11 +4299,8 @@ function updateSocialCubeHover() {
 
   raycaster.setFromCamera(mouse, camera);
   const visibleCubes = socialCubes.filter((cube) => cube.visible);
-  const intersects = raycaster.intersectObjects(visibleCubes, true);
-  const hoveredHit = intersects[0] ?? null;
-  const hoveredCube = hoveredHit
-    ? getSocialCubeFromObject(hoveredHit.object)
-    : null;
+  const hoveredHit = findSocialCubeHit(visibleCubes);
+  const hoveredCube = hoveredHit?.cube ?? null;
   let pointerActive = false;
   const hoveredKey = hoveredCube
     ? `social:${hoveredCube.userData.socialIndex}:${hoveredCube.userData.url}`
@@ -4266,7 +4320,7 @@ function updateSocialCubeHover() {
       }
 
       if (hoveredHit) {
-        const touchUv = getSocialTouchUv(cube, hoveredHit);
+        const touchUv = hoveredHit.uv;
         if (touchUv) {
           const pressure = pointerIsDown
             ? Math.max(pointerPressure, lastPointerType === "touch" ? 0.85 : 0.75)
@@ -4374,13 +4428,12 @@ function setupSocialCubeInteraction() {
 
     updatePointerFromEvent(event);
     raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(
+    const hit = findSocialCubeHit(
       socialCubes.filter((cube) => cube.visible),
-      true,
     );
 
-    if (intersects.length > 0) {
-      const cube = getSocialCubeFromObject(intersects[0].object);
+    if (hit) {
+      const { cube } = hit;
       const url = cube?.userData.url;
       if (!url) return;
       playMusicCue(
@@ -4463,27 +4516,27 @@ async function transitionToSection(newIndex) {
   isAnimating = false;
   document.body.dataset.sectionReady = "true";
   pointerDirty = true;
+  flushPendingSection();
 }
 
 function goToNextSection() {
   if (
     !modelGroup ||
-    isAnimating ||
     !entranceComplete ||
     currentIndex >= MODEL_SECTIONS.length - 1
   ) {
     return;
   }
 
-  transitionToSection(currentIndex + 1);
+  goToSection(currentIndex + 1);
 }
 
 function goToPrevSection() {
-  if (!modelGroup || isAnimating || !entranceComplete || currentIndex <= 0) {
+  if (!modelGroup || !entranceComplete || currentIndex <= 0) {
     return;
   }
 
-  transitionToSection(currentIndex - 1);
+  goToSection(currentIndex - 1);
 }
 
 function setupScrollControl() {
@@ -4563,11 +4616,7 @@ function animateModelEntrance(modelSize) {
       await revealSectionContent(0);
       await showRainbowBackdrop();
       pointerDirty = true;
-      const queuedSectionIndex = pendingSectionIndex;
-      pendingSectionIndex = null;
-      if (queuedSectionIndex !== null && queuedSectionIndex !== currentIndex) {
-        transitionToSection(queuedSectionIndex);
-      }
+      flushPendingSection();
       logModelPosition("Model (entrance complete)");
     },
   });
@@ -4597,7 +4646,6 @@ function restoreLogoBoxMaterials(root, logoTexture) {
     } else {
       child.material.map = null;
       child.material.emissiveMap = null;
-      if (child.material.color) child.material.color.set(0x050608);
       child.material.roughness = 0.18;
       child.material.metalness = 0.58;
       child.material.clearcoat = 0.86;

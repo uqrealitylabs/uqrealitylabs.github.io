@@ -110,6 +110,15 @@ describe("navigation shell", () => {
     cy.get("#canvas").should("have.attr", "aria-label").and("not.be.empty");
   });
 
+  it("keeps the latest nav click while the scene is moving", () => {
+    cy.visit("/");
+    waitForSceneReady();
+    cy.contains("#nav-links button", about.nav.label).click();
+    cy.contains("#nav-links button", contact.nav.label).click();
+    cy.get("body").should("have.attr", "data-section", "2");
+    waitForSectionReady();
+  });
+
   it("exposes keyboard-safe fallbacks for canvas-only join and social links", () => {
     cy.visit("/");
     cy.get("#join-us-accessible-link")
