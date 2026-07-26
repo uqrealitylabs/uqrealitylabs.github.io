@@ -16,7 +16,7 @@ Website for the University of Queensland Reality Labs society. It covers the com
 
 ## Commands
 
-- Install: `npm ci`
+- Install: `npx --yes npm@11.12.1 ci`
 - Dev: `npm run dev`
 - Format: `npm run format`
 - Lint: `npm run lint`
