@@ -3125,6 +3125,7 @@ function updateAboutJoinHover() {
   if (
     currentIndex !== ABOUT_SECTION_INDEX ||
     isAnimating ||
+    document.activeElement === joinUsAccessibleLink ||
     !aboutJoinImage?.visible
   ) {
     return;
@@ -4433,6 +4434,10 @@ async function transitionToSection(newIndex) {
   isAnimating = true;
   document.body.dataset.sectionReady = "false";
   const oldIndex = currentIndex;
+  currentIndex = newIndex;
+  updateStatus();
+  setNavbarCondensed(false);
+  scheduleNavbarCondense(900);
 
   await hideSectionContent(oldIndex);
 
@@ -4444,11 +4449,6 @@ async function transitionToSection(newIndex) {
   if (oldIndex === 0) {
     await hideRainbowBackdrop();
   }
-
-  currentIndex = newIndex;
-  updateStatus();
-  setNavbarCondensed(false);
-  scheduleNavbarCondense(900);
 
   const targetPos = getCurrentSectionPos();
   animateStarsOnTransition();
@@ -4773,6 +4773,8 @@ window.addEventListener("pagehide", (event) => {
   stopJoinWink();
   scrollObserver?.kill();
   resizeObserver?.disconnect();
+  renderer.dispose();
+  renderer.forceContextLoss();
 
   if (resizeFrame) {
     cancelAnimationFrame(resizeFrame);
