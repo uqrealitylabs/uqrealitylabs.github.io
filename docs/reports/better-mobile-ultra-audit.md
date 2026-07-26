@@ -1,75 +1,78 @@
-# Better Mobile: Lean Removal Plan
+# Better Mobile: Ultra-Lean Removal Report
 
-Audit target: `better-mobile` after the tooling cleanup and scene-readiness
-repair.
+Snapshot: `better-mobile@586d1e4`, audited 2026-07-26.
 
-## Verdict
+## Decision
 
-Do not migrate the current architecture one-for-one. The approximately
-4.8k-line `@ts-nocheck` scene owns navigation, copy, layout, audio, dialogs,
-localization, accessibility fallbacks, and test hooks. React wraps it with a
-second imperative DOM owner.
-
-The lean target is:
+Do not split the current architecture into more components. Delete its duties.
 
 ```text
 content/shared.json + content/<lang>.json
-                    ↓ build-time validation
-              localized static SiteShell
-                    └── lazy SceneBackground
+                    ↓ one build-time loader/check
+         static HTML for / and /es/
+                    └── optional SceneBackground
 ```
 
-`SiteShell` owns every usable word and control. `SceneBackground` owns only
-the GLB, camera, lights, stars, resize, disposal, and an active-section input.
-GitHub Pages needs generated static HTML, not an SSR server.
+The HTML owns every word, route, link, control, card, and dialog. The scene
+owns only the GLB, camera, lights, stars, resize, disposal, and at most one
+active-section input. GitHub Pages needs static generation, not an SSR server.
 
-## Cleanup Completed
+## Measured Baseline
 
-| Request | Result |
-| --- | --- |
-| Remove wiki, action-pin, no-JS, and layout validators | Deleted scripts, tests, config, npm aliases, and workflow callers |
-| Merge split SEO tools | `tools/scripts/seo.ts` generates and checks SEO output |
-| Combine content/asset tooling | `tools/scripts/assets.ts` is the single validation entry point |
-| Remove asset optimizer | Deleted because no build consumed its output; this also removed the vulnerable Sharp/glTF chain |
-| Simplify Actions | One verify/deploy workflow plus focused CodeQL and security workflows |
-| Remove workflow duplication | Deleted benchmark, nightly, release, and duplicate deploy paths |
-| Remove command duplication | Deleted duplicate format, test, CI, and build aliases |
-| Fix progressive E2E slowdown | Upgraded to Cypress 15.19, which fixes its Chromium/Electron renderer-memory leak |
-| Limit names | All tracked tool/workflow filenames are one word; npm aliases are at most two words |
-| Fix dependency audit | Local `npm audit` reports 0 vulnerabilities |
+- `legacy-main.ts` is 4,824 `@ts-nocheck` lines and is excluded from Biome.
+- Its React scaffold and global stylesheet add another 1,656 lines.
+- The content/i18n slice is 26 files and about 3,079 lines; production content
+  uses only `paragraph` out of 11 implemented block types.
+- A production build is 17 MiB: 4.9 MiB hidden source maps and about 9.7 MiB
+  copied fonts. Runtime JS is 1.05 MiB before compression; both locales ship
+  although only English is reachable.
+- Build, typecheck, lint, 89 unit checks, one component check, and 15 E2E checks
+  pass. The green responsive check measures document overflow, not WebGL
+  layout, and the i18n E2E checks English only.
 
-Do not restore asset optimization merely to satisfy a command name. Add an
-`optimize` mode to `assets.ts` only when the production build consumes the
-result and a measured asset misses a budget.
+## Requested Tooling Cleanup
 
-The current Actions coverage is sufficient: clean install, typecheck, Biome,
-unit coverage, dependency audit, component test, content/SEO validation,
-production build, E2E against that build, failure artifacts, Pages deploy,
-dependency review, weekly OSV, and CodeQL. No additional workflow is
-justified.
+| Request | Current result | Action |
+| --- | --- | --- |
+| Remove wiki, action-pin, no-JS, and layout validators | Done in `7267a8e`; files, tests, aliases, config, and callers are absent | Keep deleted. Keep workflow SHA pins and Dependabot; do not restore a validator |
+| Merge SEO inputs/generate/validate | Done: `tools/scripts/seo.ts generate\|check` | Keep one file |
+| Combine asset/content commands | Done: `tools/scripts/assets.ts` is the one entry point | Add one referenced-file existence pass; it currently validates content/path syntax, not asset existence |
+| Keep asset optimization | No: the deleted optimizer produced output no build consumed | Add an `optimize` mode only after a measured budget fails and the build consumes its output |
 
-## Ranked Removal Plan
+## Delete Now
 
-| Rank | Remove | Smaller owner | Gate |
+| Rank | Tag | Cut | Net effect / evidence |
 | ---: | --- | --- | --- |
-| 1 | 3D social cards, physics, damage canvases, grass, raycasting, haptics, audio, and test globals | Native `<a>` cards with CSS hover/focus | Keyboard, touch, and link tests |
-| 2 | JOIN eye/timer/pupil/dance state machine and duplicated SVG reactions | One visible CTA link | Focus, activation, reduced-motion tests |
-| 3 | Committee meshes, projection, raycasting, and custom popup | Native member buttons and `<dialog>` | Focus trap, Escape, focus return |
-| 4 | Troika headings/descriptions and most GSAP sequencing | Real headings, paragraphs, and CSS transitions | Desktop/mobile screenshots |
-| 5 | JavaScript viewport/layout engine | CSS grid, `clamp()`, and media/container queries | No-overflow checks |
-| 6 | Unused `ContentRenderer` block system and component harness | Render the supported paragraph shape directly | Build and content check |
-| 7 | `scale.ts`, test-only JOIN/social helpers, production Cypress bridge, debug branches, and duplicate constants | Direct calls or nothing | Existing outcome tests |
-| 8 | Tailwind used only for visually-hidden utilities | Six local CSS declarations | Keyboard fallback remains visible on focus |
-| 9 | Rsdoctor and its unused report path | Nothing | Add back only with a named report consumer |
-| 10 | Unreferenced assets and production source maps | Nothing | Reference scan and deployed-size check |
-| 11 | React, after the static shell is proven | Generated HTML plus minimal enhancement | No-JS and locale-route tests |
+| 1 | `delete:` | Rsdoctor, hidden production source maps, 36 unused files under `public/Assets/fonts`, `disturb.jpg`, and `tpaul.png` | No consumer or source reference; about 15.0 MB disappears from the deployed 17 MiB |
+| 2 | `delete:` | `ContentRenderer.tsx`, its component test/mode/support, and the unit block-render suite | No production import; removes about 190 source/test lines and the direct Vite dependency |
+| 3 | `delete:` | `scale.ts`, its test, and the narrow 100% coverage gate | The helper has no production caller; coverage measures only `src/shared/lib`, not the scene/content/SEO; removes 56+ lines and `@vitest/coverage-v8` |
+| 4 | `native:` | Tailwind and its Rsbuild plugin | Only two visually-hidden class strings use it; replace with one local accessibility rule and remove two dependencies |
+| 5 | `delete:` | Dead scene/config surface | Remove `TEXT_MAX_WIDTH`, four unused URL constants, `applyModelTransform`, false debug branches, unused CSS tokens, duplicate config shims, and dependency-owned Eyslie tests |
+| 6 | `shrink:` | Misleading responsive and implementation-detail tests | Replace the 17-line overflow-only spec and most of the 485-line navigation spec with visible-content, keyboard, locale, failure, and reduced-motion outcomes |
 
-Delete each old owner in the same PR that adds its replacement. Moving code
-without deleting the previous path is not a migration.
+Keep the two Bitcount files only while Troika text exists. Move the one
+Pixelify variable font out of `public` so Rsbuild emits it once rather than
+copying and bundling it.
+
+## Replace, Then Delete
+
+The estimates below overlap; do not add subsystem totals to the umbrella scene
+total.
+
+| Rank | Old owner | Smaller owner | Delete with replacement |
+| ---: | --- | --- | --- |
+| 1 | Canvas/Troika navigation, copy, and responsive layout | Semantic sections, native anchors, CSS grid/clamp/container queries | Most of `legacy-main.ts`, `LegacyDomScaffold.tsx`, and `legacy.css`; Troika and both Bitcount fonts |
+| 2 | 3D social cards, touch textures, grass instances, raycasts, haptics, synthesized audio, and test globals | Native `<a>` cards with CSS hover/focus | About 1,400 scene/helper lines, `feelable-materials`, social helper/tests, and implementation E2E |
+| 3 | JOIN eye/timer/pupil/dance/chalk state machine | One visible CTA link | About 1,300 decorative scene/DOM/CSS lines, `eyslie`, and reaction tests |
+| 4 | Committee planes, projection, raycasting, popup positioning, and custom modal | DOM member grid plus native `<dialog>` | 300+ net lines; native modal supplies Escape, inert background, and focus containment |
+| 5 | Graph/registry/schema/generated-schema/runtime dictionaries | Three JSON files plus one build-time catalog helper | About 2.3–2.6k lines and roughly 20 files |
+| 6 | React wrapper after static output works | Generated HTML plus the minimum scene bootstrap | `react`, `react-dom`, React plugin/types, and CSR shell code |
+| 7 | Auto-condensing mobile nav and duplicate Home control | Logo-to-home plus normal section links | About 75 lines and more mobile nav width |
+
+Do not leave old and new owners running together. Each replacement PR deletes
+the corresponding canvas/React/CSS/test path.
 
 ## Minimal Localization Contract
-
-Keep the loader repo-local until a second website needs it:
 
 ```text
 content/
@@ -79,69 +82,66 @@ content/
 tools/content.ts
 ```
 
-- `shared.json` owns stable IDs, ordering, URLs, and asset references. It has
-  no translated copy or component behaviour.
-- `<lang>.json` owns `lang`, `dir`, UI/accessibility labels, SEO copy, page
-  copy, roles, and biographies.
-- `readCatalog(directory, defaultLocale)` discovers and parses JSON, validates
-  locale/`dir`, enforces identical leaf paths and types, and rejects missing
-  translations.
-- The site build—not the reusable loader—owns routes, URL policy, asset
-  existence, metadata, canonical URLs, and static-page output.
-- Return `{ locale, dir, shared, copy }`; never merge people or navigation
-  arrays by index.
+- `shared.json` contains only invariant IDs, order, URLs, assets, and member
+  identity. Replace the recursive one-URL CTA graph with `joinUrl`; remove
+  duplicated role slugs, role arrays, and one-value order fields.
+- `<lang>.json` contains `lang`, `dir`, all visible/ARIA/alt/SEO text, page
+  copy, roles, and biographies. It is the only source of translated text.
+- `loadCatalog(root, locale)` returns `{ locale, dir, shared, copy }`. It
+  rejects unknown locales, missing/extra keys, wrong types, duplicate IDs,
+  unsafe links, and missing referenced assets at build time.
+- Join localized people to shared people by stable ID, never array position.
+- Return shared and localized data separately; do not deep-merge arrays.
+- Do not add React context, Zustand, runtime fetches, dotted-key lookups,
+  per-key fallbacks, or every locale to one browser bundle.
+- The site build owns routes, metadata, canonical URLs, asset policy, and HTML.
+  The generic catalog must not know React, SEO policy, or scene behaviour.
 
-This intentionally puts work on the developer/build side. Missing keys,
-wrong types, bad assets, and incomplete locales fail before deployment. Do
-not add React context, runtime fetches, deep merging, dotted-key fallbacks,
-globals, or every locale in the browser bundle.
+Keep `tools/content.ts` repo-local and dependency-free. Extract that unchanged
+API as a library only when a second website consumes it; one website is not a
+library ecosystem.
 
-## Ownership Boundary
+Default to one document per locale with section anchors: `/` and `/es/`.
+Delete fake `/about`, `/contact`, `/committee`, `/sponsors`, and `/rubrics`
+routes unless real files are emitted for them.
 
-| Owner | Owns | Does not own |
-| --- | --- | --- |
-| Catalog | Locale discovery and copy-shape parity | React, routes, SEO policy, scene behaviour |
-| Build | Routes, asset checks, metadata, static HTML | Runtime translation |
-| `SiteShell` | Navigation, sections, links, cards, dialog, locale | WebGL state or body-dataset coordination |
-| `SceneBackground` | Decorative Three state and section input | Copy, links, audio, dialogs, localization, accessibility |
-
-## Open Bugs
+## Confirmed CSR, Rendering, and Mobile Bugs
 
 | Priority | Problem | Minimum correction |
 | --- | --- | --- |
-| P0 | `index.html` has an empty root and `createRoot` is CSR-only; primary content remains canvas text | Emit localized semantic HTML and progressively enhance it |
-| P0 | A GLB failure sets `sceneReady=error` but does not expose useful visible page content | Keep the static shell usable without WebGL |
-| P0 | Committee controls remain pointer-led and the custom dialog lacks native focus/inert behaviour | Native buttons and `<dialog>` |
-| P1 | `App` hardcodes English although Spanish is bundled | Emit one static locale page per language |
-| P1 | The content graph, scene tabs, and generated routes disagree | Delete phantom routes or emit real files and anchors |
-| P1 | Committee translations merge arrays by index | Key people and biographies by stable ID |
-| P1 | Mobile still performs expensive per-frame novelty work | Delete novelty owners; meanwhile cap DPR and skip inactive/reduced-motion work |
-| P2 | Pixelify declares weight 400 while UI CSS requests 700 | Declare the variable range or use one available weight |
+| P0 | The module starts `init().catch(...)` internally, so its import resolves and sets `__uqrlLegacySceneLoaded` even when async init failed; the catch does not set error and retry is blocked | Export/await one initialization promise, set ready/error there, return cleanup, and delete the redundant global flag |
+| P0 | `index.html` has an empty root; nav/social containers are populated only by the scene | Emit usable localized HTML before loading WebGL |
+| P0 | English is hardcoded while Spanish JSON ships; runtime labels, JSON, shared English labels, and hardcoded SVG copy conflict | Build one locale at a time from one locale file |
+| P0 | Committee cards are pointer-only, the canvas is not focusable, and the custom modal lacks a Tab trap/inert background | Use DOM buttons and native `<dialog>` |
+| P1 | Graph routes are not URLs in the built site; buttons only change scene state and `dist` contains one HTML file | Use anchors in the one-page default or emit actual static files |
+| P1 | Global `overflow:hidden`, `touch-action:none`, and GSAP Observer `preventDefault` suppress native scrolling/zoom | Remove them when HTML owns navigation |
+| P1 | `pointerDirty` is never read; raycasts and JOIN layout reads still run every frame | Gate pointer work on the flag until those systems are deleted |
+| P1 | Mobile permits DPR 3: 390×844 renders 2.96M pixels/frame | Cap retained WebGL at DPR 2, 56% fewer pixels at that viewport |
+| P1 | Reduced-motion does not stop model/section/image/social GSAP paths or SVG `animateMotion` | Delete decorative motion or make every retained path duration zero |
+| P1 | Social click handling is attached to `window`, so overlay clicks can raycast through to a card | Attach to the canvas only, or delete with native links |
+| P1 | Localized member bios merge by array index | Add stable member IDs before locale files can reorder |
+| P2 | `<img src="">` is emitted before scene init and Pixelify declares weight 400 while the UI requests 700 | Set the logo source in HTML and declare the actual variable-font range |
+| P2 | Viewport/popup geometry is clamped to 320 px, distorting narrower split/zoom views | Use the real non-zero canvas/visual viewport dimensions |
 
-Rendering parity fixes already completed: fixed canvas, authored model
-colours, original glow scale, coarse-pointer fallback, queued input, honest
-loading state, GSAP wall-clock timing, and decoration-independent readiness.
-See [scene_rendering.md](./scene_rendering.md) for evidence.
+There is no current hydration bug: this app is CSR-only and dynamically imports
+the DOM-heavy scene inside `useEffect`. Do not add runtime SSR. If React is
+temporarily kept over generated markup, use `hydrateRoot` with the exact same
+catalog; `createRoot` would discard the static DOM.
 
-## Migration Order
+## Deletion Order
 
-1. Finish issue #78 with visible failure content, blocked-asset tests, and two
-   screenshots.
-2. Build the static localized shell from the current content.
-3. Move social, JOIN, and committee interactions to native DOM and delete
-   their scene owners.
-4. Replace the current schema/registry/runtime stack with the three-file
-   catalog; emit `/` and `/es/` with correct metadata.
-5. Reduce the scene, then remove Troika, most GSAP, test bridges, unused
-   assets/maps, Tailwind, Rsdoctor, and narrow implementation tests.
+1. Remove maps, unused assets/fonts, Rsdoctor, dead helpers/tests, and redundant
+   config. Make `assets.ts` check every referenced file once.
+2. If migration is not immediate, fix init/error handling, DPR, pointer gating,
+   reduced motion, and the window-level social click.
+3. Flatten content into three JSON files and emit `/` plus `/es/` static HTML.
+4. Move nav, social, JOIN, and committee controls to native DOM; delete each old
+   scene/CSS/test owner in the same change.
+5. Reduce the scene to decoration, then remove Troika, GSAP, Tailwind, Eyslie,
+   Feelable Materials, React, obsolete fonts, and implementation tests.
+6. Keep only a small outcome suite: both locale pages, keyboard/dialog,
+   scene-failure fallback, reduced motion, and one mobile/desktop visual gate.
 
-## Tracking
-
-- [Issue #78](https://github.com/uqrealitylabs/uqrealitylabs.github.io/issues/78)
-  — remaining failure and visual-parity gates.
-- [Issue #79](https://github.com/uqrealitylabs/uqrealitylabs.github.io/issues/79)
-  — static localized shell and deletion sequence.
-- [PR #58](https://github.com/uqrealitylabs/uqrealitylabs.github.io/pull/58)
-  — integrated cleanup and repairs.
-- [PR #72](https://github.com/uqrealitylabs/uqrealitylabs.github.io/pull/72)
-  — closed as superseded; retain its evidence, not its unrelated changes.
+Net: about **-8,000 source/test lines, -14 direct dependencies, and -15.0 MB
+of deployed output** are possible while retaining Three.js as an optional
+background.

@@ -16,15 +16,16 @@ several real parity regressions introduced on `better-mobile`.
 
 The rendering failure had three layers:
 
-1. Better Mobile had lost the fixed canvas, authored model colours, original
-   glow scale, and coarse-pointer hit fallback.
+1. Better Mobile had lost the fixed canvas, authored model colours, base glow
+   scale, and coarse-pointer hit fallback.
 2. GSAP's default lag smoothing stretched the 1.5-second entrance during slow
    WebGL frames.
 3. Navigation and loading were incorrectly gated on Troika worker callbacks
    and decorative fades instead of the model becoming usable.
 
-The branch now repairs those boundaries. It does not change the camera,
-section coordinates, GLB, or Three version.
+The branch now repairs those readiness boundaries and most parity regressions.
+It does not change the camera, section coordinates, GLB, or Three version.
+Pixel parity still needs the explicit visual decisions listed below.
 
 ## Evidence
 
@@ -39,6 +40,8 @@ section coordinates, GLB, or Three version.
 | `gpuAccelerateSDF = false` | Worsened the run from 10/11 to 8/11 | The Troika switch was removed |
 | Diagnostic readiness | Failures stopped at `entrance`, then `content`/`backdrop` after timing changed | The stall was lifecycle timing |
 | Cypress 15.18 | Navigation specs slowed from about 11 to 34 seconds across one run | Matched its known Chromium/Electron message leak; upgraded to 15.19 |
+| Responsive glow | Better Mobile multipliers are about 1.5× `temp-main` | Base constants match, mobile/wide output does not |
+| Stars | 150 points versus 90 sphere meshes in `temp-main` | Faster draw shape, but an intentional visual difference must be approved |
 
 Relevant Actions runs:
 
@@ -53,7 +56,7 @@ Relevant Actions runs:
 | --- | --- |
 | Canvas | Restored viewport-fixed sizing and stacking |
 | Model | Preserved authored non-logo material colours |
-| Glow | Restored the original `11.8` and `17.6` scales |
+| Glow | Restored the base `11.8` and `17.6` scales; responsive multipliers remain different |
 | Touch | Restored the projected coarse-pointer fallback |
 | Navigation | Queues the latest click during entrance or transition |
 | Scene import | Converts a rejected chunk into `sceneReady=error` |
@@ -78,15 +81,21 @@ Local verification after the repair:
 ## Remaining Work
 
 Keep [issue #78](https://github.com/uqrealitylabs/uqrealitylabs.github.io/issues/78)
-open for only these observable outcomes:
+open for these observable outcomes:
 
 - show usable semantic content when the scene chunk or GLB fails;
 - add rejected-chunk and blocked-GLB tests;
+- decide whether to restore `temp-main`'s responsive glow, `0.6` backdrop
+  fade, `0.62` light decay, and 90-star appearance;
 - capture one 1440×900 and one 390×844 parity screenshot.
 
 Do not add more renderer flags or longer Cypress timeouts. The retained
 readiness state is `false`, `true`, or `error`; intermediate diagnostic phases
 were deleted.
+
+Separately, make reduced-motion stop the fixed-duration entrance/section
+tweens and SVG `animateMotion`; the current dataset/CSS path does not stop
+those animations.
 
 ## Lean Migration
 
