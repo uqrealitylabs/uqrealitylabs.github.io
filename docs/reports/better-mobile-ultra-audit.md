@@ -34,6 +34,7 @@ GitHub Pages needs generated static HTML, not an SSR server.
 | Simplify Actions | One verify/deploy workflow plus focused CodeQL and security workflows |
 | Remove workflow duplication | Deleted benchmark, nightly, release, and duplicate deploy paths |
 | Remove command duplication | Deleted duplicate format, test, CI, and build aliases |
+| Fix progressive E2E slowdown | Upgraded to Cypress 15.19, which fixes its Chromium/Electron renderer-memory leak |
 | Limit names | All tracked tool/workflow filenames are one word; npm aliases are at most two words |
 | Fix dependency audit | Local `npm audit` reports 0 vulnerabilities |
 

@@ -38,6 +38,7 @@ section coordinates, GLB, or Three version.
 | Software GL | No improvement | Cypress MESA workarounds were not the cause |
 | `gpuAccelerateSDF = false` | Worsened the run from 10/11 to 8/11 | The Troika switch was removed |
 | Diagnostic readiness | Failures stopped at `entrance`, then `content`/`backdrop` after timing changed | The stall was lifecycle timing |
+| Cypress 15.18 | Navigation specs slowed from about 11 to 34 seconds across one run | Matched its known Chromium/Electron message leak; upgraded to 15.19 |
 
 Relevant Actions runs:
 
@@ -61,6 +62,7 @@ Relevant Actions runs:
 | Readiness | Marks the model usable before optional text/backdrop fades |
 | Loading UI | Follows `data-scene-ready`, not module-import completion |
 | Tests | The existing queue test now clicks during entrance rather than after readiness |
+| Test runner | Uses Cypress 15.19, which fixes the renderer-memory leak affecting long specs |
 
 Temporary browser, software-rendering, ticker-wake, diagnostic-phase, and
 Troika switches were removed after they disproved their hypotheses.
@@ -70,7 +72,7 @@ Local verification after the repair:
 - 89 unit checks pass;
 - the component check passes;
 - production content, SEO, and build pass;
-- all 15 E2E checks pass in headless Electron;
+- all 15 E2E checks pass in Cypress 15.19 headless Electron;
 - `npm audit` reports 0 vulnerabilities.
 
 ## Remaining Work
@@ -112,5 +114,7 @@ coordinates and needs a separate visual-parity gate.
   improve this repository, so its workaround was not retained.
 - [Cypress browser documentation](https://docs.cypress.io/app/references/launching-browsers)
   helped compare browser modes; changing browsers did not change the failure.
+- [Cypress 15.19 changelog](https://docs.cypress.io/app/references/changelog#15-19-0)
+  documents the Chromium/Electron renderer-memory leak fixed by the upgrade.
 - [Three.js responsive rendering](https://threejs.org/manual/en/responsive.html)
   supports leaving display size to CSS and matching the drawing buffer.
