@@ -14,5 +14,9 @@ describe("site scale tokens", () => {
     expect(prefersReducedMotion({ matches: true } as MediaQueryList)).toBe(
       true,
     );
+    expect(prefersReducedMotion({ matches: false } as MediaQueryList)).toBe(
+      false,
+    );
+    expect(prefersReducedMotion(undefined)).toBe(false);
   });
 });

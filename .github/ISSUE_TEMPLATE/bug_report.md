@@ -1,18 +1,8 @@
 ---
 name: Bug report
-about: Create a report to help us improve
-title: "[BUG]: "
-labels: bug
-assignees: ''
-type: Bug
-
----
-
----
-name: Bug report
 about: Something is broken, confusing, slow, unsafe, or not working as intended.
 title: "bug: "
-labels: ""
+labels: bug
 assignees: ""
 ---
 

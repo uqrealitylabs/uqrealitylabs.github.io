@@ -3,24 +3,24 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main, better-resp, robotic-bees]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: site-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  quality:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -37,82 +37,10 @@ jobs:
         run: npm ci
       - name: Run quality gate
         run: npm run ci:quality
-
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: quality
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - name: Install dependencies
-        run: npm ci
-      - name: Build and check budgets
-        run: npm run ci:build
-      - name: Add build summary
-        run: |
-          set -euo pipefail
-          if [ -f artifacts/benchmarks/build.md ]; then
-            cat artifacts/benchmarks/build.md >> "$GITHUB_STEP_SUMMARY"
-          fi
-  cypress-component:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: quality
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - name: Install dependencies
-        run: npm ci
+      - name: Audit dependencies
+        run: npm run security:audit
       - name: Run Cypress component tests
         run: npm run test:component
-      - name: Upload Cypress failure artifacts
-        if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: cypress-component-failure
-          path: |
-            cypress/screenshots
-            cypress/videos
-          if-no-files-found: ignore
-          retention-days: 7
-
-  cypress-e2e-smoke:
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    needs: build
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - name: Install dependencies
-        run: npm ci
       - name: Build production app
         run: npm run build
       - name: Run Cypress E2E against preview
@@ -140,9 +68,31 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: cypress-e2e-failure
+          name: cypress-failure
           path: |
-            cypress/screenshots
-            cypress/videos
+            test-results/cypress/screenshots
+            test-results/cypress/videos
           if-no-files-found: ignore
           retention-days: 7
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: verify
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

@@ -9,16 +9,17 @@ Start with an issue before doing non-trivial work. If an issue already exists, c
 
 ## Local setup
 
-- `npm install`
+- `npm ci`
 - `npm run dev`
 
 ## Local checks
 
 - `npm run format`
 - `npm run lint`
-- `npm run test:unit`
+- `npm test`
+- `npm run test:component`
 - `npm run build`
-- `npm run check` before opening a PR
+- `npm run ci:quality` before opening a PR
 
 ## PR expectations
 

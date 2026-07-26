@@ -19,6 +19,11 @@
   font: 700 0.9rem / 1 var(--font-display);
 }
 
+body[data-scene-ready="true"] .loading-experience,
+body[data-scene-ready="error"] .loading-experience {
+  display: none;
+}
+
 .loading-experience__orb {
   inline-size: var(--orb-size);
   block-size: var(--orb-size);

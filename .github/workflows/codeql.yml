@@ -3,7 +3,7 @@ name: CodeQL Advanced
 on:
   pull_request:
   push:
-    branches: [main, robotic-bees]
+    branches: [main]
   schedule:
     - cron: "30 6 * * 3"
   workflow_dispatch:
@@ -27,7 +27,6 @@ jobs:
     permissions:
       actions: read
       contents: read
-      packages: read
       security-events: write
     strategy:
       fail-fast: false

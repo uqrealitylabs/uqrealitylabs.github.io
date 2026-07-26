@@ -7,13 +7,12 @@ node_modules/
 
 # testing
 /coverage
-cypress/screenshots/
-cypress/videos/
-/test-results
+test-results/
 
 # production
 /build
 /dist
+packages/*/dist/
 artifacts/
 .lighthouseci/
 

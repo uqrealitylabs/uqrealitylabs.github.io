@@ -6,27 +6,31 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Text } from "troika-three-text";
+import {
+  constrainPupilOffset,
+  getOrganicWinkDelayMs,
+} from "@uqrealitylabs/eyslie";
+import {
+  applyPoke,
+  createPokeState,
+  getMaterialConfig as getSocialMaterialConfig,
+  getMaterialEventKind,
+  getPokeInfluence,
+  getPokeVelocity,
+  shouldTriggerMaterialHaptic,
+  stepPoke,
+  triggerMaterialHaptic,
+} from "@uqrealitylabs/feelable-materials";
 import { getPageContent, getSiteContent } from "../../content/contentRegistry";
 import {
   JOIN_US_BLUSH_DELAY_MS,
   JOIN_US_NAVIGATION_DELAY_MS,
-  constrainPupilOffset,
-  getOrganicWinkDelayMs,
   joinUsStates,
-} from "../living-join-us/joinUsState";
-import {
-  getSocialMaterialConfig,
-  getSocialMaterialKind,
-} from "../social-materials/materialConfig";
-import {
-  applyPoke,
-  createPokeState,
-  getPokeInfluence,
-  getPokeVelocity,
-  stepPoke,
-} from "../social-materials/socialPokeModel";
+} from "../../shared/lib/joinUsState";
+import { resolveSocialMaterialKind } from "../../shared/lib/socialMaterials";
 
 gsap.registerPlugin(Observer);
+gsap.ticker.lagSmoothing(0);
 
 const CLEAR_COLOUR = 0x0f1118;
 const CAM_FOV = 60;
@@ -47,7 +51,7 @@ const CAM_HEIGHT_FACTOR = 0.05;
 
 const SCROLL_DURATION = 1;
 const SCROLL_TOLERANCE = 30;
-const STAR_COUNT = 90;
+const STAR_COUNT = 150;
 const STAR_RADIUS = 0.16;
 const STAR_DRIFT_DISTANCE = 200;
 const SECTION_Y_STEP = 200;
@@ -138,7 +142,7 @@ async function loadSocialContent() {
       label: social.label,
       url: social.url,
       texture: withBasePath(social.texture),
-      material: social.material || null,
+      material: resolveSocialMaterialKind(social),
       accent: social.accent || social.accentColor || "#FF5757",
       music: social.music || null,
       order: Number.isFinite(social.order) ? social.order : index + 1,
@@ -349,12 +353,12 @@ const MODEL_ENTRANCE_OFFSET_FACTOR = 200; // distance below final position (× m
 const KEY_LIGHT_OFFSET = { x: 2, y: 10, z: 40 };
 const FILL_LIGHT_OFFSET = { x: -12, y: 4, z: 25 };
 const RAINBOW_Z_OFFSET = -80; // behind model (home model z -20 → light z -100)
-const RAINBOW_FADE_DURATION = 0.6;
+const RAINBOW_FADE_DURATION = 0.9;
 const RAINBOW_GLOW_SCALE = 11.8;
 const RAINBOW_OUTER_GLOW_SCALE = 17.6;
 const RAINBOW_LIGHT_INTENSITY = 3.1;
 const RAINBOW_LIGHT_DISTANCE = 114;
-const RAINBOW_LIGHT_DECAY = 0.62;
+const RAINBOW_LIGHT_DECAY = 0.42;
 
 const canvas = document.querySelector("#canvas");
 const statusLabel = document.querySelector("#status");
@@ -382,10 +386,9 @@ if (DEBUG && statusLabel) {
 }
 
 document.body.dataset.section = "0";
-document.body.dataset.joinState = joinUsStates.idleCurious;
 document.body.dataset.sceneReady = "false";
-document.body.dataset.socialMaterialsReady = "false";
-document.body.dataset.pokeState = "idle";
+document.body.dataset.sectionReady = "false";
+document.body.dataset.joinState = joinUsStates.idleCurious;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(CLEAR_COLOUR);
@@ -394,34 +397,55 @@ let viewportWidth = Math.max(canvas.clientWidth || window.innerWidth, 320);
 let viewportHeight = Math.max(canvas.clientHeight || window.innerHeight, 320);
 
 const stars = [];
-const starGeometry = new THREE.SphereGeometry(STAR_RADIUS, 8, 8);
-const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const starPositions = new Float32Array(STAR_COUNT * 3);
+const starGeometry = new THREE.BufferGeometry();
+const starMaterial = new THREE.PointsMaterial({
+  color: 0xffffff,
+  size: STAR_RADIUS * 6,
+  sizeAttenuation: true,
+  transparent: true,
+  opacity: 0.84,
+});
 
-function generateStars() {
-  const star = new THREE.Mesh(starGeometry, starMaterial);
+function writeStarPosition(star) {
+  const offset = star.index * 3;
+  starPositions[offset] = star.x;
+  starPositions[offset + 1] = star.y;
+  starPositions[offset + 2] = star.z;
+  if (starGeometry.attributes.position) {
+    starGeometry.attributes.position.needsUpdate = true;
+  }
+}
+
+function generateStar(index) {
   const [x, y, z] = Array(3)
     .fill()
     .map(() => THREE.MathUtils.randFloatSpread(800));
+  const star = { index, x, y, z };
 
-  star.position.set(x, y, z);
-  scene.add(star);
+  writeStarPosition(star);
   stars.push(star);
 }
 
 function animateStarsOnTransition() {
+  if (prefersReducedMotion.matches) return;
+
   stars.forEach((star) => {
-    gsap.killTweensOf(star.position);
-    gsap.to(star.position, {
-      x: star.position.x + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
-      y: star.position.y + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
-      z: star.position.z + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
+    gsap.killTweensOf(star);
+    gsap.to(star, {
+      x: star.x + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
+      y: star.y + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
+      z: star.z + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
       duration: SCROLL_DURATION,
       ease: "power2.inOut",
+      onUpdate: () => writeStarPosition(star),
     });
   });
 }
 
-Array(STAR_COUNT).fill().forEach(generateStars);
+Array.from({ length: STAR_COUNT }, (_, index) => generateStar(index));
+starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+scene.add(new THREE.Points(starGeometry, starMaterial));
 
 const camera = new THREE.PerspectiveCamera(
   CAM_FOV,
@@ -489,7 +513,7 @@ let camHeightOffset = 0;
 let currentIndex = 0;
 let isAnimating = false;
 let entranceComplete = false;
-let queuedSectionIndex = null;
+let pendingSectionIndex = null;
 let sectionTexts = [];
 let sectionDescriptionTexts = [];
 let socialCubes = [];
@@ -533,19 +557,14 @@ let parallaxActive = false;
 const prefersReducedMotion = window.matchMedia(
   "(prefers-reduced-motion: reduce)",
 );
+document.body.dataset.reducedMotion = String(prefersReducedMotion.matches);
+prefersReducedMotion.addEventListener?.("change", (event) => {
+  document.body.dataset.reducedMotion = String(event.matches);
+});
 const coarsePointer = window.matchMedia("(pointer: coarse)");
 let animationFrame = 0;
 let resizeObserver = null;
 let scrollObserver = null;
-
-function syncReducedMotionState() {
-  document.body.dataset.reducedMotion = prefersReducedMotion.matches
-    ? "true"
-    : "false";
-}
-
-syncReducedMotionState();
-prefersReducedMotion.addEventListener?.("change", syncReducedMotionState);
 
 function motionDuration(seconds) {
   return prefersReducedMotion.matches ? 0 : seconds;
@@ -1257,63 +1276,6 @@ function getCommitteeHoverProfile(roleSlug = "") {
   };
 }
 
-function getSocialHoverProfile(label = "") {
-  const name = label.toLowerCase();
-
-  if (name.includes("discord")) {
-    return {
-      scaleX: 1.08,
-      scaleY: 1.03,
-      scaleZ: 1.04,
-      z: 1.2,
-      rotate: 0.02,
-      lift: 0.13,
-    };
-  }
-
-  if (name.includes("email")) {
-    return {
-      scaleX: 1.03,
-      scaleY: 1.08,
-      scaleZ: 1.03,
-      z: 1.05,
-      rotate: -0.015,
-      lift: 0.1,
-    };
-  }
-
-  if (name.includes("instagram")) {
-    return {
-      scaleX: 1.05,
-      scaleY: 1.05,
-      scaleZ: 1.05,
-      z: 1.15,
-      rotate: -0.022,
-      lift: 0.12,
-    };
-  }
-
-  if (name.includes("linkedin")) {
-    return {
-      scaleX: 1.06,
-      scaleY: 1.04,
-      scaleZ: 1.03,
-      z: 1.1,
-      rotate: 0.016,
-      lift: 0.09,
-    };
-  }
-
-  return {
-    scaleX: 1.05,
-    scaleY: 1.05,
-    scaleZ: 1.04,
-    z: 1.1,
-    rotate: 0.02,
-    lift: 0.11,
-  };
-}
-
 function getResponsiveSection(section, index, compactLayouts) {
   if (!isCompactViewport()) return section;
 
@@ -1340,7 +1302,7 @@ function debugLog(...args) {
 }
 
 function updatePointerFromEvent(event) {
-  const rect = canvasRect.width ? canvasRect : canvas.getBoundingClientRect();
+  const rect = canvas.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
 
   lastPointerClientX = event.clientX;
@@ -1366,7 +1328,6 @@ function updatePointerFromEvent(event) {
   lastPointerAt = performance.now();
   parallaxActive = true;
   pointerDirty = true;
-  updateJoinCuriosityState();
 }
 
 function logCameraPosition(context = "Camera") {
@@ -1574,7 +1535,7 @@ function createRoundedIconMaterial(texture) {
 }
 
 function getSocialMaterialProfile(label = "") {
-  const kind = getSocialMaterialKind(label);
+  const kind = resolveSocialMaterialKind({ material: label });
 
   if (kind === "rubber") {
     return {
@@ -1705,6 +1666,9 @@ function createMaterialTouchField(label = "") {
     poke: createPokeState(),
     world: new THREE.Vector3(),
     touched: false,
+    lastHapticAt: 0,
+    lastHapticKind: "contact",
+    renderedScratches: 0,
   };
 }
 
@@ -1713,6 +1677,19 @@ function stampMaterialTouch(field, uv, worldPoint, pressure = 0.25) {
   const boosted = pressure * field.config.pressBoost;
   applyPoke(field.poke, uv.x, uv.y, Math.min(1, boosted));
   if (worldPoint) field.world.copy(worldPoint);
+  const eventKind = getMaterialEventKind(field.config, field.poke, pressure);
+  const now = performance.now();
+  if (
+    eventKind !== field.lastHapticKind ||
+    shouldTriggerMaterialHaptic(field.lastHapticAt, now)
+  ) {
+    const hapticFired = triggerMaterialHaptic(field.config.kind, eventKind, pressure, {
+      navigator,
+      reducedMotion: prefersReducedMotion.matches,
+    });
+    if (hapticFired) field.lastHapticAt = now;
+    field.lastHapticKind = eventKind;
+  }
   field.touched = true;
 }
 
@@ -1798,6 +1775,33 @@ function drawMaterialTouchField(field) {
       ctx.stroke();
     }
   }
+
+  const damageCount = poke.scratches - (field.renderedScratches || 0);
+  if (damageCount > 0 || velocity.length >= config.damageVelocity) {
+    field.renderedScratches = poke.scratches;
+    ctx.globalCompositeOperation =
+      config.kind === "rubber" ? "multiply" : "screen";
+    ctx.strokeStyle =
+      config.kind === "rubber"
+        ? "rgba(42,18,12,0.55)"
+        : "rgba(255,255,255,0.58)";
+    ctx.lineWidth = config.kind === "rubber" ? 1.35 : 0.9;
+    const angle = Math.atan2(-velocity.y || 0.12, velocity.x || 0.18);
+    for (let i = 0; i < 4; i += 1) {
+      const jitter = (i - 1.5) * 5;
+      const length = config.kind === "rubber" ? 24 : 16;
+      ctx.beginPath();
+      ctx.moveTo(
+        x + Math.cos(angle + 1.3) * jitter - Math.cos(angle) * length * 0.5,
+        y + Math.sin(angle + 1.3) * jitter - Math.sin(angle) * length * 0.5,
+      );
+      ctx.lineTo(
+        x + Math.cos(angle + 1.3) * jitter + Math.cos(angle) * length * 0.5,
+        y + Math.sin(angle + 1.3) * jitter + Math.sin(angle) * length * 0.5,
+      );
+      ctx.stroke();
+    }
+  }
 }
 
 function updateMaterialTouchField(field) {
@@ -1810,11 +1814,11 @@ function updateMaterialTouchField(field) {
     return;
   }
 
-  stepPoke(field.poke, field.config);
   fadeMaterialTouchField(field);
   if (field.poke.active || field.poke.pressure > 0.015) {
     drawMaterialTouchField(field);
   }
+  stepPoke(field.poke, field.config);
   field.texture.needsUpdate = true;
 }
 
@@ -1909,6 +1913,8 @@ function createGrassLogoBlades(touchField, layout) {
       angle: (random(i + 29) - 0.5) * 0.28,
       stiffness: 0.55 + random(i + 41) * 0.38,
       highlight: random(i + 53) > 0.72,
+      cut: false,
+      fall: 0,
     });
   }
 
@@ -1938,6 +1944,23 @@ function createGrassLogoBlades(touchField, layout) {
   mesh.userData.blades = blades;
   mesh.userData.touchField = touchField;
   mesh.userData.isSocialGrass = true;
+  mesh.userData.lastCutCount = 0;
+  const outline = new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-logoWidth * 0.34, -logoHeight * 0.34, 0.02),
+      new THREE.Vector3(logoWidth * 0.34, -logoHeight * 0.34, 0.02),
+      new THREE.Vector3(logoWidth * 0.34, logoHeight * 0.34, 0.02),
+      new THREE.Vector3(-logoWidth * 0.34, logoHeight * 0.34, 0.02),
+    ]),
+    new THREE.LineBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.88,
+      depthWrite: false,
+    }),
+  );
+  outline.userData.isGrassOutline = true;
+  mesh.add(outline);
   mesh.renderOrder = 45;
   return mesh;
 }
@@ -2053,18 +2076,18 @@ function resizeRainbowBackdrop(target = rainbowBackdrop) {
   const layout = getViewportLayout();
   const baseSize = target.userData.baseSize;
   const innerScale = layout.narrow
-    ? 4.8
+    ? 7.2
     : layout.compact
-      ? 5.2
+      ? 7.8
       : layout.wide
-        ? 6.4
+        ? 9.6
         : RAINBOW_GLOW_SCALE;
   const outerScale = layout.narrow
-    ? 6.6
+    ? 9.9
     : layout.compact
-      ? 7.2
+      ? 10.8
       : layout.wide
-        ? 9.2
+        ? 13.8
         : RAINBOW_OUTER_GLOW_SCALE;
 
   resizeSquarePlane(target.userData.glowMeshes[0], baseSize * innerScale);
@@ -2207,7 +2230,6 @@ function updateHudState() {
   const tab = TABS[currentIndex];
 
   document.body.dataset.section = String(currentIndex);
-  document.body.dataset.sectionSlug = tab?.slug || String(currentIndex);
   document.body.dataset.contentVariant = tab?.pathVariant || "underline-swoop";
   document.body.style.setProperty(
     "--content-accent",
@@ -2221,29 +2243,6 @@ function updateHudState() {
 
   if (currentIndex !== COMMITTEE_SECTION_INDEX) {
     closeMemberPopup();
-  }
-}
-
-function showSectionShell(index) {
-  if (index < 0 || index >= MODEL_SECTIONS.length || index === currentIndex) {
-    return;
-  }
-
-  currentIndex = index;
-  updateStatus();
-  setNavbarCondensed(false);
-  scheduleNavbarCondense(900);
-
-  if (index === CONTACT_SECTION_INDEX) {
-    setSocialCubesVisible(true);
-  } else if (socialCubes.length > 0) {
-    setSocialCubesVisible(false);
-  }
-
-  if (index === ABOUT_SECTION_INDEX) {
-    restartChalkTrailMotion(".bee-trail--join");
-  } else {
-    restartChalkTrailMotion();
   }
 }
 
@@ -2533,37 +2532,31 @@ function setupNavbarCondense() {
   });
 
   setNavbarCondensed(false);
-  scheduleNavbarCondense(1400);
 }
 
 function goToSection(index) {
   if (index < 0 || index >= MODEL_SECTIONS.length) return;
-  if (!modelGroup || !entranceComplete) {
-    showSectionShell(index);
-    return;
-  }
-  if (isAnimating) {
-    queuedSectionIndex = index;
+  if (!modelGroup || !entranceComplete || isAnimating) {
+    pendingSectionIndex = index;
     return;
   }
 
   transitionToSection(index);
 }
 
-function flushQueuedSection() {
+function flushPendingSection() {
   if (
-    queuedSectionIndex === null ||
+    pendingSectionIndex === null ||
     !modelGroup ||
-    isAnimating ||
-    !entranceComplete
+    !entranceComplete ||
+    isAnimating
   ) {
     return;
   }
 
-  const nextIndex = queuedSectionIndex;
-  queuedSectionIndex = null;
-
-  transitionToSection(nextIndex);
+  const nextIndex = pendingSectionIndex;
+  pendingSectionIndex = null;
+  if (nextIndex !== currentIndex) transitionToSection(nextIndex);
 }
 
 function setupNavbar() {
@@ -2615,20 +2608,19 @@ function revealTextMesh(textMesh) {
   textMesh.visible = true;
   textMesh.text = full;
   textMesh.scale.setScalar(prefersReducedMotion.matches ? 1 : 0.94);
+  textMesh.sync();
 
   return new Promise((resolve) => {
-    textMesh.sync(() => {
-      textMesh.userData.textTween = gsap.to(textMesh.scale, {
-        x: 1,
-        y: 1,
-        z: 1,
-        duration: prefersReducedMotion.matches ? 0 : TEXT_REVEAL_DURATION,
-        ease: "power2.out",
-        onComplete: () => {
-          textMesh.userData.textTween = null;
-          resolve();
-        },
-      });
+    textMesh.userData.textTween = gsap.to(textMesh.scale, {
+      x: 1,
+      y: 1,
+      z: 1,
+      duration: prefersReducedMotion.matches ? 0 : TEXT_REVEAL_DURATION,
+      ease: "power2.out",
+      onComplete: () => {
+        textMesh.userData.textTween = null;
+        resolve();
+      },
     });
   });
 }
@@ -2964,6 +2956,12 @@ function stopAboutJoinImageFade() {
 }
 
 function setJoinState(state) {
+  if (
+    aboutJoinImage?.userData.navigating &&
+    state !== joinUsStates.rubricsClickCelebration
+  ) {
+    return;
+  }
   if (document.body.dataset.joinState === state) return;
 
   document.body.dataset.joinState = state;
@@ -2972,6 +2970,23 @@ function setJoinState(state) {
 function clearJoinTimers() {
   window.clearTimeout(joinStateTimer);
   window.clearTimeout(joinBlushTimer);
+}
+
+function scheduleJoinRecovery() {
+  joinStateTimer = window.setTimeout(
+    () => {
+      if (document.body.dataset.joinState !== joinUsStates.sadShrivel) return;
+      setJoinState(joinUsStates.recoveringToIdle);
+      joinStateTimer = window.setTimeout(() => {
+        if (
+          document.body.dataset.joinState === joinUsStates.recoveringToIdle
+        ) {
+          setJoinState(joinUsStates.idleCurious);
+        }
+      }, prefersReducedMotion.matches ? 100 : 180);
+    },
+    prefersReducedMotion.matches ? 320 : 760,
+  );
 }
 
 function stopJoinWink() {
@@ -3000,30 +3015,25 @@ function scheduleJoinWink() {
 
 function updateJoinEyes() {
   if (!joinWord || joinEyePupils.length === 0) return;
-  if (
-    document.body.dataset.joinState === joinUsStates.joinNear ||
-    document.body.dataset.joinState === joinUsStates.sadShrivel
-  ) {
+  if (document.body.dataset.joinState === joinUsStates.joinNear) {
     joinEyePupils.forEach((pupil) => pupil.removeAttribute("transform"));
     return;
   }
 
-  const rect = joinWord.getBoundingClientRect();
-  if (!rect.width || !Number.isFinite(lastPointerClientX)) return;
+  if (!Number.isFinite(lastPointerClientX)) return;
 
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  const offset = constrainPupilOffset(
-    (lastPointerClientX - centerX) * 0.035,
-    (lastPointerClientY - centerY) * 0.035,
-    { width: 11, height: 10 },
-  );
-
-  joinEyePupils.forEach((pupil, index) => {
-    const sideBias = index === 0 ? -0.25 : 0.25;
+  joinEyePupils.forEach((pupil) => {
+    const eye = pupil.closest?.(".bee-trail__eye");
+    const rect = eye?.getBoundingClientRect?.();
+    if (!rect?.width) return;
+    const offset = constrainPupilOffset(
+      (lastPointerClientX - (rect.left + rect.width / 2)) * 0.035,
+      (lastPointerClientY - (rect.top + rect.height / 2)) * 0.035,
+      { width: rect.width, height: rect.height },
+    );
     pupil.setAttribute(
       "transform",
-      `translate(${(offset.x + sideBias).toFixed(2)} ${offset.y.toFixed(2)})`,
+      `translate(${offset.x.toFixed(2)} ${offset.y.toFixed(2)})`,
     );
   });
 }
@@ -3034,6 +3044,8 @@ function updateJoinCuriosityState() {
 
   if (
     currentIndex !== ABOUT_SECTION_INDEX ||
+    isAnimating ||
+    !aboutJoinImage?.visible ||
     state === joinUsStates.rubricsHoverExcited ||
     state === joinUsStates.rubricsHoverBlush ||
     state === joinUsStates.rubricsClickCelebration ||
@@ -3136,6 +3148,7 @@ function updateAboutJoinHover() {
   if (
     currentIndex !== ABOUT_SECTION_INDEX ||
     isAnimating ||
+    document.activeElement === joinUsAccessibleLink ||
     !aboutJoinImage?.visible
   ) {
     return;
@@ -3183,18 +3196,7 @@ function setAboutJoinImageHovered(hovered) {
     stopRubricsDance();
     setJoinState(joinUsStates.sadShrivel);
     restartChalkTrailMotion(".bee-trail--join");
-    joinStateTimer = window.setTimeout(
-      () => {
-        setJoinState(joinUsStates.recoveringToIdle);
-        joinStateTimer = window.setTimeout(
-          () => {
-            setJoinState(joinUsStates.idleCurious);
-          },
-          prefersReducedMotion.matches ? 100 : 180,
-        );
-      },
-      prefersReducedMotion.matches ? 320 : 760,
-    );
+    scheduleJoinRecovery();
     aboutJoinImage.userData.tiltZ = 0;
     gsap.to(aboutJoinImage.scale, {
       x: 1,
@@ -3277,16 +3279,7 @@ function triggerJoinHoverFromKeyboard(active) {
   clearJoinTimers();
   stopRubricsDance();
   setJoinState(joinUsStates.sadShrivel);
-  joinStateTimer = window.setTimeout(
-    () => {
-      setJoinState(joinUsStates.recoveringToIdle);
-      joinStateTimer = window.setTimeout(
-        () => setJoinState(joinUsStates.idleCurious),
-        prefersReducedMotion.matches ? 100 : 180,
-      );
-    },
-    prefersReducedMotion.matches ? 320 : 760,
-  );
+  scheduleJoinRecovery();
 }
 
 function setupJoinAccessibleInteraction() {
@@ -3710,29 +3703,6 @@ function setupCommitteeInteraction() {
   });
 }
 
-function warmupTextMeshes(textMeshes) {
-  return Promise.all(
-    textMeshes.map(
-      (textMesh) =>
-        new Promise((resolve) => {
-          textMesh.text = textMesh.userData.fullText;
-          textMesh.sync(() => {
-            textMesh.text = "";
-            textMesh.visible = false;
-            textMesh.sync(resolve);
-          });
-        }),
-    ),
-  );
-}
-
-function warmupSectionTexts() {
-  return Promise.all([
-    warmupTextMeshes(sectionTexts),
-    warmupTextMeshes(sectionDescriptionTexts),
-  ]);
-}
-
 function getSocialCubeBasePosition(index) {
   const layout = getViewportLayout();
   const xOffset =
@@ -3805,8 +3775,10 @@ function resizeSocialCard(card) {
 
   if (card.userData.grassLogo) {
     card.remove(card.userData.grassLogo);
-    card.userData.grassLogo.geometry.dispose();
-    card.userData.grassLogo.material.dispose();
+    card.userData.grassLogo.traverse((node) => {
+      node.geometry?.dispose?.();
+      node.material?.dispose?.();
+    });
     card.userData.grassLogo = createGrassLogoBlades(
       card.userData.touchField,
       layout,
@@ -3905,7 +3877,6 @@ function createSocialCubes() {
     cube.userData.hovered = false;
     cube.userData.music = config.music || null;
     cube.userData.floatTween = null;
-    cube.userData.growTween = null;
     cube.userData.entranceTween = null;
     cube.userData.exitTween = null;
     cube.visible = false;
@@ -3935,14 +3906,16 @@ function exposeSocialMaterialTestState() {
 
   window.__uqrlSocialMaterials = () => {
     const point = new THREE.Vector3();
+    const rect = canvas.getBoundingClientRect();
 
     return socialCubes.map((cube) => {
-      cube.getWorldPosition(point);
+      (cube.userData.logoMesh || cube).getWorldPosition(point);
       point.project(camera);
       return {
         label: cube.userData.label,
         kind: cube.userData.touchField?.config?.kind,
         visible: cube.visible,
+        settled: !cube.userData.entranceTween && !cube.userData.exitTween,
         hasLogo: Boolean(cube.userData.logoMesh),
         hasUnderline: Boolean(cube.userData.underline),
         hasGrassLogo: Boolean(cube.userData.grassLogo),
@@ -3957,8 +3930,15 @@ function exposeSocialMaterialTestState() {
           : 0,
         underlineScaleY: cube.userData.underline?.scale?.y || 0,
         pressure: cube.userData.touchField?.poke?.pressure || 0,
-        screenX: canvasRect.left + (point.x * 0.5 + 0.5) * canvasRect.width,
-        screenY: canvasRect.top + (-point.y * 0.5 + 0.5) * canvasRect.height,
+        stains: cube.userData.touchField?.poke?.stains || 0,
+        scratches: cube.userData.touchField?.poke?.scratches || 0,
+        cuts: cube.userData.touchField?.poke?.cuts || 0,
+        cutBladeCount:
+          cube.userData.grassLogo?.userData?.blades?.filter((blade) => blade.cut)
+            .length || 0,
+        lastHapticKind: cube.userData.touchField?.lastHapticKind || "contact",
+        screenX: rect.left + (point.x * 0.5 + 0.5) * rect.width,
+        screenY: rect.top + (-point.y * 0.5 + 0.5) * rect.height,
       };
     });
   };
@@ -4005,65 +3985,22 @@ function startSocialCubeFloat(cube, delay = 0) {
   });
 }
 
-function stopSocialCubeGrow(cube) {
-  if (cube.userData.growTween) {
-    cube.userData.growTween.kill();
-    cube.userData.growTween = null;
-  }
-
-  gsap.killTweensOf(cube.position, "y,z");
-  gsap.killTweensOf(cube.rotation);
-}
-
 function setSocialCubeHovered(cube, hovered) {
-  stopSocialCubeGrow(cube);
-  const profile = getSocialHoverProfile(cube.userData.label || "");
-
-  if (hovered) {
-    cube.userData.growTween = gsap.to(cube.scale, {
-      x: SOCIAL_CUBE_SCALE_MAX * profile.scaleX,
-      y: SOCIAL_CUBE_SCALE_MAX * profile.scaleY,
-      z: SOCIAL_CUBE_SCALE_MAX * profile.scaleZ,
-      duration: 0.2,
-      ease: "back.out(1.8)",
-    });
-    gsap.to(cube.position, {
-      z: SOCIAL_CUBE_BASE.z + profile.z,
-      y: cube.userData.baseY + profile.lift,
-      duration: 0.2,
-      ease: "power2.out",
-    });
-    gsap.to(cube.rotation, {
-      z: (cube.userData.socialIndex % 2 === 0 ? 0.04 : -0.04) + profile.rotate,
-      duration: 0.2,
-      ease: "power2.out",
-    });
-  } else {
-    gsap.to(cube.scale, {
-      x: SOCIAL_CUBE_SCALE_MIN,
-      y: SOCIAL_CUBE_SCALE_MIN,
-      z: SOCIAL_CUBE_SCALE_MIN,
-      duration: 0.3,
-      ease: "power2.out",
-    });
-    gsap.to(cube.position, {
-      z: SOCIAL_CUBE_BASE.z,
-      y: cube.userData.baseY,
-      duration: 0.22,
-      ease: "power2.out",
-    });
-    gsap.to(cube.rotation, {
-      z: 0,
-      duration: 0.2,
-      ease: "power2.out",
-    });
+  if (!hovered) {
+    cube.position.z = SOCIAL_CUBE_BASE.z;
+    cube.position.y = cube.userData.baseY;
+    cube.rotation.z = 0;
+    cube.scale.set(
+      SOCIAL_CUBE_SCALE_MIN,
+      SOCIAL_CUBE_SCALE_MIN,
+      SOCIAL_CUBE_SCALE_MIN,
+    );
   }
 
   cube.userData.hovered = hovered;
 }
 
 function startSocialCubeEntrance() {
-  document.body.dataset.socialMaterialsReady = "false";
   socialCubes.forEach((cube, index) => {
     stopSocialCubeEntrance(cube);
     stopSocialCubeFloat(cube);
@@ -4077,20 +4014,9 @@ function startSocialCubeEntrance() {
       onComplete: () => {
         cube.userData.entranceTween = null;
         startSocialCubeFloat(cube, index * 0.15);
-        markSocialMaterialsReady();
       },
     });
   });
-}
-
-function markSocialMaterialsReady() {
-  if (
-    currentIndex === CONTACT_SECTION_INDEX &&
-    socialCubes.length > 0 &&
-    socialCubes.every((cube) => cube.visible)
-  ) {
-    document.body.dataset.socialMaterialsReady = "true";
-  }
 }
 
 function resetSocialCubeTransform(cube) {
@@ -4107,7 +4033,6 @@ function stopSocialCubeAnimations() {
     stopSocialCubeEntrance(cube);
     stopSocialCubeExit(cube);
     stopSocialCubeFloat(cube);
-    stopSocialCubeGrow(cube);
     cube.userData.hovered = false;
     resetSocialCubeTransform(cube);
     cube.scale.set(
@@ -4121,13 +4046,10 @@ function stopSocialCubeAnimations() {
 
 function hideSocialCubes() {
   canvas.style.cursor = "default";
-  document.body.dataset.socialMaterialsReady = "false";
   document.body.removeAttribute("data-content-hover");
   document.body.removeAttribute("data-material-type");
   document.body.removeAttribute("data-pointer-active");
   document.body.removeAttribute("data-interaction-state");
-  document.body.removeAttribute("data-active-material");
-  document.body.dataset.pokeState = "idle";
   hoveredSocialCube = null;
   socialHoverKey = "";
   stopActiveSound(false);
@@ -4144,7 +4066,6 @@ function hideSocialCubes() {
       stopSocialCubeEntrance(cube);
       stopSocialCubeExit(cube);
       stopSocialCubeFloat(cube);
-      stopSocialCubeGrow(cube);
       cube.userData.hovered = false;
       cube.scale.set(
         SOCIAL_CUBE_SCALE_MIN,
@@ -4180,15 +4101,12 @@ function setSocialCubesVisible(visible) {
   if (visible) {
     startSocialCubeEntrance();
   } else {
-    document.body.dataset.socialMaterialsReady = "false";
     stopSocialCubeAnimations();
     canvas.style.cursor = "default";
     document.body.removeAttribute("data-content-hover");
     document.body.removeAttribute("data-material-type");
     document.body.removeAttribute("data-pointer-active");
     document.body.removeAttribute("data-interaction-state");
-    document.body.removeAttribute("data-active-material");
-    document.body.dataset.pokeState = "idle";
   }
 }
 
@@ -4234,6 +4152,22 @@ function updateGrassLogoBlades(mesh) {
   const poke = field?.poke;
   const velocity = poke ? getPokeVelocity(poke) : { x: 0, y: 0, length: 0 };
   const time = performance.now() * 0.002;
+  const cutDelta = Math.max(
+    0,
+    (poke?.cuts || 0) - (mesh.userData.lastCutCount || 0),
+  );
+  if (cutDelta > 0) {
+    let remaining = cutDelta;
+    let cutBlades = 0;
+    mesh.userData.blades.forEach((blade) => {
+      if (remaining <= 0 || blade.cut) return;
+      if (getPokeInfluence(poke, blade.uvx, blade.uvy, 0.2) <= 0.12) return;
+      blade.cut = true;
+      remaining -= 1;
+      cutBlades += 1;
+    });
+    mesh.userData.lastCutCount += cutBlades;
+  }
 
   mesh.userData.blades.forEach((blade, index) => {
     const influence = poke
@@ -4243,20 +4177,22 @@ function updateGrassLogoBlades(mesh) {
     const dx = blade.uvx - (poke?.x ?? 0.5);
     const dy = blade.uvy - (poke?.y ?? 0.5);
     const wind = Math.sin(time + index * 0.37) * 0.025;
+    if (blade.cut) blade.fall = Math.min(1, blade.fall + 0.035);
 
     grassBladeDummy.position.set(
       blade.x + dx * comb * 0.48,
-      blade.y + dy * comb * 0.32,
-      influence * -0.055,
+      blade.y + dy * comb * 0.32 - blade.fall * 0.42,
+      influence * -0.055 - blade.fall * 0.25,
     );
     grassBladeDummy.rotation.set(
-      influence * (0.85 + blade.stiffness) + wind,
-      0,
+      influence * (0.85 + blade.stiffness) + wind + blade.fall * 1.4,
+      blade.fall * 0.8,
       blade.angle + dx * influence * 1.8,
     );
     grassBladeDummy.scale.set(
       1,
-      (blade.height / 0.18) * Math.max(0.28, 1 - influence * 0.68),
+      (blade.height / 0.18) *
+        Math.max(0.03, 1 - influence * 0.68 - blade.fall * 0.95),
       1,
     );
     grassBladeDummy.updateMatrix();
@@ -4290,8 +4226,21 @@ function updateSocialMaterialTouchFields() {
   });
 }
 
-function findProjectedSocialCubeHit(visibleCubes) {
-  if (!Number.isFinite(lastPointerClientX)) return null;
+function findSocialCubeHit(visibleCubes) {
+  const rayHit = raycaster.intersectObjects(visibleCubes, true)[0];
+  if (rayHit) {
+    const cube = getSocialCubeFromObject(rayHit.object);
+    return cube
+      ? { cube, point: rayHit.point, uv: getSocialTouchUv(cube, rayHit) }
+      : null;
+  }
+
+  if (
+    (!coarsePointer.matches && lastPointerType !== "touch") ||
+    !Number.isFinite(lastPointerClientX)
+  ) {
+    return null;
+  }
 
   const point = new THREE.Vector3();
   let nearest = null;
@@ -4323,6 +4272,7 @@ function findProjectedSocialCubeHit(visibleCubes) {
 function updateSocialCubeHover() {
   if (
     currentIndex !== CONTACT_SECTION_INDEX ||
+    isAnimating ||
     !socialCubes.some((cube) => cube.visible)
   ) {
     return;
@@ -4330,16 +4280,8 @@ function updateSocialCubeHover() {
 
   raycaster.setFromCamera(mouse, camera);
   const visibleCubes = socialCubes.filter((cube) => cube.visible);
-  const intersects = raycaster.intersectObjects(visibleCubes, true);
-  let hoveredHit = intersects[0] ?? null;
-  let hoveredCube = hoveredHit ? getSocialCubeFromObject(hoveredHit.object) : null;
-  const projectedHit = hoveredCube
-    ? null
-    : findProjectedSocialCubeHit(visibleCubes);
-  if (projectedHit) {
-    hoveredCube = projectedHit.cube;
-    hoveredHit = projectedHit;
-  }
+  const hoveredHit = findSocialCubeHit(visibleCubes);
+  const hoveredCube = hoveredHit?.cube ?? null;
   let pointerActive = false;
   const hoveredKey = hoveredCube
     ? `social:${hoveredCube.userData.socialIndex}:${hoveredCube.userData.url}`
@@ -4359,19 +4301,20 @@ function updateSocialCubeHover() {
       }
 
       if (hoveredHit) {
-        const touchUv =
-          projectedHit && hoveredHit === projectedHit
-            ? projectedHit.uv
-            : getSocialTouchUv(cube, hoveredHit);
-        const pressure = pointerIsDown
-          ? Math.max(pointerPressure, lastPointerType === "touch" ? 0.85 : 0.75)
-          : Math.max(pointerPressure, 0.25);
-        stampMaterialTouch(cube.userData.touchField, touchUv, hoveredHit.point, pressure);
-        document.body.dataset.materialType = cube.userData.materialKind;
-        document.body.dataset.activeMaterial = cube.userData.materialKind;
-        document.body.dataset.pointerActive = "true";
-        document.body.dataset.interactionState = pointerIsDown ? "pressed" : "hover";
-        document.body.dataset.pokeState = pointerIsDown ? "pressed" : "hover";
+        const touchUv = hoveredHit.uv;
+        if (touchUv) {
+          const pressure = pointerIsDown
+            ? Math.max(pointerPressure, lastPointerType === "touch" ? 0.85 : 0.75)
+            : Math.max(pointerPressure, 0.25);
+          stampMaterialTouch(cube.userData.touchField, touchUv, hoveredHit.point, pressure);
+          document.body.dataset.materialType = cube.userData.materialKind;
+          document.body.dataset.pointerActive = "true";
+          document.body.dataset.interactionState = pointerIsDown ? "pressed" : "hover";
+        } else {
+          document.body.removeAttribute("data-material-type");
+          document.body.removeAttribute("data-pointer-active");
+          document.body.removeAttribute("data-interaction-state");
+        }
       }
     } else if (cube.userData.hovered) {
       resetSocialCubeHover(cube);
@@ -4393,8 +4336,6 @@ function updateSocialCubeHover() {
     document.body.removeAttribute("data-material-type");
     document.body.removeAttribute("data-pointer-active");
     document.body.removeAttribute("data-interaction-state");
-    document.body.removeAttribute("data-active-material");
-    document.body.dataset.pokeState = "idle";
     document.body.style.removeProperty("--content-accent");
   }
 
@@ -4424,8 +4365,6 @@ function clearCanvasPointerHover() {
   document.body.removeAttribute("data-material-type");
   document.body.removeAttribute("data-pointer-active");
   document.body.removeAttribute("data-interaction-state");
-  document.body.removeAttribute("data-active-material");
-  document.body.dataset.pokeState = "idle";
   document.body.style.removeProperty("--content-accent");
 }
 
@@ -4440,6 +4379,7 @@ function setupSocialCubeInteraction() {
       pointerPressure = Math.max(event.pressure || 0, 0.55);
       lastPointerType = event.pointerType || lastPointerType;
       updatePointerFromEvent(event);
+      updateSocialCubeHover();
     },
     { passive: true },
   );
@@ -4469,13 +4409,12 @@ function setupSocialCubeInteraction() {
 
     updatePointerFromEvent(event);
     raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(
+    const hit = findSocialCubeHit(
       socialCubes.filter((cube) => cube.visible),
-      true,
     );
 
-    if (intersects.length > 0) {
-      const cube = getSocialCubeFromObject(intersects[0].object);
+    if (hit) {
+      const { cube } = hit;
       const url = cube?.userData.url;
       if (!url) return;
       playMusicCue(
@@ -4496,7 +4435,12 @@ async function transitionToSection(newIndex) {
   if (newIndex < 0 || newIndex >= MODEL_SECTIONS.length) return;
 
   isAnimating = true;
+  document.body.dataset.sectionReady = "false";
   const oldIndex = currentIndex;
+  currentIndex = newIndex;
+  updateStatus();
+  setNavbarCondensed(false);
+  scheduleNavbarCondense(900);
 
   await hideSectionContent(oldIndex);
 
@@ -4508,11 +4452,6 @@ async function transitionToSection(newIndex) {
   if (oldIndex === 0) {
     await hideRainbowBackdrop();
   }
-
-  currentIndex = newIndex;
-  updateStatus();
-  setNavbarCondensed(false);
-  scheduleNavbarCondense(900);
 
   const targetPos = getCurrentSectionPos();
   animateStarsOnTransition();
@@ -4555,30 +4494,29 @@ async function transitionToSection(newIndex) {
   }
 
   isAnimating = false;
+  document.body.dataset.sectionReady = "true";
   pointerDirty = true;
-  markSocialMaterialsReady();
-  flushQueuedSection();
+  flushPendingSection();
 }
 
 function goToNextSection() {
   if (
     !modelGroup ||
-    isAnimating ||
     !entranceComplete ||
     currentIndex >= MODEL_SECTIONS.length - 1
   ) {
     return;
   }
 
-  transitionToSection(currentIndex + 1);
+  goToSection(currentIndex + 1);
 }
 
 function goToPrevSection() {
-  if (!modelGroup || isAnimating || !entranceComplete || currentIndex <= 0) {
+  if (!modelGroup || !entranceComplete || currentIndex <= 0) {
     return;
   }
 
-  transitionToSection(currentIndex - 1);
+  goToSection(currentIndex - 1);
 }
 
 function setupScrollControl() {
@@ -4631,13 +4569,13 @@ function setupKeyboardNavigation() {
 function animateModelEntrance(modelSize) {
   if (!modelGroup) return;
 
-  const sectionPos = getCurrentSectionPos();
-  const finalY = sectionPos.y;
+  const homePos = getSectionPos(0);
+  const finalY = homePos.y;
   const startY = finalY - modelSize * MODEL_ENTRANCE_OFFSET_FACTOR;
   const animPos = { y: startY };
 
   isAnimating = true;
-  modelGroup.position.set(sectionPos.x, startY, sectionPos.z);
+  modelGroup.position.set(homePos.x, startY, homePos.z);
 
   gsap.to(animPos, {
     y: finalY,
@@ -4647,27 +4585,20 @@ function animateModelEntrance(modelSize) {
       modelGroup.position.y = animPos.y;
       aimLightsAtModel();
     },
-    onComplete: async () => {
-      const latestSectionPos = getCurrentSectionPos();
-      modelGroup.position.set(
-        latestSectionPos.x,
-        latestSectionPos.y,
-        latestSectionPos.z,
-      );
+    onComplete: () => {
+      modelGroup.position.set(homePos.x, homePos.y, homePos.z);
       aimLightsAtModel();
+      updateStatus();
       isAnimating = false;
       entranceComplete = true;
       document.body.dataset.sceneReady = "true";
-      updateStatus();
-      await revealSectionContent(currentIndex);
-      if (currentIndex === CONTACT_SECTION_INDEX) {
-        setSocialCubesVisible(true);
-      }
-      if (currentIndex === 0) {
-        await showRainbowBackdrop();
-      }
+      document.body.dataset.sectionReady = "true";
       pointerDirty = true;
-      flushQueuedSection();
+      flushPendingSection();
+      if (!isAnimating && currentIndex === 0) {
+        void revealSectionContent(0);
+        void showRainbowBackdrop();
+      }
       logModelPosition("Model (entrance complete)");
     },
   });
@@ -4745,13 +4676,13 @@ async function loadSceneModel() {
 
     rainbowBackdrop = createRainbowBackdrop(maxSize);
 
-    await warmupSectionTexts();
-    setCameraOnModel(getCurrentSectionPos());
+    setCameraOnModel(getSectionPos(0));
     animateModelEntrance(maxSize);
     aimLightsAtModel();
     updateStatus();
     logModelPosition("Model (loaded)");
   } catch (error) {
+    document.body.dataset.sceneReady = "error";
     console.error("Failed to load GLB:", error);
   }
 }
@@ -4840,12 +4771,15 @@ window.addEventListener("pagehide", (event) => {
 
   stopAnimationLoop();
   stopActiveSound(true);
+  gsap.globalTimeline.clear();
+  void audioContext?.close();
   clearJoinTimers();
   window.clearTimeout(joinNavigationTimer);
   stopJoinWink();
   scrollObserver?.kill();
   resizeObserver?.disconnect();
-  prefersReducedMotion.removeEventListener?.("change", syncReducedMotionState);
+  renderer.dispose();
+  renderer.forceContextLoss();
 
   if (resizeFrame) {
     cancelAnimationFrame(resizeFrame);
@@ -4867,9 +4801,6 @@ async function init() {
   setupNavbar();
   setupMemberPopup();
   socialCubes = createSocialCubes();
-  if (currentIndex === CONTACT_SECTION_INDEX) {
-    setSocialCubesVisible(true);
-  }
   applyResponsiveLayout();
   exposeSocialMaterialTestState();
   setupJoinAccessibleInteraction();

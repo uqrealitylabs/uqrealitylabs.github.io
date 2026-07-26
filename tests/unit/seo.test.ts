@@ -1,43 +1,35 @@
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
-  allPageEntries,
   getContentGraph,
   getPageContent,
   getSiteContent,
+  listPages,
 } from "../../src/content/contentRegistry";
 import {
   validatePageContent,
   validateSiteContent,
 } from "../../src/content/schema/contentSchema";
+import { seoPageMatrix } from "../../src/shared/testing/contentMatrices";
 import {
-  assetUrl,
-  buildHreflangAlternates,
   buildLlms,
   buildPageMetadata,
   buildRobots,
   buildSitemap,
   buildStructuredData,
   canonicalUrl,
-  selectIndexPage,
   serializeJsonLd,
   validateSeo,
-} from "../../src/seo/seo";
-import { buildLocaleUrl } from "../../src/shared/i18n/localeUrls";
-import { seoPageMatrix } from "../../src/shared/testing/contentMatrices";
+} from "../../tools/scripts/seo";
 
 const site = getSiteContent("en");
-const pages = allPageEntries().map((entry) => entry.content);
+const pages = listPages("en");
 const home = getPageContent("en", "home");
 const about = getPageContent("en", "about");
 
 describe("SEO signals", () => {
   it("generates production and preview robots policies", () => {
-    const sitemapUrl = buildLocaleUrl(site.locale, "/sitemap.xml", {
-      siteOrigin: site.seo.siteUrl,
-      supportedLocales: [site.locale],
-      defaultLocale: site.locale,
-    });
+    const sitemapUrl = new URL("/sitemap.xml", site.seo.siteUrl).href;
 
     expect(buildRobots(site)).toContain(
       "Content-Signal: search=yes, ai-input=yes, ai-train=no",
@@ -60,37 +52,10 @@ describe("SEO signals", () => {
     expect(sitemap).toBe(readFileSync("public/sitemap.xml", "utf8"));
   });
 
-  it("uses locale subdomains for canonical, hreflang, and sitemap URLs", () => {
-    const sitemap = buildSitemap(site, pages);
-    const esHome = getPageContent("es", "home");
-
-    expect(canonicalUrl(site, home)).toBe(
-      "https://en.uqrealitylabs.github.io/",
-    );
-    expect(canonicalUrl(getSiteContent("es"), esHome)).toBe(
-      "https://es.uqrealitylabs.github.io/",
-    );
-    expect(buildHreflangAlternates(site, home, pages)).toEqual([
-      { hreflang: "en", href: "https://en.uqrealitylabs.github.io/" },
-      { hreflang: "es", href: "https://es.uqrealitylabs.github.io/" },
-      { hreflang: "x-default", href: "https://en.uqrealitylabs.github.io/" },
-    ]);
-    expect(sitemap).toContain(
-      '<xhtml:link rel="alternate" hreflang="es" href="https://es.uqrealitylabs.github.io/" />',
-    );
-  });
-
   it("keeps generated public SEO files in sync", () => {
     expect(readFileSync("public/robots.txt", "utf8")).toBe(buildRobots(site));
     expect(readFileSync("public/llms.txt", "utf8")).toBe(
       buildLlms(site, pages),
-    );
-  });
-
-  it("selects the site-locale home page for the generated index head", () => {
-    expect(selectIndexPage(site, [about, home]).id).toBe("home");
-    expect(selectIndexPage(site, [getPageContent("es", "home"), home])).toBe(
-      home,
     );
   });
 
@@ -110,20 +75,20 @@ describe("SEO signals", () => {
     expect(existsSync(file)).toBe(true);
   });
 
-  it.each(seoPageMatrix)("builds metadata for $locale/$page.id", ({
-    site,
-    page,
-  }) => {
-    const metadata = buildPageMetadata(site, page);
+  it.each(seoPageMatrix)(
+    "builds metadata for $locale/$page.id",
+    ({ site, page }) => {
+      const metadata = buildPageMetadata(site, page);
 
-    expect(metadata.canonical).toBe(canonicalUrl(site, page));
-    expect(metadata.robots).toBe(
-      page.meta.indexable ? "index,follow" : "noindex,follow",
-    );
-    expect(metadata.image).toBe(
-      assetUrl(site, site.seo.defaultSocialImage.src),
-    );
-  });
+      expect(metadata.canonical).toBe(canonicalUrl(site, page));
+      expect(metadata.robots).toBe(
+        page.meta.indexable ? "index,follow" : "noindex,follow",
+      );
+      expect(metadata.image).toBe(
+        new URL(site.seo.defaultSocialImage.src, `${site.seo.siteUrl}/`).href,
+      );
+    },
+  );
 
   it("builds truthful structured data and escapes JSON-LD safely", () => {
     const jsonLd = buildStructuredData(site, home);

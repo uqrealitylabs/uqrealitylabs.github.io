@@ -17,4 +17,3 @@ Include:
 
 This repository uses standard defense-in-depth checks, but no project can promise the absence of supply-chain zero-days.
 Keep reports practical and direct.
-
