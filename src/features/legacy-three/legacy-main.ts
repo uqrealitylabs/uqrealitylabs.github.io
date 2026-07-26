@@ -30,6 +30,7 @@ import {
 import { resolveSocialMaterialKind } from "../../shared/lib/socialMaterials";
 
 gsap.registerPlugin(Observer);
+gsap.ticker.lagSmoothing(0);
 
 const CLEAR_COLOUR = 0x0f1118;
 const CAM_FOV = 60;
@@ -4574,7 +4575,6 @@ function animateModelEntrance(modelSize) {
   isAnimating = true;
   modelGroup.position.set(homePos.x, startY, homePos.z);
 
-  gsap.ticker.wake();
   gsap.to(animPos, {
     y: finalY,
     duration: MODEL_ENTRANCE_DURATION,
