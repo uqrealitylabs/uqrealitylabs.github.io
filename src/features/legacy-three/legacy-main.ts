@@ -4574,6 +4574,7 @@ function animateModelEntrance(modelSize) {
   isAnimating = true;
   modelGroup.position.set(homePos.x, startY, homePos.z);
 
+  gsap.ticker.wake();
   gsap.to(animPos, {
     y: finalY,
     duration: MODEL_ENTRANCE_DURATION,
