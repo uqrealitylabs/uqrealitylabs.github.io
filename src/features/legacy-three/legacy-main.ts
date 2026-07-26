@@ -2726,6 +2726,7 @@ function createSectionText(section, options = {}) {
   outText.textAlign = textAlign;
   outText.anchorX = anchorX;
   outText.anchorY = anchorY;
+  outText.gpuAccelerateSDF = false;
   outText.visible = false;
   outText.sync();
 
