@@ -2,9 +2,9 @@
 
 Website for the University of Queensland Reality Labs society. It covers the committee, projects, events, docs, socials, and the usual join-us chaos.
 
-[![CI](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/codeql.yml)
+[![Checks](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/checks.yml/badge.svg)](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/checks.yml)
 [![Security](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/security.yml)
+[![Publish](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/publish.yml/badge.svg?branch=main)](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/publish.yml)
 
 ## Links
 
@@ -16,7 +16,7 @@ Website for the University of Queensland Reality Labs society. It covers the com
 
 ## Commands
 
-- Install: `npx --yes npm@11.12.1 ci`
+- Install: `npm ci --allow-git=root`
 - Dev: `npm run dev`
 - Format: `npm run format`
 - Lint: `npm run lint`
@@ -25,4 +25,4 @@ Website for the University of Queensland Reality Labs society. It covers the com
 
 ## Deploy
 
-Successful pushes to `main` publish the tested `dist` artifact to GitHub Pages.
+Pushes to `main` build and publish `dist` to GitHub Pages.
