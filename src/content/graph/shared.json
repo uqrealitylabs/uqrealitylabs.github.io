@@ -90,12 +90,12 @@
     "siteUrl": "https://uqrealitylabs.github.io",
     "defaultTitleTemplate": "%s | UQ Reality Labs",
     "defaultSocialImage": {
-      "src": "/Assets/images/labs_logo.png"
+      "src": "/assets/images/site/logo.png"
     },
     "organization": {
       "name": "UQ Reality Labs",
       "url": "https://uqrealitylabs.github.io/",
-      "logo": "/Assets/images/labs_logo.png",
+      "logo": "/assets/images/site/logo.png",
       "sameAs": [
         "https://www.linkedin.com/company/uq-reality-labs",
         "https://www.instagram.com/uqrealitylabs/"
@@ -111,14 +111,14 @@
     {
       "label": "Website",
       "url": "/",
-      "texture": "/Assets/images/labs_logo.png",
+      "texture": "/assets/images/site/logo.png",
       "material": "cloth",
       "accent": "#FF5757"
     },
     {
       "label": "LinkedIn",
       "url": "https://www.linkedin.com/company/uq-reality-labs",
-      "texture": "/Assets/images/linkedin.png",
+      "texture": "/assets/images/contact/linkedin.png",
       "material": "glass",
       "accent": "#0A66C2",
       "music": {
@@ -133,7 +133,7 @@
     {
       "label": "Instagram",
       "url": "https://www.instagram.com/uqrealitylabs/",
-      "texture": "/Assets/images/instagram.jpg",
+      "texture": "/assets/images/contact/instagram.jpg",
       "material": "cloth",
       "accent": "#E1306C",
       "music": {
@@ -148,7 +148,7 @@
     {
       "label": "Discord",
       "url": "https://discord.com/invite/eN6v8R3fYD",
-      "texture": "/Assets/images/discord.jpg",
+      "texture": "/assets/images/contact/discord.jpg",
       "material": "rubber",
       "accent": "#5865F2",
       "music": {
@@ -163,7 +163,7 @@
     {
       "label": "Email",
       "url": "mailto:uqrealitylabs@gmail.com",
-      "texture": "/Assets/images/email.jpg",
+      "texture": "/assets/images/contact/email.jpg",
       "material": "grass",
       "accent": "#F59E0B",
       "music": {
@@ -210,7 +210,7 @@
       "members": [
         {
           "name": "Cyrus Forudi",
-          "photo": "/Assets/images/Cyrus.webp",
+          "photo": "/assets/images/committee/cyrus.webp",
           "photoWidth": 900,
           "photoHeight": 1351,
           "photoFocus": "50% 34%",
@@ -245,7 +245,7 @@
       "members": [
         {
           "name": "Navya",
-          "photo": "/Assets/images/Navya.webp",
+          "photo": "/assets/images/committee/navya.webp",
           "photoWidth": 900,
           "photoHeight": 1200,
           "photoFocus": "50% 36%",
@@ -272,7 +272,7 @@
       "members": [
         {
           "name": "Amna",
-          "photo": "/Assets/images/Amna.webp",
+          "photo": "/assets/images/committee/amna.webp",
           "photoWidth": 900,
           "photoHeight": 1200,
           "photoFocus": "50% 36%",
@@ -299,7 +299,7 @@
       "members": [
         {
           "name": "Chloe Lim",
-          "photo": "/Assets/images/Chloe.webp",
+          "photo": "/assets/images/committee/chloe.webp",
           "photoWidth": 900,
           "photoHeight": 1200,
           "photoFocus": "50% 36%",
@@ -326,7 +326,7 @@
       "members": [
         {
           "name": "Clare Johnston-Koto",
-          "photo": "/Assets/images/Clare.webp",
+          "photo": "/assets/images/committee/clare.webp",
           "photoWidth": 900,
           "photoHeight": 675,
           "photoFocus": "50% 42%",
@@ -353,7 +353,7 @@
       "members": [
         {
           "name": "Radhesh",
-          "photo": "/Assets/images/Radhesh.webp",
+          "photo": "/assets/images/committee/radhesh.webp",
           "photoWidth": 900,
           "photoHeight": 1034,
           "photoFocus": "50% 35%",
@@ -380,7 +380,7 @@
       "members": [
         {
           "name": "Doris Wei",
-          "photo": "/Assets/images/doris.jpg",
+          "photo": "/assets/images/committee/doris.jpg",
           "photoWidth": 1280,
           "photoHeight": 853,
           "photoFocus": "50% 42%",

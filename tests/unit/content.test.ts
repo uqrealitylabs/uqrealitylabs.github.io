@@ -69,7 +69,7 @@ describe("JSON content system", () => {
   it("keeps visible interaction image assets present", () => {
     const root = process.cwd();
     const paths = [
-      "/Assets/images/rubric.png",
+      "/assets/images/rubrics/rubric.png",
       ...getSiteContent("en").socialLinks.map((social) => social.texture),
     ];
 
@@ -162,7 +162,7 @@ describe("JSON content system", () => {
     [
       {
         hero: {
-          body: [{ type: "image", src: "/Assets/images/labs_logo.png" }],
+          body: [{ type: "image", src: "/assets/images/site/logo.png" }],
         },
       },
       "hero.body.0.alt",
@@ -213,13 +213,13 @@ describe("ContentRenderer", () => {
     { type: "link", label: "Link", href: "/about" },
     {
       type: "image",
-      src: "/Assets/images/labs_logo.png",
+      src: "/assets/images/site/logo.png",
       alt: "Logo",
       caption: "Caption",
     },
     {
       type: "image",
-      src: "/Assets/images/labs_logo.png",
+      src: "/assets/images/site/logo.png",
       decorative: true,
     },
     { type: "cta", label: "Join", href: "/rubrics" },
@@ -250,7 +250,7 @@ describe("ContentRenderer", () => {
     expect(html).toContain('<a href="/rubrics">Join</a>');
     expect(html).toContain("<blockquote>");
     expect(html).toContain(
-      '<img src="/Assets/images/labs_logo.png" alt="Logo"',
+      '<img src="/assets/images/site/logo.png" alt="Logo"',
     );
     expect(html).toContain('aria-hidden="true"');
     expect(html).toContain('data-content-slot="social-grid"');

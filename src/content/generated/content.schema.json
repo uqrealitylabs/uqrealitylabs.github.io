@@ -25,7 +25,7 @@
     },
     "assetPath": {
       "type": "string",
-      "pattern": "^/Assets/[^.].*"
+      "pattern": "^/assets/images/[^.].*"
     },
     "socialImage": {
       "type": "object",

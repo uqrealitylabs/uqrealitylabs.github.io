@@ -69,10 +69,10 @@ const REDUCED_POINTER_DAMPING = 0.025;
 const CAMERA_ANCHOR_SECTION_INDEX = 0;
 
 const ASSET_BASE = "/";
-const TITLE_FONT = `${ASSET_BASE}Assets/fonts/Bitcount_Single/static/BitcountSingle_Roman-Medium.ttf`;
-const DESCRIPTION_FONT = `${ASSET_BASE}Assets/fonts/Bitcount_Single/static/BitcountSingle_Roman-Regular.ttf`;
-const MODEL_PATH = `${ASSET_BASE}Assets/test-two.glb`;
-const LABS_LOGO_PATH = `${ASSET_BASE}Assets/images/labs_logo.png`;
+const TITLE_FONT = `${ASSET_BASE}assets/fonts/Bitcount_Single/static/BitcountSingle_Roman-Medium.ttf`;
+const DESCRIPTION_FONT = `${ASSET_BASE}assets/fonts/Bitcount_Single/static/BitcountSingle_Roman-Regular.ttf`;
+const MODEL_PATH = `${ASSET_BASE}assets/test-two.glb`;
+const LABS_LOGO_PATH = `${ASSET_BASE}assets/images/site/logo.png`;
 
 const TAB_ORDER = ["home", "about", "contact", "sponsors", "committee"];
 
@@ -85,8 +85,8 @@ function compactContentText(text = "") {
 
 function withBasePath(path = "") {
   const normalized = path.replace(/^\/+/, "");
-  if (!normalized.startsWith("Assets/") || normalized.includes("..")) {
-    return `${ASSET_BASE}Assets/images/labs_logo.png`;
+  if (!normalized.startsWith("assets/images/") || normalized.includes("..")) {
+    return LABS_LOGO_PATH;
   }
   return `${ASSET_BASE}${normalized}`;
 }
@@ -199,12 +199,12 @@ async function loadCommitteeRows() {
 let TABS = [];
 let SECTION_INDEX = {};
 let ABOUT_SECTION_INDEX = 0;
-const RUBRIC_IMAGE_PATH = `${ASSET_BASE}Assets/images/rubric.png`;
+const RUBRIC_IMAGE_PATH = `${ASSET_BASE}assets/images/rubrics/rubric.png`;
 const ABOUT_IMAGE_Y_OFFSET = -5;
 const ABOUT_IMAGE_HEIGHT = 5.2;
 let JOIN_LINK = "";
 let JOIN_LABEL = "";
-const NUAXION_LOGO_PATH = `${ASSET_BASE}Assets/images/nuaxion_logo.avif`;
+const NUAXION_LOGO_PATH = `${ASSET_BASE}assets/images/sponsors/nuaxion-logo.png`;
 let SPONSOR_SECTION_INDEX = 0;
 const SPONSOR_IMAGE_Y_OFFSET = -5;
 const SPONSOR_IMAGE_HEIGHT = 4.2;

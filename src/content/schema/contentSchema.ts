@@ -293,10 +293,10 @@ function validateAssetPath(
 ) {
   if (
     !hasText(value) ||
-    !value.startsWith("/Assets/") ||
+    !value.startsWith("/assets/images/") ||
     value.includes("..")
   ) {
-    issue(issues, path, "a safe /Assets/ path", value);
+    issue(issues, path, "a safe /assets/images/ path", value);
   }
 }
 

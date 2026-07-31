@@ -62,12 +62,24 @@ describe("SEO signals", () => {
   it.each([
     [
       "apple touch icon",
-      "/apple-touch-icon.png",
-      "public/apple-touch-icon.png",
+      "/assets/images/site/apple-touch-icon.png",
+      "public/assets/images/site/apple-touch-icon.png",
     ],
-    ["192 icon", "/icon-192.png", "public/icon-192.png"],
-    ["512 icon", "/icon-512.png", "public/icon-512.png"],
-    ["mask icon", "/safari-pinned-tab.svg", "public/safari-pinned-tab.svg"],
+    [
+      "192 icon",
+      "/assets/images/site/icon-192.png",
+      "public/assets/images/site/icon-192.png",
+    ],
+    [
+      "512 icon",
+      "/assets/images/site/icon-512.png",
+      "public/assets/images/site/icon-512.png",
+    ],
+    [
+      "mask icon",
+      "/assets/images/site/safari-pinned-tab.svg",
+      "public/assets/images/site/safari-pinned-tab.svg",
+    ],
   ])("keeps %s linked from the document head", (_, href, file) => {
     const html = readFileSync("index.html", "utf8");
 

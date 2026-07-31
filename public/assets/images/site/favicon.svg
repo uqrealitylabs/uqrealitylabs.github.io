@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-labelledby="title">
+  <title id="title">UQ Reality Labs</title>
+  <rect width="400" height="400" fill="#000"/>
+  <path d="M175 133a89 89 0 1 0 50 0" fill="none" stroke="#fff" stroke-width="22"/>
+  <rect x="189" y="81" width="22" height="119" rx="9" fill="#fff"/>
+</svg>
