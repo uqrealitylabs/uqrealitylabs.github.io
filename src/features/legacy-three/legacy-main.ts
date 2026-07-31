@@ -69,8 +69,8 @@ const REDUCED_POINTER_DAMPING = 0.025;
 const CAMERA_ANCHOR_SECTION_INDEX = 0;
 
 const ASSET_BASE = "/";
-const TITLE_FONT = `${ASSET_BASE}assets/fonts/Bitcount_Single/static/BitcountSingle_Roman-Medium.ttf`;
-const DESCRIPTION_FONT = `${ASSET_BASE}assets/fonts/Bitcount_Single/static/BitcountSingle_Roman-Regular.ttf`;
+const TITLE_FONT = `${ASSET_BASE}assets/fonts/BitcountSingleRoman/medium.ttf`;
+const DESCRIPTION_FONT = `${ASSET_BASE}assets/fonts/BitcountSingleRoman/regular.ttf`;
 const MODEL_PATH = `${ASSET_BASE}assets/test-two.glb`;
 const LABS_LOGO_PATH = `${ASSET_BASE}assets/images/site/logo.png`;
 
