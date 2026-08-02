@@ -21,6 +21,14 @@ import {
   stepPoke,
   triggerMaterialHaptic,
 } from "@uqrealitylabs/feelable-materials";
+import {
+  configureRenderer,
+  createFrameGate,
+  selectRenderProfile,
+} from "@uqrealitylabs/sauron";
+import {
+  createPrismaticMaterial,
+} from "@uqrealitylabs/sauron/prism";
 import { getPageContent, getSiteContent } from "../../content/contentRegistry";
 import {
   JOIN_US_BLUSH_DELAY_MS,
@@ -71,7 +79,7 @@ const CAMERA_ANCHOR_SECTION_INDEX = 0;
 const ASSET_BASE = "/";
 const TITLE_FONT = `${ASSET_BASE}assets/fonts/BitcountSingleRoman/medium.ttf`;
 const DESCRIPTION_FONT = `${ASSET_BASE}assets/fonts/BitcountSingleRoman/regular.ttf`;
-const MODEL_PATH = `${ASSET_BASE}assets/test-two.glb`;
+const MODEL_PATH = `${ASSET_BASE}assets/keychain.glb`;
 const LABS_LOGO_PATH = `${ASSET_BASE}assets/images/site/logo.png`;
 
 const TAB_ORDER = ["home", "about", "contact", "sponsors", "committee"];
@@ -354,8 +362,7 @@ const KEY_LIGHT_OFFSET = { x: 2, y: 10, z: 40 };
 const FILL_LIGHT_OFFSET = { x: -12, y: 4, z: 25 };
 const RAINBOW_Z_OFFSET = -80; // behind model (home model z -20 → light z -100)
 const RAINBOW_FADE_DURATION = 0.9;
-const RAINBOW_GLOW_SCALE = 11.8;
-const RAINBOW_OUTER_GLOW_SCALE = 17.6;
+const RAINBOW_GLOW_SCALE = 17.6;
 const RAINBOW_LIGHT_INTENSITY = 3.1;
 const RAINBOW_LIGHT_DISTANCE = 114;
 const RAINBOW_LIGHT_DECAY = 0.42;
@@ -389,6 +396,10 @@ document.body.dataset.section = "0";
 document.body.dataset.sceneReady = "false";
 document.body.dataset.sectionReady = "false";
 document.body.dataset.joinState = joinUsStates.idleCurious;
+const prefersReducedMotion = window.matchMedia(
+  "(prefers-reduced-motion: reduce)",
+);
+document.body.dataset.reducedMotion = String(prefersReducedMotion.matches);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(CLEAR_COLOUR);
@@ -454,17 +465,30 @@ const camera = new THREE.PerspectiveCamera(
   CAM_FAR,
 );
 
-const initialRenderPixelRatio = getRenderPixelRatio();
+function getRenderProfile() {
+  return selectRenderProfile({
+    width: viewportWidth,
+    height: viewportHeight,
+    devicePixelRatio: window.devicePixelRatio,
+    hardwareConcurrency: navigator.hardwareConcurrency,
+    reducedMotion: prefersReducedMotion.matches,
+    saveData: navigator.connection?.saveData,
+  });
+}
+
+let renderProfile = getRenderProfile();
+let shouldRenderFrame = createFrameGate(renderProfile.maxFps);
 const renderer = new THREE.WebGLRenderer({
   canvas,
-  antialias: initialRenderPixelRatio <= 2,
+  antialias:
+    renderProfile.expensiveEffects && (window.devicePixelRatio || 1) <= 2,
   powerPreference: "high-performance",
 });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.04;
-renderer.setPixelRatio(initialRenderPixelRatio);
-renderer.setSize(viewportWidth, viewportHeight, false);
+configureRenderer(renderer, renderProfile, viewportWidth, viewportHeight);
+starGeometry.setDrawRange(0, STAR_COUNT * renderProfile.particleScale);
 
 let controls;
 if (ENABLE_ORBIT_CONTROLS) {
@@ -539,7 +563,6 @@ const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 let pointerDirty = true;
 let rainbowBackdrop = null;
-let rainbowHue = 0;
 let roundedAlphaTexture = null;
 let baseCameraZ = 5;
 let baseCamLeftOffset = 0;
@@ -554,12 +577,9 @@ let pointerIsDown = false;
 let pointerPressure = 0;
 let lastPointerType = "mouse";
 let parallaxActive = false;
-const prefersReducedMotion = window.matchMedia(
-  "(prefers-reduced-motion: reduce)",
-);
-document.body.dataset.reducedMotion = String(prefersReducedMotion.matches);
 prefersReducedMotion.addEventListener?.("change", (event) => {
   document.body.dataset.reducedMotion = String(event.matches);
+  queueResize();
 });
 const coarsePointer = window.matchMedia("(pointer: coarse)");
 let animationFrame = 0;
@@ -935,14 +955,6 @@ function isCompactViewport() {
 
 function isShortViewport() {
   return viewportHeight <= SHORT_VIEWPORT_HEIGHT;
-}
-
-function getRenderPixelRatio() {
-  const canvasPixels = viewportWidth * viewportHeight;
-  const maxRatio =
-    canvasPixels <= 480_000 ? 3 : canvasPixels <= 1_100_000 ? 2.5 : 2;
-
-  return Math.min(window.devicePixelRatio || 1, maxRatio);
 }
 
 function updateViewportSize() {
@@ -1393,48 +1405,6 @@ function aimLightsAtModel() {
   fillLight.target.position.copy(lightTarget);
 
   updateRainbowBackdropPosition();
-}
-
-function createRainbowGlowTexture() {
-  const size = 512;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d");
-  const center = size / 2;
-  const gradient = ctx.createRadialGradient(
-    center,
-    center,
-    center * 0.05,
-    center,
-    center,
-    center,
-  );
-
-  gradient.addColorStop(0, "rgba(255, 255, 255, 0.55)");
-  gradient.addColorStop(0.2, "rgba(255, 80, 180, 0.42)");
-  gradient.addColorStop(0.4, "rgba(255, 60, 60, 0.32)");
-  gradient.addColorStop(0.55, "rgba(255, 200, 60, 0.24)");
-  gradient.addColorStop(0.7, "rgba(80, 220, 120, 0.16)");
-  gradient.addColorStop(0.85, "rgba(80, 140, 255, 0.08)");
-  gradient.addColorStop(1, "rgba(160, 80, 255, 0)");
-
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, size, size);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
-
-function createRainbowGlowMaterial(texture, opacity) {
-  return new THREE.MeshBasicMaterial({
-    map: texture,
-    transparent: true,
-    opacity,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
 }
 
 function getRoundedAlphaTexture() {
@@ -2016,27 +1986,14 @@ function createSocialCardMaterials(texture, label = "", touchField = null) {
 
 function createRainbowBackdrop(maxSize) {
   const group = new THREE.Group();
-  const texture = createRainbowGlowTexture();
-  texture.minFilter = THREE.LinearFilter;
-  texture.magFilter = THREE.LinearFilter;
-
-  const innerGlow = new THREE.Mesh(
+  const glow = new THREE.Mesh(
     new THREE.PlaneGeometry(
       maxSize * RAINBOW_GLOW_SCALE,
       maxSize * RAINBOW_GLOW_SCALE,
     ),
-    createRainbowGlowMaterial(texture, 0.7),
+    createPrismaticMaterial(0),
   );
-  group.add(innerGlow);
-
-  const outerGlow = new THREE.Mesh(
-    new THREE.PlaneGeometry(
-      maxSize * RAINBOW_OUTER_GLOW_SCALE,
-      maxSize * RAINBOW_OUTER_GLOW_SCALE,
-    ),
-    createRainbowGlowMaterial(texture, 0.35),
-  );
-  group.add(outerGlow);
+  group.add(glow);
 
   const pointLight = new THREE.PointLight(
     0xffffff,
@@ -2046,15 +2003,12 @@ function createRainbowBackdrop(maxSize) {
   pointLight.decay = RAINBOW_LIGHT_DECAY;
   group.add(pointLight);
 
-  group.userData.glowMeshes = [innerGlow, outerGlow];
-  group.userData.glowOpacities = [0.7, 0.35];
+  group.userData.glowMeshes = [glow];
+  group.userData.glowOpacities = [0.72];
   group.userData.pointLight = pointLight;
   group.userData.baseSize = maxSize;
   group.visible = false;
 
-  for (const mesh of group.userData.glowMeshes) {
-    mesh.material.opacity = 0;
-  }
   pointLight.intensity = 0;
 
   scene.add(group);
@@ -2075,23 +2029,15 @@ function resizeRainbowBackdrop(target = rainbowBackdrop) {
 
   const layout = getViewportLayout();
   const baseSize = target.userData.baseSize;
-  const innerScale = layout.narrow
-    ? 7.2
-    : layout.compact
-      ? 7.8
-      : layout.wide
-        ? 9.6
-        : RAINBOW_GLOW_SCALE;
-  const outerScale = layout.narrow
+  const glowScale = layout.narrow
     ? 9.9
     : layout.compact
       ? 10.8
       : layout.wide
         ? 13.8
-        : RAINBOW_OUTER_GLOW_SCALE;
+        : RAINBOW_GLOW_SCALE;
 
-  resizeSquarePlane(target.userData.glowMeshes[0], baseSize * innerScale);
-  resizeSquarePlane(target.userData.glowMeshes[1], baseSize * outerScale);
+  resizeSquarePlane(target.userData.glowMeshes[0], baseSize * glowScale);
 }
 
 function updateRainbowBackdropPosition() {
@@ -2115,7 +2061,7 @@ function stopRainbowFade() {
   if (!rainbowBackdrop) return;
 
   for (const mesh of rainbowBackdrop.userData.glowMeshes) {
-    gsap.killTweensOf(mesh.material);
+    gsap.killTweensOf(mesh.material.uniforms.uOpacity);
   }
   gsap.killTweensOf(rainbowBackdrop.userData.pointLight);
 }
@@ -2132,16 +2078,16 @@ function setRainbowBackdropVisible(visible) {
 
   return new Promise((resolve) => {
     glowMeshes.forEach((mesh, index) => {
-      gsap.to(mesh.material, {
-        opacity: visible ? glowOpacities[index] : 0,
-        duration: RAINBOW_FADE_DURATION,
+      gsap.to(mesh.material.uniforms.uOpacity, {
+        value: visible ? glowOpacities[index] : 0,
+        duration: motionDuration(RAINBOW_FADE_DURATION),
         ease: visible ? "power2.out" : "power2.in",
       });
     });
 
     gsap.to(pointLight, {
       intensity: targetIntensity,
-      duration: RAINBOW_FADE_DURATION,
+      duration: motionDuration(RAINBOW_FADE_DURATION),
       ease: visible ? "power2.out" : "power2.in",
       onComplete: () => {
         if (!visible) {
@@ -2163,21 +2109,23 @@ function showRainbowBackdrop() {
   return setRainbowBackdropVisible(true);
 }
 
-function animateRainbowBackdrop() {
+function animateRainbowBackdrop(seconds) {
   if (!rainbowBackdrop?.visible) return;
   if (prefersReducedMotion.matches) {
+    rainbowBackdrop.userData.glowMeshes.forEach((mesh) => {
+      mesh.material.uniforms.uTime.value = 0;
+    });
     updateRainbowBackdropRotation();
     return;
   }
 
-  rainbowHue = (rainbowHue + 0.003) % 1;
-  const pulse = 1 + Math.sin(rainbowHue * Math.PI * 2) * 0.14;
+  const rainbowHue = (seconds * 0.1) % 1;
+  const pulse = 1 + Math.sin(seconds * 0.7) * 0.14;
   rainbowBackdrop.userData.pointLight.color.setHSL(rainbowHue, 1, 0.62);
   rainbowBackdrop.userData.pointLight.intensity =
     RAINBOW_LIGHT_INTENSITY * pulse;
-  rainbowBackdrop.userData.glowMeshes.forEach((mesh, index) => {
-    mesh.material.opacity =
-      rainbowBackdrop.userData.glowOpacities[index] * pulse;
+  rainbowBackdrop.userData.glowMeshes.forEach((mesh) => {
+    mesh.material.uniforms.uTime.value = seconds;
   });
   updateRainbowBackdropRotation();
 }
@@ -4691,8 +4639,10 @@ let resizeFrame = 0;
 
 function onResize() {
   updateViewportSize();
-  renderer.setPixelRatio(getRenderPixelRatio());
-  renderer.setSize(viewportWidth, viewportHeight, false);
+  renderProfile = getRenderProfile();
+  shouldRenderFrame = createFrameGate(renderProfile.maxFps);
+  configureRenderer(renderer, renderProfile, viewportWidth, viewportHeight);
+  starGeometry.setDrawRange(0, STAR_COUNT * renderProfile.particleScale);
   applyCameraLayout();
   applyResponsiveLayout();
   refreshMemberPopupPosition();
@@ -4720,10 +4670,11 @@ if ("ResizeObserver" in window) {
   resizeObserver.observe(canvas);
 }
 
-function animate() {
+function animate(now) {
   animationFrame = requestAnimationFrame(animate);
+  if (!shouldRenderFrame(now)) return;
 
-  animateRainbowBackdrop();
+  animateRainbowBackdrop(now / 1000);
   applyPointerMotion();
   updateJoinCuriosityState();
   updateSocialMaterialTouchFields();
@@ -4778,6 +4729,10 @@ window.addEventListener("pagehide", (event) => {
   stopJoinWink();
   scrollObserver?.kill();
   resizeObserver?.disconnect();
+  rainbowBackdrop?.userData.glowMeshes.forEach((mesh) => {
+    mesh.geometry.dispose();
+    mesh.material.dispose();
+  });
   renderer.dispose();
   renderer.forceContextLoss();
 

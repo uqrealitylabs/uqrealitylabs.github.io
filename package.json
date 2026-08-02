@@ -9,7 +9,8 @@
     "esbuild@0.25.12": true,
     "fsevents@2.3.3": true,
     "github:uqrealitylabs/eyslie#e69149302a14887d7d1824549e216e69c635555c": true,
-    "github:uqrealitylabs/feelable-materials#68363f093ac9cb49bb21773b0ebda16a3715ddab": true
+    "github:uqrealitylabs/feelable-materials#68363f093ac9cb49bb21773b0ebda16a3715ddab": true,
+    "github:keys-i/sauron#600c0e0271224a9d13a14c1d5ca8c9df3b991841": true
   },
   "scripts": {
     "dev": "rsbuild dev --config tools/config/rsbuild.config.ts",
@@ -33,6 +34,7 @@
   "dependencies": {
     "@uqrealitylabs/eyslie": "git+https://github.com/uqrealitylabs/eyslie.git#e69149302a14887d7d1824549e216e69c635555c",
     "@uqrealitylabs/feelable-materials": "git+https://github.com/uqrealitylabs/feelable-materials.git#68363f093ac9cb49bb21773b0ebda16a3715ddab",
+    "@uqrealitylabs/sauron": "git+https://github.com/keys-i/sauron.git#600c0e0271224a9d13a14c1d5ca8c9df3b991841",
     "gsap": "^3.15.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
