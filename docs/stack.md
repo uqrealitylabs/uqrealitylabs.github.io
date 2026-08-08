@@ -86,8 +86,8 @@ Markdown was removed as a live content system to remove parsing/frontmatter code
 
 ## CI/CD
 
-- `.github/workflows/ci.yml`: quality gate, production build/budget gate, Cypress component job, Cypress E2E smoke job.
-- `.github/workflows/security.yml`: workflow policy, dependency audit, OSV, Dependency Review, CodeQL.
+- `.github/workflows/ci.yml`: quality gate, production build/budget gate, and one `tests` job for Cypress component + E2E under `tests/`.
+- `.github/workflows/security.yml`: workflow policy, dependency audit, OSV, Dependency Review, and CodeQL.
 - `.github/workflows/benchmarks.yml`: scheduled/manual build metrics and Lighthouse CI capture for the served home route.
 - `.github/workflows/deploy.yml`: GitHub Pages deploy from a validated `dist` artifact on `main`.
 - Old duplicate Firebase and extra Pages workflows were removed; the repo now has one deploy path.
