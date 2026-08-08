@@ -2,7 +2,8 @@ name: Deploy
 
 on:
   push:
-    branches: [temp-mobile] # change to main when done lmao
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
