@@ -87,14 +87,14 @@
   },
   "seo": {
     "siteName": "UQ Reality Labs",
-    "siteUrl": "https://uqrealitylabs.github.io",
+    "siteUrl": "https://uqrealitylabs.com",
     "defaultTitleTemplate": "%s | UQ Reality Labs",
     "defaultSocialImage": {
       "src": "/Assets/images/labs_logo.png"
     },
     "organization": {
       "name": "UQ Reality Labs",
-      "url": "https://uqrealitylabs.github.io/",
+      "url": "https://uqrealitylabs.com/",
       "logo": "/Assets/images/labs_logo.png",
       "sameAs": [
         "https://www.linkedin.com/company/uq-reality-labs",

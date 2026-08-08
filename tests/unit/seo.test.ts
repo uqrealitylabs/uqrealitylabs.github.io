@@ -50,7 +50,7 @@ describe("SEO signals", () => {
   it("generates a deterministic sitemap for real indexable routes only", () => {
     const sitemap = buildSitemap(site, pages);
     const indexableUrls = pages
-      .filter((page) => page.meta.indexable)
+      .filter((page) => page.meta.indexable && page.locale === site.locale)
       .map((page) => canonicalUrl(site, page));
 
     indexableUrls.forEach((url) => {
@@ -60,24 +60,36 @@ describe("SEO signals", () => {
     expect(sitemap).toBe(readFileSync("public/sitemap.xml", "utf8"));
   });
 
-  it("uses locale subdomains for canonical, hreflang, and sitemap URLs", () => {
+  it("uses the public apex origin without inventing locale hosts", () => {
     const sitemap = buildSitemap(site, pages);
     const esHome = getPageContent("es", "home");
 
-    expect(canonicalUrl(site, home)).toBe(
-      "https://en.uqrealitylabs.github.io/",
-    );
+    expect(canonicalUrl(site, home)).toBe("https://uqrealitylabs.com/");
     expect(canonicalUrl(getSiteContent("es"), esHome)).toBe(
-      "https://es.uqrealitylabs.github.io/",
+      "https://uqrealitylabs.com/",
     );
-    expect(buildHreflangAlternates(site, home, pages)).toEqual([
-      { hreflang: "en", href: "https://en.uqrealitylabs.github.io/" },
-      { hreflang: "es", href: "https://es.uqrealitylabs.github.io/" },
-      { hreflang: "x-default", href: "https://en.uqrealitylabs.github.io/" },
+    expect(buildHreflangAlternates(site, home, pages)).toEqual([]);
+    expect(sitemap).toContain("<loc>https://uqrealitylabs.com/</loc>");
+    expect(sitemap).not.toContain("en.uqrealitylabs");
+    expect(sitemap).not.toContain("es.uqrealitylabs");
+    expect(sitemap).not.toContain("github.io");
+  });
+
+  it("can still emit locale subdomain URLs when explicitly configured", () => {
+    const options = { mode: "subdomain" as const };
+    const esHome = getPageContent("es", "home");
+
+    expect(canonicalUrl(site, home, options)).toBe(
+      "https://en.uqrealitylabs.com/",
+    );
+    expect(canonicalUrl(getSiteContent("es"), esHome, options)).toBe(
+      "https://es.uqrealitylabs.com/",
+    );
+    expect(buildHreflangAlternates(site, home, pages, options)).toEqual([
+      { hreflang: "en", href: "https://en.uqrealitylabs.com/" },
+      { hreflang: "es", href: "https://es.uqrealitylabs.com/" },
+      { hreflang: "x-default", href: "https://en.uqrealitylabs.com/" },
     ]);
-    expect(sitemap).toContain(
-      '<xhtml:link rel="alternate" hreflang="es" href="https://es.uqrealitylabs.github.io/" />',
-    );
   });
 
   it("keeps generated public SEO files in sync", () => {

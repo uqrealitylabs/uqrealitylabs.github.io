@@ -47,7 +47,7 @@ Markdown was removed as a live content system to remove parsing/frontmatter code
 - `tools/scripts/generate-seo.ts` writes `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt`, and the generated SEO block in `index.html`.
 - `tools/scripts/validate-seo.ts` fails when generated files are stale or indexable pages have duplicate/missing canonical metadata.
 - Production robots allow public pages and point to the sitemap. Preview robots are generated as `Disallow: /` by `buildRobots(site, "preview")`.
-- Only explicitly `indexable: true` pages enter the sitemap; localized URLs use the configured language subdomain form such as `https://en.<domain>/`.
+- Only explicitly `indexable: true` pages enter the sitemap. Default locale URL mode is `off` (single host, no invented language subdomains). Subdomain/path modes remain available when those hosts or routes actually exist.
 
 ## Validation commands
 

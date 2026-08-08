@@ -58,7 +58,7 @@ function localeUrlConfig(
     siteOrigin: options.siteOrigin ?? site.seo.siteUrl,
     supportedLocales: options.supportedLocales ?? uniqueLocales(site, pages),
     defaultLocale: options.defaultLocale ?? site.locale,
-    mode: options.mode ?? "subdomain",
+    mode: options.mode ?? "off",
     ...(options.baseDomain ? { baseDomain: options.baseDomain } : {}),
   };
 }
@@ -197,9 +197,23 @@ export function buildRobots(
   ].join("\n");
 }
 
-export function indexablePages(pages: PageContent[]) {
+export function indexablePages(
+  pages: PageContent[],
+  site?: SiteContent,
+  options?: SeoUrlOptions,
+) {
+  const config = site
+    ? localeUrlConfig(site, pages, options)
+    : {
+        mode: options?.mode ?? "off",
+        defaultLocale: options?.defaultLocale ?? "en",
+      };
+  const mode = config.mode ?? "off";
+  const defaultLocale = config.defaultLocale;
+
   return pages
     .filter(isIndexable)
+    .filter((page) => mode !== "off" || page.locale === defaultLocale)
     .sort(
       (a, b) =>
         canonicalPath(a).localeCompare(canonicalPath(b)) ||
@@ -215,17 +229,23 @@ export function buildHreflangAlternates(
 ): LocaleAlternate[] {
   if (!isIndexable(page)) return [];
 
-  const relatedPages = pages.filter(
-    (candidate) => candidate.id === page.id && isIndexable(candidate),
+  const config = localeUrlConfig(site, pages, options);
+  // Single-host mode has no distinct locale URLs to advertise.
+  if ((config.mode ?? "off") === "off") return [];
+
+  const relatedPages = indexablePages(pages, site, options).filter(
+    (candidate) => candidate.id === page.id,
   );
   const supportedLocales = relatedPages.map((candidate) => candidate.locale);
-  const config = localeUrlConfig(site, relatedPages, {
+  if (supportedLocales.length <= 1) return [];
+
+  const alternateConfig = localeUrlConfig(site, relatedPages, {
     ...options,
     supportedLocales:
       supportedLocales.length > 0 ? supportedLocales : [page.locale],
   });
 
-  return buildAlternateLocaleUrls(canonicalPath(page), config).filter(
+  return buildAlternateLocaleUrls(canonicalPath(page), alternateConfig).filter(
     (alternate) =>
       alternate.hreflang === "x-default" ||
       supportedLocales.includes(alternate.hreflang as Locale),
@@ -237,7 +257,7 @@ export function buildSitemap(
   pages: PageContent[],
   options?: SeoUrlOptions,
 ) {
-  const urls = indexablePages(pages).map((page) => {
+  const entries = indexablePages(pages, site, options).map((page) => {
     const lastmodLine = page.meta.updatedAt
       ? `    <lastmod>${escapeHtml(page.meta.updatedAt)}</lastmod>`
       : "";
@@ -250,26 +270,39 @@ export function buildSitemap(
       )
       .join("\n");
 
-    return [
-      "  <url>",
-      `    <loc>${escapeHtml(canonicalUrl(site, page, options))}</loc>`,
-      ...(alternates ? [alternates] : []),
-      ...(lastmodLine ? [lastmodLine] : []),
-      "  </url>",
-    ].join("\n");
+    return {
+      hasAlternates: Boolean(alternates),
+      body: [
+        "  <url>",
+        `    <loc>${escapeHtml(canonicalUrl(site, page, options))}</loc>`,
+        ...(alternates ? [alternates] : []),
+        ...(lastmodLine ? [lastmodLine] : []),
+        "  </url>",
+      ].join("\n"),
+    };
   });
+
+  const xmlns = entries.some((entry) => entry.hasAlternates)
+    ? ' xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"'
+    : ' xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
-    ...urls,
+    `<urlset${xmlns}>`,
+    ...entries.map((entry) => entry.body),
     "</urlset>",
     "",
   ].join("\n");
 }
 
-export function buildLlms(site: SiteContent, pages: PageContent[]) {
-  const urls = indexablePages(pages).map((page) => canonicalUrl(site, page));
+export function buildLlms(
+  site: SiteContent,
+  pages: PageContent[],
+  options?: SeoUrlOptions,
+) {
+  const urls = indexablePages(pages, site, options).map((page) =>
+    canonicalUrl(site, page, options),
+  );
 
   return [
     "# UQ Reality Labs",
@@ -337,11 +370,15 @@ export function renderHeadBlock(
   ].join("\n    ");
 }
 
-export function validateSeo(site: SiteContent, pages: PageContent[]) {
+export function validateSeo(
+  site: SiteContent,
+  pages: PageContent[],
+  options?: SeoUrlOptions,
+) {
   const issues: string[] = [];
   const canonicals = new Set<string>();
-  const publicPages = indexablePages(pages);
-  const config = localeUrlConfig(site, publicPages);
+  const publicPages = indexablePages(pages, site, options);
+  const config = localeUrlConfig(site, publicPages, options);
   const allowedOrigins = new Set(
     config.supportedLocales.map(
       (locale) => new URL(buildLocaleUrl(locale, "/", config)).origin,
@@ -351,7 +388,7 @@ export function validateSeo(site: SiteContent, pages: PageContent[]) {
   if (publicPages.length === 0) issues.push("No indexable pages found.");
 
   for (const page of publicPages) {
-    const url = canonicalUrl(site, page);
+    const url = canonicalUrl(site, page, options);
     if (!allowedOrigins.has(new URL(url).origin)) {
       issues.push(`Canonical URL outside site origin: ${url}`);
     }

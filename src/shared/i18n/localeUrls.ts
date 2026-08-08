@@ -102,7 +102,7 @@ export function buildLocaleUrl(
   route: string,
   config: LocaleUrlConfig,
 ) {
-  const mode = config.mode ?? "subdomain";
+  const mode = config.mode ?? "off";
   const origin = originFor(config);
   const isAbsolute = /^[a-z][a-z\d+\-.]*:\/\//i.test(route);
 
