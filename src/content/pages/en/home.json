@@ -4,7 +4,10 @@
   "id": "home",
   "meta": {
     "title": "UQ Reality Labs est. 2022",
-    "description": "AR, VR, workshops, demos, and one suspicious headset cable."
+    "description": "AR, VR, workshops, demos, and one suspicious headset cable.",
+    "social": {
+      "title": "UQ Reality Labs"
+    }
   },
   "nav": {
     "label": "Home",

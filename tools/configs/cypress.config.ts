@@ -9,6 +9,7 @@ export default defineConfig({
     supportFile: false,
   },
   component: {
+    indexHtmlFile: "tests/component/component-index.html",
     specPattern: "tests/component/**/*.cy.tsx",
     supportFile: false,
     devServer: {
