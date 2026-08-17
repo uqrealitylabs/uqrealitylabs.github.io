@@ -45,15 +45,15 @@
   "dependencies": {
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
-    "@react-three/postprocessing": "^3.0.4",
+    "@react-three/postprocessing": "^3.0.5",
     "gsap": "^3.15.0",
     "maath": "^0.10.8",
-    "motion": "^13.0.0",
+    "motion": "^13.1.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "three": "^0.185.1",
     "troika-three-text": "^0.52.5",
-    "zustand": "^5.0.9"
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.7",
