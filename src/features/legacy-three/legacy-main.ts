@@ -477,8 +477,28 @@ if (ENABLE_LIGHT_DEBUG) {
   lightHelpers.forEach((helper) => scene.add(helper));
 }
 
-const loader = new GLTFLoader();
-const textureLoader = new THREE.TextureLoader();
+function reportSceneProgress(ratio) {
+  const clamped = Math.max(0, Math.min(1, ratio));
+  window.dispatchEvent(
+    new CustomEvent("uqrl:scene-progress", { detail: clamped }),
+  );
+}
+
+function markSceneReady() {
+  document.body.dataset.sceneReady = "true";
+  reportSceneProgress(1);
+  window.dispatchEvent(new Event("uqrl:scene-ready"));
+}
+
+const loadManager = new THREE.LoadingManager();
+loadManager.onProgress = (_url, loaded, total) => {
+  if (!total) return;
+  // Asset fetches occupy most of the bar after boot scaffolding.
+  reportSceneProgress(0.18 + (loaded / total) * 0.72);
+};
+
+const loader = new GLTFLoader(loadManager);
+const textureLoader = new THREE.TextureLoader(loadManager);
 
 const lookTarget = new THREE.Vector3();
 let modelGroup = null;
@@ -4657,7 +4677,7 @@ function animateModelEntrance(modelSize) {
       aimLightsAtModel();
       isAnimating = false;
       entranceComplete = true;
-      document.body.dataset.sceneReady = "true";
+      markSceneReady();
       updateStatus();
       await revealSectionContent(currentIndex);
       if (currentIndex === CONTACT_SECTION_INDEX) {
@@ -4745,6 +4765,7 @@ async function loadSceneModel() {
 
     rainbowBackdrop = createRainbowBackdrop(maxSize);
 
+    reportSceneProgress(0.94);
     await warmupSectionTexts();
     setCameraOnModel(getCurrentSectionPos());
     animateModelEntrance(maxSize);
@@ -4753,6 +4774,7 @@ async function loadSceneModel() {
     logModelPosition("Model (loaded)");
   } catch (error) {
     console.error("Failed to load GLB:", error);
+    markSceneReady();
   }
 }
 
@@ -4854,8 +4876,10 @@ window.addEventListener("pagehide", (event) => {
 });
 
 async function init() {
+  reportSceneProgress(0.04);
   await loadSiteContent();
   setupAccessibleContentLinks();
+  reportSceneProgress(0.1);
   COMMITTEE_ROWS = await loadCommitteeRows();
   setupScrollControl();
   setupKeyboardNavigation();
@@ -4877,7 +4901,8 @@ async function init() {
   setupAboutJoinInteraction();
   setupCommitteeInteraction();
   scheduleJoinWink();
-  loadSceneModel();
+  reportSceneProgress(0.18);
+  await loadSceneModel();
 
   if (!document.hidden) {
     startAnimationLoop();
@@ -4886,6 +4911,7 @@ async function init() {
 
 init().catch((error) => {
   console.error("Failed to start site:", error);
+  markSceneReady();
   if (DEBUG && statusLabel) {
     statusLabel.hidden = false;
     statusLabel.textContent = "Failed to load";
