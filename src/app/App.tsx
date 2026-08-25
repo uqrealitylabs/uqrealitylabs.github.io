@@ -79,10 +79,7 @@ export function App() {
 
   return (
     <>
-      <div
-        inert={sceneReady ? undefined : true}
-        aria-hidden={sceneReady ? undefined : true}
-      >
+      <div inert={sceneReady ? undefined : true}>
         <LegacyDomScaffold
           labels={{
             mainNav: t(locale, "nav.main"),

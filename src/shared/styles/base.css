@@ -17,6 +17,20 @@
   font: 700 clamp(0.72rem, 0.55rem + 1.4vw, 0.95rem) / 1 var(--font-display);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  transform: translateY(0);
+  transition: transform 1s cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform;
+}
+
+.loading-experience.is-exit {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-experience {
+    transition: none;
+  }
 }
 
 .loading-experience__panel {

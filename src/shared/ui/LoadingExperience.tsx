@@ -1,5 +1,12 @@
+import { useEffect, useState } from "react";
+
 const SEGMENT_COUNT = 20;
 const SEGMENTS = Array.from({ length: SEGMENT_COUNT }, (_, i) => `seg-${i}`);
+const EXIT_MS = 1000;
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
 export function LoadingExperience({
   hidden,
@@ -10,19 +17,36 @@ export function LoadingExperience({
   label: string;
   progress: number;
 }) {
-  if (hidden) return null;
+  const [mounted, setMounted] = useState(!hidden);
+  const [exiting, setExiting] = useState(false);
+
+  useEffect(() => {
+    if (!hidden || !mounted) return;
+
+    if (prefersReducedMotion()) {
+      setMounted(false);
+      return;
+    }
+
+    setExiting(true);
+    const timeout = window.setTimeout(() => setMounted(false), EXIT_MS);
+    return () => window.clearTimeout(timeout);
+  }, [hidden, mounted]);
+
+  if (!mounted) return null;
 
   const pct = Math.max(0, Math.min(100, Math.round(progress)));
   const filled = Math.round((pct / 100) * SEGMENT_COUNT);
 
   return (
     <div
-      className="loading-experience"
+      className={exiting ? "loading-experience is-exit" : "loading-experience"}
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={pct}
       aria-label={label}
+      aria-hidden={exiting || undefined}
     >
       <div className="loading-experience__panel">
         <div className="loading-experience__meta">
