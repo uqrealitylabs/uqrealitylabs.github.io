@@ -17,18 +17,35 @@
   font: 700 clamp(0.72rem, 0.55rem + 1.4vw, 0.95rem) / 1 var(--font-display);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  transform: translateY(0);
-  transition: transform 1s cubic-bezier(0.65, 0, 0.35, 1);
-  will-change: transform;
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 1s cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: clip-path;
 }
 
-.loading-experience.is-exit {
+.loading-experience::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  block-size: 0.12rem;
+  background: #fff;
   transform: translateY(-100%);
+  transition: top 1s cubic-bezier(0.65, 0, 0.35, 1);
   pointer-events: none;
 }
 
+.loading-experience.is-exit {
+  clip-path: inset(0 0 100% 0);
+  pointer-events: none;
+}
+
+.loading-experience.is-exit::after {
+  top: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .loading-experience {
+  .loading-experience,
+  .loading-experience::after {
     transition: none;
   }
 }
