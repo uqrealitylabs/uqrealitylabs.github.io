@@ -4,39 +4,77 @@
 
 .loading-experience {
   position: fixed;
-  inset-block-end: max(1rem, env(safe-area-inset-bottom));
-  inset-inline-start: 50%;
-  z-index: 50;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.5rem 0.7rem;
-  color: var(--chalk);
-  background: rgba(15, 17, 24, 0.82);
-  border: 1px solid rgba(255, 243, 210, 0.24);
-  border-radius: 999px;
-  transform: translateX(-50%);
-  font: 700 0.9rem / 1 var(--font-display);
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: max(1rem, env(safe-area-inset-top))
+    max(1.25rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom))
+    max(1.25rem, env(safe-area-inset-left));
+  color: #fff;
+  background: #000;
+  font: 700 clamp(0.72rem, 0.55rem + 1.4vw, 0.95rem) / 1 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 1s cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: clip-path;
 }
 
-.loading-experience__orb {
-  inline-size: var(--orb-size);
-  block-size: var(--orb-size);
-  border-radius: 999px;
-  background: var(--marker);
-  box-shadow: 0 0 0.7rem var(--marker);
-  animation: loading-orb 0.75s ease-in-out infinite alternate;
+.loading-experience::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  block-size: 0.12rem;
+  background: #fff;
+  transform: translateY(-100%);
+  transition: top 1s cubic-bezier(0.65, 0, 0.35, 1);
+  pointer-events: none;
 }
 
-@keyframes loading-orb {
-  to {
-    transform: scale(1.18);
-    opacity: 0.72;
-  }
+.loading-experience.is-exit {
+  clip-path: inset(0 0 100% 0);
+  pointer-events: none;
+}
+
+.loading-experience.is-exit::after {
+  top: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loading-experience__orb {
-    animation: none;
+  .loading-experience,
+  .loading-experience::after {
+    transition: none;
   }
+}
+
+.loading-experience__panel {
+  inline-size: min(34rem, 100%);
+}
+
+.loading-experience__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 0.7rem;
+}
+
+.loading-experience__track {
+  display: flex;
+  gap: 0.2rem;
+  padding: 0.28rem;
+  border: 0.18rem solid #fff;
+}
+
+.loading-experience__seg {
+  flex: 1 1 0;
+  block-size: clamp(1.05rem, 0.7rem + 1.6vw, 1.5rem);
+  background: transparent;
+}
+
+.loading-experience__seg.is-on {
+  background: #fff;
 }
