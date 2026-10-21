@@ -31,3 +31,16 @@ yarn-error.log*
 .cursor/
 
 REFERENCE/
+
+# Task scratch and local-only evidence
+/work/
+
+# Local tool state and generated checks
+/out/
+.cache/
+.impeccable/
+
+# Provider credentials stay outside the repository
+.env
+.env.*
+!.env.example

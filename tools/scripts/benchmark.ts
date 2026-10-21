@@ -4,11 +4,12 @@ import { arch, cpus, platform, release } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { brotliCompressSync, gzipSync } from "node:zlib";
 
-const budgets = {
-  baseJsGzip: 180 * 1024,
-  cssGzip: 35 * 1024,
-  largestLazyJsGzip: 320 * 1024,
-};
+const budgets = settings("budget") as Record<
+  "baseJsGzip" | "cssGzip" | "largestLazyJsGzip",
+  number
+>;
+
+import { settings } from "./settings.ts";
 
 type Asset = {
   path: string;

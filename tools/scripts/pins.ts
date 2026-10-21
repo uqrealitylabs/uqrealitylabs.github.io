@@ -44,7 +44,7 @@ export function findActionPinIssues(root = workflowRoot) {
   return issues;
 }
 
-if (process.argv[1]?.endsWith("assert-actions-pinned.ts")) {
+if (process.argv[1]?.endsWith("pins.ts")) {
   const issues = findActionPinIssues();
   if (issues.length > 0) {
     console.error(issues.join("\n"));
