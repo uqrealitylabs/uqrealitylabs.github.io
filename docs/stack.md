@@ -1,133 +1,140 @@
-# better-resp stack
+# Website architecture
 
-## Follow-up summary
+The website uses React 19, TypeScript, native HTML and CSS, and an optional Three geographic world
+Rsbuild, Rspack, SWC, Lightning CSS and Biome provide the Rust-based build, transformation, minification and formatting tools
 
-Live page content moved from markdown files to locale-scoped JSON. First-party source, configs, and scripts are TypeScript-only; `.js/.jsx/.mjs/.cjs` files are rejected by `npm run check:no-js`.
+## Ownership
 
-## Current stack
+| Path | Responsibility |
+| --- | --- |
+| `public/assets/content/` | Editable TOML and Markdown source |
+| `public/assets/brand/` | Authoritative logo |
+| `public/assets/world/` | Sourced geographic databases, textures and attribution |
+| `public/assets/people/` | Committee photographs |
+| `src/content/` | Bounded parsing, validation, routes, feed and metadata |
+| `src/site/` | React views, interactive islands and styles |
+| `src/world/` | Geographic scene, feeds, camera and GPU ownership |
+| `src/input/` | Opt-in hand and eye controls with local vision worker |
+| `src/native/` | Rust terrain baking and bounded model inspection compiled to WASM |
+| `tools/` | Build, browser, unit and measurement configuration |
+| `dist/` | Generated site output |
+| `out/` | Generated tool settings, Rust output and verification artefacts |
 
-- Runtime: React 19, TypeScript, Zustand for coarse UI state, Motion for the loader, Tailwind CSS v4.
-- Build: Rsbuild/Rspack/SWC and Lightning CSS through Rsbuild. Rsdoctor is installed, but the current plugin invocation holds the process open locally, so CI uses deterministic bundle metrics instead.
-- 3D: the existing vanilla Three scene is lazy-loaded. R3F/Drei/postprocessing remain target-stack dependencies but are not imported by the initial shell.
-- Tests: Vitest unit/data tests and Cypress specs. No Playwright.
-- Package manager: npm with `package-lock.json`. `pnpm`/Corepack are unavailable in this environment.
+The original `public/favicon.ico` is unchanged
+The text-free vector follows that emblem and restores the part obscured by its lettering
+Eye constraints and tactile materials are implemented in this repository
+Zustand vanilla owns shared scene state
+Local eye constraints, tactile CSS and pointer response own the interactions they implement
 
-## Dependency rules
+## Rendering and loading
 
-- No visual framework, Redux, Anime.js, Rapier, MDX, markdown parser, CMS, or runtime sanitizer.
-- Runtime deps are feature-owned: React shell, Zustand coarse state, Motion loader, Three/GSAP/Troika lazy legacy scene, R3F/Drei/postprocessing target visual stack.
-- Dev deps are build/test/analysis only: Rsbuild, TypeScript, Tailwind, Biome, Vitest, Cypress, Vite for Cypress component bundling only, Rsdoctor, glTF tooling.
-- CI follow-up dependency: Vite is explicit because Cypress component testing uses its Vite dev server; it is not the app build tool. LHCI was not added because its CLI currently pulls vulnerable transitive dependencies.
+React renders every route into full HTML for direct visits and crawlers
+TanStack Router reuses those same-origin HTML responses as bounded reading payloads
+The reading root changes while the geographic canvas, header, footer, search and camera session keep their ownership
+The calendar and search hydrate at their own boundaries, and page-specific observers and GPU awards are released on navigation
+There is no client-side Markdown parser or content fetch required to read a page
+The native menu, links, document text, event agenda and footer remain readable without hydration
 
-## No-JS policy
+Static generation suits a public club website whose content changes through Git
+The dev server restarts when content, portraits or geographic source assets change
+Rebuild after editing content — ISR, streaming SSR and a server cache would add moving parts without improving these static responses
+The calendar corrects its current day and month in Brisbane time after hydration
+Subscriptions use stable event IDs, explicit timezone offsets, updated timestamps, cancellations and UTF-8-safe ICS folding
 
-Allowed first-party source/config/script extensions are `.ts`, `.tsx`, `.d.ts`, `.json`, `.css`, `.html`, and assets. `tools/scripts/assert-no-js.ts` ignores generated/dependency folders and fails on checked-in `.js/.jsx/.mjs/.cjs`.
+The build creates 400 px and 800 px WebP portrait variants in dist; original photographs stay editable in public
+The home page begins with cached desktop/mobile WebP captures of its actual Three world
+The poster carries the scene before 3D loads
+Wide reading pages keep the live world in an adjacent fixed plane; mobile places it above the reading surface
+The optional Three world uses mapped UQ and Brisbane footprints, a mechanically unfolding power-emblem ship and an Australia-centred globe
+The ship begins over the Great Court lawn, rises on integrated thrusters and turns its main ring through ninety degrees
+The initial frame loads nearby campus geometry first; city geometry, surrounding houses and detailed foliage refine it afterwards
+Rust bakes the terrain vertex and colour buffers into `out/tools/world/terrain.bin`, copied into the site build
+The terrain file is a fixed 181 × 181 grid of little-endian float32 positions followed by RGB colours, validated before GPU allocation
+Rust also bakes 513 × 513 coastline/harbour/lake masks, preserving multipolygon island holes
+Browser city payloads omit the source coastline and water-relation geometry after baking
+Capital labels on the globe request one city district and its elevation extract on demand, then the camera follows an exterior arc into that district
+The currently retained capital is released on return or another selection
+`node tools/scripts/capitals.ts` regenerates derived OSM and Mapzen extracts using the destinations in `world.toml`
+These extracts and the authored landmarks are interpretations, with incomplete heights, water boundaries and architectural detail; they are not licensed photogrammetric city meshes
+Geographic JSON is a sourced machine database; human website content remains TOML and Markdown
+Native scrolling updates Zustand journey progress independently of optional scene readiness
+Selection updates readable details immediately and interrupts any previous camera destination
+Reading surfaces use distinct native scroll-driven portrait, project, sponsor and calendar treatments
+Return links and native Back restore the selected destination and keyboard focus
+Save-Data, 2G/3G and reduced-motion users receive static geographic covers
+Scenes stop outside the viewport, in hidden tabs and at rest, cap DPR at 1.5 and backing resolution at two million pixels, recover context loss and dispose owned GPU resources and observers
+Pointer-driven lighting uses one 1024 px shadow map, refreshed while the light settles
+Campus idle hovering runs at 30 fps; other stationary scenes stop drawing, and camera travel follows the display frame rate
+Award entrances settle within four seconds, with pointer tilt and a static reduced-motion version
+Portrait textures are limited to 256×320, and terrain maps are local compressed WebP
+No media autoplays and no object spins continuously
 
-## Content system
+## Content and trust
 
-- Content editors edit JSON under `src/content/pages/<locale>/` and `src/content/site/`.
-- `src/content/generated/content.schema.json` gives editor schema support.
-- `src/content/schema/contentSchema.ts` validates required fields, block types, safe URLs, and asset paths.
-- `src/content/contentRegistry.ts` is the only central importer for page/site JSON.
-- `src/content/ContentRenderer.tsx` renders structured blocks with React escaping and no raw HTML.
+Content is public — never put minutes, email lists, OAuth secrets, tokens or private event details here
+Markdown disables raw HTML, validates links and local image paths, and bounds document size and nesting
+Only its validated output enters the React Markdown boundary
+Draft policy/lore pages remain labelled and excluded from the sitemap and search index
+Approved legal text is never fabricated or automatically translated
 
-Markdown was removed as a live content system to remove parsing/frontmatter code and make content validation explicit. Documentation markdown remains allowed.
+The constitution repository’s `main` is authoritative
+The site links to that source until its separate publisher creates the approved PDF release
+The future CDN address is `https://cdn.uqrealitylabs.com/constitution.pdf` — don’t advertise a PDF before that route works
 
-## Content/i18n ownership
+## Hosting and caching
 
-- Global shell labels stay in `src/shared/i18n/runtime.ts`.
-- Page body, nav labels used by the scene, animation copy, socials, committee roles, and member content live in JSON.
-- Unknown locales fall back to English. Unknown pages throw a clear error.
+The normal build serves `uqrealitylabs.com`, with projects at `/projects/` until the separate domain is available
+`SITE_TARGET=projects npm run build` produces `project.uqrealitylabs.com` routes and canonicals
+Its `dist/` should be deployed to its own host or virtual host, never over the main site’s output
+Existing QuestRelay, Gitea and Jenkins links stay on their working hosts until the planned domains are verified
 
-## SEO and crawler signals
+`dist/_headers` describes immutable hashed bundles, revalidated HTML/content and a five-minute calendar cache for hosts that support that format
+GitHub Pages does not apply `_headers` — configure equivalent cache and security headers on the Oracle reverse proxy
+Keep public HTML revalidated, give hashed bundles a year of immutable caching, and keep mutable assets on short caching
+Do not cache authenticated bot or election responses in the public cache
 
-- `robotic-bees` manually ports only the useful `seo-robots-content-signals` ideas: generated robots, sitemap, `llms.txt`, canonical metadata, social tags, favicon, and truthful JSON-LD.
-- SEO source of truth is resolved JSON content: shared site defaults in `src/content/graph/shared.json` plus locale overlays in `src/content/site/<locale>.json` and page `meta` fields.
-- `src/seo/seo.ts` is pure build/test code. It does not run in the browser shell.
-- `tools/scripts/generate-seo.ts` writes `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt`, and the generated SEO block in `index.html`.
-- `tools/scripts/validate-seo.ts` fails when generated files are stale or indexable pages have duplicate/missing canonical metadata.
-- Production robots allow public pages and point to the sitemap. Preview robots are generated as `Disallow: /` by `buildRobots(site, "preview")`.
-- Only explicitly `indexable: true` pages enter the sitemap. Default locale URL mode is `off` (single host, no invented language subdomains). Subdomain/path modes remain available when those hosts or routes actually exist.
+No deployment, DNS change or data migration happens as part of a local build
+The service sequence is website → Git/Gitea/Jenkins → projects/QuestRelay → bot → elections → UQCloud porting
+UQCloud is the final migration, after backup restoration and rollback have been rehearsed
 
-## Validation commands
+Editable tool settings share `tools/config/tools.toml`; Cargo keeps its required `tools/config/Cargo.toml`
+`npm run tools:config` generates native tool JSON only under `out/tools/`
+Executable adapters and scripts live in `tools/scripts/`
+`package.json` and GitHub workflow YAML retain their ecosystem-required formats
+Checks write Cypress output to `out/cypress`, coverage to `out/coverage` and reports to `out/artifacts`
+Production pages and assets remain in `dist/`
 
-- `npm run check:no-js`
-- `npm run validate:content`
-- `npm run seo:check`
-- `npm run seo:generate`
-- `npm run test:unit`
-- `npm run test:ci`
-- `npm run build` also runs `check:no-js`, `validate:content`, and `seo:check` through `prebuild`.
+Zustand vanilla owns geographic progress, exhibit/city selection, local steering and transient expression effects
+The optional Three world uses WebGPU with Three’s WebGL2 fallback, TSL Earth lighting and Meshopt WASM geometry decoding
+A bounded Rust glTF parser validates embedded models in a dedicated worker before Three constructs them
+Rust build output, bindgen and native bindings stay under `out/`; only production WASM assets are copied into `dist/assets/wasm`
+The live-feed server runs in the project-local Deno runtime with explicit read, environment and upstream network permissions
+No second rendering engine or global state library is loaded for reading pages
 
-## Lazy-load boundaries
+Team presents T3, Officers and General Committee in that order
+The collapsed committee timeline keeps annual rosters, events and sponsors one level below the current team
+Reading pages use distinct native scroll-driven portrait, project, sponsor and calendar treatments, all disabled for reduced motion
 
-- Initial shell: React, i18n, Zustand, Motion loader, CSS, JSON-free app shell.
-- Heavy chunk: `src/features/legacy-three/legacy-main.ts` imports Three, GSAP, Troika, and JSON content registry.
-- Content validation is test/script-only and is not imported by `App`.
+## Air controls
 
-## Performance budgets
+Camera permission is requested only from the Enable camera action in the Air controls dialog
+Both hands and face landmarks run in the same dedicated CPU/WASM worker after consent
+Index pointing takes priority over approximate calibrated gaze
+Pinch release selects; a vertical pinch drag scrolls and permanently cancels that click
+A held two-hand heart toggles local flight, a flat palm steers and a fist brakes
+Flight offsets are bounded and ease back to the route when steering ends or exceeds the boundary
+Peace, thumbs, open palm, rock and wink cues trigger cooldown-limited reactions
+Smile, laugh, surprise, kiss, frown, brow, squint, curious and puff cues affect the ship and playful overlays
+These are expression cues, not a psychological mood assessment
+Only one camera frame is in flight; the next capture waits at least 50 ms after inference
+No video, landmarks or expression data are uploaded, recorded or stored
+Internal navigation preserves the session
+Stopping, hiding the tab, leaving the site, pressing Escape or encountering an error releases camera tracks and terminates inference
+Real cameras still need person/device calibration; synthetic-camera checks do not establish tracking accuracy
+A denied camera leaves ordinary touch, mouse and keyboard navigation available
+The one-time invitation preference stores only whether it has been seen
 
-- Target base shell JS: <= 180 KB gzip.
-- Target CSS: <= 35 KB gzip.
-- No markdown parser in browser bundle.
-- Heavy visual chunk is allowed to exceed shell budget until the legacy scene is split.
-- Core Web Vitals are targets only; not claimed without browser measurement.
-
-## Security
-
-- Content supports text, safe links, safe asset paths, and structured blocks only.
-- No `dangerouslySetInnerHTML` content path.
-- Unsafe protocols such as `javascript:` are rejected by validation.
-- SEO metadata is generated from validated JSON. Unknown page/site SEO fields are rejected instead of flowing into head tags.
-- JSON-LD is the only inline script-shaped output, and it is serialized with `<`, `>`, `&`, and Unicode line separators escaped. If a deployment adds CSP headers, hash or nonce this generated `application/ld+json` block rather than enabling broad `unsafe-inline`.
-- Suggested CSP baseline: `default-src 'self'; img-src 'self' data: https:; connect-src 'self'; script-src 'self' 'sha256-<generated-jsonld-hash>'; style-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'`.
-- Script: `security:audit`. OSV runs in GitHub Actions through the pinned OSV reusable workflow because there is no npm `osv-scanner` package.
-- CI security workflow runs workflow policy checks, npm audit, OSV, Dependency Review on PRs, and CodeQL.
-
-## CI/CD
-
-- `.github/workflows/ci.yml`: quality gate, production build/budget gate, and one `tests` job for Cypress component + E2E under `tests/`.
-- `.github/workflows/security.yml`: workflow policy, dependency audit, OSV, Dependency Review, and CodeQL.
-- `.github/workflows/benchmarks.yml`: scheduled/manual build metrics and Lighthouse CI capture for the served home route.
-- `.github/workflows/deploy.yml`: GitHub Pages deploy from a validated `dist` artifact on `main`.
-- Old duplicate Firebase and extra Pages workflows were removed; the repo now has one deploy path.
-
-GitHub Actions policy:
-
-- Top-level permissions default to `contents: read`; deploy escalates only to `pages: write` and `id-token: write`.
-- Checkout uses `persist-credentials: false` and `fetch-depth: 1`.
-- Workflow concurrency cancels stale CI/security/benchmark runs; production Pages deploys queue instead of canceling.
-- Actions and reusable workflows are pinned to full SHAs. `npm run check:actions-pinned` rejects mutable tags.
-- The npm cache is keyed through `actions/setup-node` and `package-lock.json`. `node_modules`, pnpm stores, env files, and full workspaces are not artifacted.
-- Artifacts are limited to benchmark output, Lighthouse reports, Pages dist, and Cypress screenshots/videos only on failure. Normal CI writes build stats into the job summary instead of uploading an artifact.
-
-## Benchmarking
-
-- `npm run benchmark:build` builds and writes `artifacts/benchmarks/build.json` plus Markdown summary.
-- `npm run check:budgets` fails when base JS, CSS, or largest lazy JS gzip budgets are exceeded.
-- Lighthouse runs only in `.github/workflows/benchmarks.yml` through a SHA-pinned action. It audits `/` until real pathname routing exists for the in-scene sections. The local npm lockfile does not carry LHCI because the CLI currently brings audit failures.
-- See `docs/benchmark.md` for budget values, variance rules, and the benchmark log.
-
-## Commands
-
-- `npm run dev`
-- `npm run build`
-- `npm run typecheck`
-- `npm run lint`
-- `npm run format:check`
-- `npm run check:no-js`
-- `npm run check:workflows` (action pin policy)
-- `npm run check:budgets`
-- `npm run validate:content`
-- `npm run test:unit`
-- `npm run ci`
-- `npm run benchmark:build`
-- `npm run analyze`
-
-## Known limitations
-
-- The main visual scene is still legacy vanilla Three, not fully rewritten to R3F.
-- Cypress component config is present, but no extra Vite/Rsbuild component adapter dependency was added.
-- JSON content is statically imported into the lazy legacy chunk because current content size is small; split locale/page imports when content grows.
-- Lighthouse CI is configured but local execution needs network access to download the pinned LHCI CLI package unless it is added to devDependencies later.
-- `pnpm` is unavailable in this repo; CI intentionally uses npm with the checked-in `package-lock.json`.
+Production assets also include precompressed Brotli and gzip variants
+The Deno server negotiates those variants, keeps original MIME types, varies caches by Accept-Encoding and supports ETag revalidation
+The normal aircraft and ferry paths were exercised against public live sources locally
+Authenticated OpenSky and AIS access still require provisioned provider credentials
