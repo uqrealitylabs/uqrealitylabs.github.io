@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getSiteContent } from "../../src/content/contentRegistry";
+import { getSiteContent } from "../../src/content/catalog";
 import {
   getSocialMaterialKind,
   socialMaterialConfigs,
-} from "../../src/features/social-materials/materialConfig";
+} from "../../src/site/material";
 
 describe("social material configs", () => {
   it.each([
