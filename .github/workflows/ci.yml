@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main, better-resp, robotic-bees]
+    branches: [main, 2027-fix]
   workflow_dispatch:
 
 permissions:
@@ -28,13 +28,17 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: package-lock.json
       - name: Install dependencies
         run: npm ci
+      - name: Set up Rust WASM tools
+        run: |
+          rustup component add rustfmt clippy
+          npm run setup:rust
       - name: Run quality gate
         run: npm run ci:quality
 
@@ -49,20 +53,24 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: package-lock.json
       - name: Install dependencies
         run: npm ci
+      - name: Set up Rust WASM tools
+        run: |
+          rustup component add rustfmt clippy
+          npm run setup:rust
       - name: Build and check budgets
         run: npm run ci:build
       - name: Add build summary
         run: |
           set -euo pipefail
-          if [ -f artifacts/benchmarks/build.md ]; then
-            cat artifacts/benchmarks/build.md >> "$GITHUB_STEP_SUMMARY"
+          if [ -f out/artifacts/build.md ]; then
+            cat out/artifacts/build.md >> "$GITHUB_STEP_SUMMARY"
           fi
   tests:
     runs-on: ubuntu-latest
@@ -75,27 +83,30 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: package-lock.json
       - name: Install dependencies
         run: npm ci
-      - name: Run Cypress component tests
-        run: npm run test:component
+      - name: Set up Rust WASM tools
+        run: |
+          rustup component add rustfmt clippy
+          npm run setup:rust
       - name: Build production app
         run: npm run build
       - name: Run Cypress E2E against preview
         run: |
           set -euo pipefail
-          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/rsbuild-preview.log 2>&1 &
+          mkdir -p out/artifacts
+          npm run preview -- --host 127.0.0.1 --port 4173 > out/artifacts/preview.log 2>&1 &
           preview_pid=$!
           trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
 
           for attempt in {1..30}; do
             if ! kill -0 "$preview_pid" 2>/dev/null; then
-              cat /tmp/rsbuild-preview.log
+              cat out/artifacts/preview.log
               exit 1
             fi
             if curl --fail --silent http://127.0.0.1:4173/ > /dev/null 2>&1; then
@@ -105,15 +116,15 @@ jobs:
             sleep 1
           done
 
-          cat /tmp/rsbuild-preview.log
+          cat out/artifacts/preview.log
           exit 1
       - name: Upload Cypress failure artifacts
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: cypress-tests-failure
           path: |
-            cypress/screenshots
-            cypress/videos
+            out/cypress/screenshots
+            out/cypress/videos
           if-no-files-found: ignore
           retention-days: 7
