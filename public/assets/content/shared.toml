@@ -1,0 +1,32 @@
+# Club links shared by both languages
+membership = "https://campus.hellorubric.com/?s=5809"
+
+[[socialLinks]]
+label = "Website"
+url = "/"
+material = "cloth"
+
+[[socialLinks]]
+label = "LinkedIn"
+url = "https://www.linkedin.com/company/uq-reality-labs"
+
+[[socialLinks]]
+label = "Instagram"
+url = "https://www.instagram.com/uqrealitylabs/"
+material = "grass"
+
+[[socialLinks]]
+label = "Discord"
+url = "https://discord.com/invite/eN6v8R3fYD"
+
+[[socialLinks]]
+label = "Email"
+url = "mailto:uqrealitylabs@gmail.com"
+
+[[socialLinks]]
+label = "Rubric"
+url = "https://campus.hellorubric.com/?s=5809"
+
+[[socialLinks]]
+label = "Git"
+url = "https://realitylabs-rl-gitea.uqcloud.net/"

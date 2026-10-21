@@ -1,0 +1,14 @@
+# Recovered from the general committee branch; confirm the term before publishing
+year = 0
+title = "General committee — year to confirm"
+published = false
+current = false
+
+[[people]]
+id = "ryan"
+name = "Ryan"
+role = "General committee"
+group = "general"
+photo = "/assets/people/previous/ryan.jpg"
+linkedin = "https://www.linkedin.com/in/ryan-wang-287909266/"
+order = 100

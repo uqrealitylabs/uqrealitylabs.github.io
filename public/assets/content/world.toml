@@ -1,0 +1,135 @@
+# Geographic labels are editable independently of the generated map extracts
+[[places]]
+name = "Brisbane"
+longitude = 153.025
+latitude = -27.47
+kind = "city"
+
+[[places]]
+name = "Sydney"
+sea = [151.4, -33.87]
+longitude = 151.2093
+latitude = -33.8688
+kind = "city"
+offset = -8
+
+[[places]]
+name = "Melbourne"
+sea = [144.94, -37.98]
+longitude = 144.9631
+latitude = -37.8136
+kind = "city"
+
+[[places]]
+name = "Perth"
+sea = [115.68, -31.95]
+longitude = 115.8605
+latitude = -31.9505
+kind = "city"
+
+[[places]]
+name = "Adelaide"
+sea = [138.43, -34.93]
+longitude = 138.6007
+latitude = -34.9285
+kind = "city"
+
+[[places]]
+name = "Canberra"
+longitude = 149.13
+latitude = -35.2809
+kind = "city"
+offset = 12
+
+[[places]]
+name = "Hobart"
+sea = [147.4, -43.1]
+longitude = 147.3272
+latitude = -42.8821
+kind = "city"
+
+[[places]]
+name = "Darwin"
+sea = [130.83, -12.57]
+longitude = 130.8456
+latitude = -12.4634
+kind = "city"
+
+[[places]]
+name = "Gold Coast"
+longitude = 153.4
+latitude = -28.0167
+kind = "regional"
+
+[[places]]
+name = "Cairns"
+longitude = 145.7781
+latitude = -16.9186
+kind = "regional"
+
+[[places]]
+name = "Townsville"
+longitude = 146.8179
+latitude = -19.259
+kind = "regional"
+
+[[places]]
+name = "Newcastle"
+longitude = 151.7817
+latitude = -32.9283
+kind = "regional"
+offset = -17
+
+[[places]]
+name = "Australia"
+longitude = 132
+latitude = -25
+kind = "land"
+
+[[places]]
+name = "New Zealand"
+longitude = 173
+latitude = -41
+kind = "land"
+
+[[places]]
+name = "Papua New Guinea"
+longitude = 145
+latitude = -6.5
+kind = "land"
+
+[[places]]
+name = "Indonesia"
+longitude = 117
+latitude = -5
+kind = "land"
+
+[[places]]
+name = "Timor-Leste"
+longitude = 125.7
+latitude = -8.8
+kind = "land"
+
+[[places]]
+name = "Great Court"
+longitude = 153.01302
+latitude = -27.4974
+kind = "local"
+
+[[places]]
+name = "Forgan Smith"
+longitude = 153.013025
+latitude = -27.49696
+kind = "local"
+
+[[places]]
+name = "Story Bridge"
+longitude = 153.0357
+latitude = -27.4634
+kind = "local"
+
+[[places]]
+name = "Mount Coot-tha"
+longitude = 152.9599
+latitude = -27.4796
+kind = "local"

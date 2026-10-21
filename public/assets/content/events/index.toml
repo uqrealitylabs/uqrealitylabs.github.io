@@ -1,0 +1,4 @@
+# Add one Markdown file per confirmed event, with +++ TOML frontmatter
+# Required: title, slug, description, id, startDate, endDate, updatedAt, location
+# Optional: slugline, order, draft, ctaLabel, ctaUrl, image, tags, featured, cancelled
+timezone = "Australia/Brisbane"

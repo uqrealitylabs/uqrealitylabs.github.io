@@ -1,0 +1,18 @@
+# Award names are kept as published by UQ Union
+[[awards]]
+id = "eait-2024"
+title = "Best Faculty Club (EAIT)"
+year = 2024
+description = "Recognised by UQ Union as Best Faculty Club in EAIT in 2024"
+visual = "trophy"
+order = 1
+link = ""
+
+[[awards]]
+id = "small-club-2023"
+title = "Best Small Club"
+year = 2023
+description = "Recognised by UQ Union as Best Small Club in 2023"
+visual = "medal"
+order = 2
+link = ""

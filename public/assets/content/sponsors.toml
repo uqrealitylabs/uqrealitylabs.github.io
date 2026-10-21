@@ -1,0 +1,18 @@
+# Add a sponsor by copying this table; only list confirmed years
+[[sponsors]]
+id = "nuaxion"
+name = "Nuaxion"
+logo = "/assets/sponsors/nuaxion.png"
+url = "https://www.nuaxion.com.au/"
+years = []
+current = true
+order = 1
+
+[[sponsors]]
+id = "talk-all-sport"
+name = "Talk All Sport"
+logo = "/assets/sponsors/sport.png"
+url = "https://talkallsport.com/"
+years = []
+current = true
+order = 2
