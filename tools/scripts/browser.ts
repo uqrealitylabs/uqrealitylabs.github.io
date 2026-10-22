@@ -58,8 +58,8 @@ export default defineConfig({
           }),
       );
       on("before:browser:launch", (browser, options) => {
-        // Linux CI has no hardware GPU, so keep real WebGL tests on Chromium's software renderer
-        if (process.platform === "linux" && browser.family === "chromium")
+        // CI runners need deterministic graphics, so keep real WebGL tests on Chromium's software renderer
+        if (process.env.CI && browser.family === "chromium")
           options.args.push(
             "--enable-unsafe-swiftshader",
             "--use-gl=angle",

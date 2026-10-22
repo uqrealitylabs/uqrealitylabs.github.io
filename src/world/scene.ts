@@ -137,7 +137,9 @@ export async function createScene(
     antialias: true,
     powerPreference: "low-power",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  let pixelRatioLimit = 1.5;
+  let frameInterval = 1 / 30;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioLimit));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.95;
@@ -362,7 +364,7 @@ export async function createScene(
     frame = 0;
     if (disposed || lost || !visible || document.hidden) return;
     const elapsed = (performance.now() - started) / 1000;
-    if (paused || travelling || elapsed - lastFrame >= 1 / 30) {
+    if (paused || travelling || elapsed - lastFrame >= frameInterval) {
       const step = Math.min(0.25, elapsed - lastFrame);
       lastFrame = elapsed;
       if (lab) {
@@ -652,7 +654,7 @@ export async function createScene(
     renderer.setPixelRatio(
       Math.min(
         window.devicePixelRatio,
-        1.5,
+        pixelRatioLimit,
         Math.sqrt(2_000_000 / (width * height)),
       ),
     );
@@ -785,6 +787,21 @@ export async function createScene(
     await renderer.init();
     host.dataset.renderer =
       renderer.backend instanceof THREE.WebGPUBackend ? "webgpu" : "webgl";
+    const context = renderer.getContext();
+    if (context instanceof WebGL2RenderingContext) {
+      const debug = context.getExtension("WEBGL_debug_renderer_info");
+      const gpu = String(
+        context.getParameter(
+          debug?.UNMASKED_RENDERER_WEBGL ?? context.RENDERER,
+        ),
+      );
+      if (/swiftshader|llvmpipe|software/i.test(gpu)) {
+        // Software rasterisers need a bounded fill rate to keep input and navigation responsive
+        pixelRatioLimit = 0.75;
+        frameInterval = 1 / 10;
+        key.shadow.mapSize.set(256, 256);
+      }
+    }
     if (signal?.aborted)
       throw new DOMException("Scene loading cancelled", "AbortError");
     lab = world ? await makeLab(world, signal) : undefined;
