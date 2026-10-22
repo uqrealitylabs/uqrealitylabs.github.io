@@ -469,18 +469,55 @@ export function landmarks(
       );
     const tower = locate([153.013025, -27.49696]);
     const towerBase = heightAt(tower.x, tower.y);
-    block(stone, tower.x, towerBase + 0.52, tower.y, 0.49, 1.04, 0.47, yaw);
-    block(stone, tower.x, towerBase + 1.045, tower.y, 0.53, 0.035, 0.51, yaw);
-    for (const side of [-1, 1])
-      for (const offset of [-0.12, 0, 0.12]) {
-        const p = tower
-          .clone()
-          .addScaledVector(axis, offset)
-          .addScaledVector(normal, side * 0.24);
-        block(glass, p.x, towerBase + 0.64, p.y, 0.035, 0.59, 0.013, yaw);
-        for (const y of [0.4, 0.55, 0.7, 0.85])
-          block(stone, p.x, towerBase + y, p.y, 0.047, 0.012, 0.027, yaw);
-      }
+    block(stone, tower.x, towerBase + 0.54, tower.y, 0.52, 1.08, 0.47, yaw);
+    for (const side of [-1, 1]) {
+      const shoulder = tower.clone().addScaledVector(axis, side * 0.35);
+      block(
+        stone,
+        shoulder.x,
+        towerBase + 0.39,
+        shoulder.y,
+        0.2,
+        0.78,
+        0.43,
+        yaw,
+      );
+      block(
+        stone,
+        shoulder.x,
+        towerBase + 0.79,
+        shoulder.y,
+        0.24,
+        0.035,
+        0.47,
+        yaw,
+      );
+    }
+    for (const [width, y, depth] of [
+      [0.58, 1.085, 0.53],
+      [0.48, 1.13, 0.47],
+      [0.34, 1.17, 0.4],
+    ])
+      block(stone, tower.x, towerBase + y, tower.y, width, 0.045, depth, yaw);
+    for (const face of [-1, 1])
+      for (const offset of [-0.13, 0, 0.13])
+        for (const y of [0.43, 0.59, 0.75, 0.91]) {
+          const p = tower
+            .clone()
+            .addScaledVector(axis, offset)
+            .addScaledVector(normal, face * 0.241);
+          block(glass, p.x, towerBase + y, p.y, 0.055, 0.115, 0.013, yaw);
+          block(
+            stone,
+            p.x,
+            towerBase + y - 0.067,
+            p.y,
+            0.075,
+            0.012,
+            0.027,
+            yaw,
+          );
+        }
   }
   for (const road of roads) {
     const name = road.name ?? "";

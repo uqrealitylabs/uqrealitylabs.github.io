@@ -1772,7 +1772,7 @@ body:has([data-page="home"]) .header {
 .hero {
   --journey: 0;
   position: relative;
-  height: 320svh;
+  height: 250svh;
   color: #f3f0e8;
   background: #182635;
 }
@@ -1839,10 +1839,10 @@ body:has([data-page="home"]) .header {
   transition: opacity 350ms;
   touch-action: pan-y;
 }
-.specimen[data-scene="ready"] canvas {
+.specimen[data-foliage="ready"] canvas {
   opacity: 1;
 }
-.specimen[data-scene="ready"] .specimen__poster {
+.specimen[data-foliage="ready"] .specimen__poster {
   opacity: 0;
   pointer-events: none;
 }
@@ -2162,7 +2162,7 @@ body:has([data-page="home"]) .header {
     font-size: 1.3rem;
   }
   .hero {
-    height: 280svh;
+    height: 230svh;
   }
   .hero__stage {
     min-height: 0;

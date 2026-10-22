@@ -88,7 +88,7 @@ https://earthobservatory.nasa.gov/features/NightLights
 https://eoimages.gsfc.nasa.gov/images/imagerecords/79000/79765/dnb_land_ocean_ice.2012.3600x1800.jpg
 Credit NASA Earth Observatory / NOAA / Department of Defense
 The night image is a historical light composite, not a live satellite image
-The solar direction follows UTC; local street lamps use the available OSM mapped positions, whose coverage is incomplete
+The solar direction follows UTC; local street lamps use available OSM positions and restrained path lighting along sourced campus paths, while mapped lamp coverage remains incomplete
 
 Open-Meteo current modelled conditions for St Lucia and Brisbane
 https://open-meteo.com/en/docs

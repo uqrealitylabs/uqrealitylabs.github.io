@@ -21,7 +21,7 @@ export type Station =
   | "about"
   | "sponsors";
 export const viewpoints: Record<Station, { eye: number[]; at: number[] }> = {
-  home: { eye: [1.25, 1.65, 2.5], at: [0, 1.05, -0.45] },
+  home: { eye: [1.25, 1.55, 2.8], at: [0, 0.7, -0.6] },
   projects: { eye: [2.8, 2.3, 3.7], at: [0, 1.8, 0] },
   events: { eye: [-7, 4, 7], at: [-0.5, 0.4, -0.5] },
   team: { eye: [5.5, 4, 5], at: [1.1, 2, 0] },
@@ -181,11 +181,20 @@ export async function makeLab(
       ...data.city.roads,
     ]);
     landscape.add(transit.group);
+    const pathLights = data.campus.roads
+      .filter((road) =>
+        ["footway", "path", "pedestrian", "steps"].includes(road.kind),
+      )
+      .flatMap((road) => road.points.filter((_, index) => index % 4 === 0))
+      .map(locate)
+      .filter((point) => point.lengthSq() < 225)
+      .slice(0, 240);
     const lampPositions = [
       ...(data.campus.lamps ?? []),
       ...(data.city.lamps ?? []),
     ]
       .map(locate)
+      .concat(pathLights)
       .slice(0, 5000);
     const lighting = new THREE.Group();
     const lampMetal = new THREE.MeshStandardMaterial({
@@ -373,6 +382,8 @@ export async function makeLab(
             }
             await prepare(planting);
             trees.add(planting);
+            if (name === "jacaranda" && planting.children.length)
+              group.userData.foliage = "ready";
           }
           wake();
         }
@@ -445,7 +456,7 @@ export async function makeLab(
     const engines = ship.engines;
     const radiance = ship.light;
     const launchGround = field.heightAt(0, 0.25);
-    craft.position.set(0, launchGround + 0.31, 0.25);
+    craft.position.set(0, launchGround + 0.18, 0.25);
     craft.scale.setScalar(0.1);
     group.add(craft);
     const photoGroup = new THREE.Group();

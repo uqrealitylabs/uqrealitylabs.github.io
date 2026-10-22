@@ -539,7 +539,7 @@ export async function createScene(
         const flight = THREE.MathUtils.smoothstep(journey, 0.04, 0.6);
         const near = new THREE.Vector3(
           0,
-          lab.launchGround + 0.31 + launch * 0.42,
+          lab.launchGround + 0.18 + launch * 0.55,
           0.25,
         );
         const chase = camera.position.clone().lerp(at, 0.77);
@@ -970,6 +970,7 @@ export async function createScene(
           if (!disposed) {
             host.dataset.parser = lab?.group.userData.parser ?? "unavailable";
             host.dataset.details = lab?.group.userData.details ?? "loading";
+            host.dataset.foliage = lab?.group.userData.foliage ?? "loading";
             updateSolar();
             wake();
           }

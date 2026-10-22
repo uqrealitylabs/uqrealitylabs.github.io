@@ -48,12 +48,12 @@ export function spacecraft() {
   };
   const ring = new THREE.Group();
   group.add(ring);
-  add(ring, new THREE.TorusGeometry(1.72, 0.095, 10, 96), metal);
-  add(ring, new THREE.TorusGeometry(1.72, 0.032, 8, 96), silver, 0, 0, 0.085);
-  add(ring, new THREE.TorusGeometry(1.61, 0.018, 6, 96), blue);
+  add(ring, new THREE.TorusGeometry(1, 0.09, 10, 96), metal);
+  add(ring, new THREE.TorusGeometry(1, 0.03, 8, 96), silver, 0, 0, 0.08);
+  add(ring, new THREE.TorusGeometry(0.9, 0.018, 6, 96), blue);
   const hoop = new THREE.Group();
   group.add(hoop);
-  add(hoop, new THREE.TorusGeometry(1.72, 0.055, 8, 96), silver);
+  add(hoop, new THREE.TorusGeometry(1, 0.052, 8, 96), silver);
   const stem = new THREE.Group();
   group.add(stem);
   add(
@@ -174,7 +174,7 @@ export function spacecraft() {
   const forwardHoop = new THREE.Group();
   forwardHoop.position.set(0, -0.15, 1.05);
   hull.add(forwardHoop);
-  add(forwardHoop, new THREE.TorusGeometry(1.03, 0.055, 8, 64), metal);
+  add(forwardHoop, new THREE.TorusGeometry(0.78, 0.055, 8, 64), metal);
   const clock = uniform(0),
     thrust = uniform(0);
   const flame = new MeshBasicNodeMaterial({
