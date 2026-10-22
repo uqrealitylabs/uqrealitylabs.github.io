@@ -308,10 +308,12 @@ mod tests {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public/assets/world");
         let bytes = bake(&root).expect("Valid source terrain");
         assert_eq!(bytes.len(), SIDE * SIDE * 6 * 4);
+        let (values, remainder) = bytes.as_chunks::<4>();
+        assert!(remainder.is_empty());
         assert!(
-            bytes
-                .chunks_exact(4)
-                .all(|b| f32::from_le_bytes(b.try_into().unwrap()).is_finite())
+            values
+                .iter()
+                .all(|bytes| f32::from_le_bytes(*bytes).is_finite())
         );
         assert_eq!(river_distance([3.0, 4.0], &[[0.0, 0.0], [0.0, 1.0]]), 18.0);
         let square = [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0], [0.0, 0.0]];
