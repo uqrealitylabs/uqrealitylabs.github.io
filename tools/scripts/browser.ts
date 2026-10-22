@@ -58,6 +58,9 @@ export default defineConfig({
           }),
       );
       on("before:browser:launch", (browser, options) => {
+        // Linux CI has no hardware GPU, so keep real WebGL tests on Chromium's software renderer
+        if (process.platform === "linux" && browser.family === "chromium")
+          options.args.push("--enable-unsafe-swiftshader");
         if (browser.name === "electron") {
           options.preferences.width = 2100;
           options.preferences.height = 1400;
