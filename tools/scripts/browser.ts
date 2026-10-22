@@ -65,6 +65,7 @@ export default defineConfig({
             "--use-gl=angle",
             "--use-angle=swiftshader",
             "--ignore-gpu-blocklist",
+            "--disable-blink-features=WebGPU",
           );
         if (browser.name === "electron") {
           options.preferences.width = 2100;
