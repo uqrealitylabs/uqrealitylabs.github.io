@@ -99,13 +99,12 @@ function AboutDocuments({ locale }: { locale: Locale }) {
     <section className="section documents" aria-labelledby="documents-title">
       <div className="section__label annotation">
         <span>{t.documents}</span>
-        <span aria-hidden="true">[ REFERENCE ]</span>
       </div>
       <h2 id="documents-title">{t.aboutDocs}</h2>
       <div className="document-index">
-        {documents("about").map((doc, i) => (
+        {documents("about").map((doc) => (
           <a key={doc.slug} href={`/about/${doc.slug}/`}>
-            <span className="annotation">0{i + 1}</span>
+            <img src="/assets/brand/mark.svg" width="32" height="32" alt="" />
             <span>
               <strong>{doc.title}</strong>
               <small>{doc.description}</small>
@@ -305,7 +304,7 @@ function ProjectCard({ project }: { project: Project }) {
         ) : (
           <LabObject kind="projects" />
         )}
-        <span className="project-entry__number annotation">
+        <span className="project-entry__status annotation">
           {project.year} / {project.status}
         </span>
       </a>

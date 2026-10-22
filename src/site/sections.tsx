@@ -167,7 +167,6 @@ export function World({ locale }: { locale: Locale }) {
 
 export function Hero({ locale }: { locale: Locale }) {
   const text = getCopy(locale);
-  const t = getInterface(locale);
   const site = getSiteContent(locale);
   return (
     <section
@@ -186,27 +185,10 @@ export function Hero({ locale }: { locale: Locale }) {
               Labs
             </span>
           </h1>
-          <p className="hero__introduction">{text.introduction}</p>
           <External
             url={site.membership}
             label={text.join}
             className="button button--accent"
-          />
-        </div>
-        <div className="journey-note" data-place="brisbane">
-          <h2>{t.brisbaneTitle}</h2>
-          <p>{t.brisbaneBody}</p>
-          <a href="/projects/" className="text-link">
-            {t.projects}
-          </a>
-        </div>
-        <div className="journey-note" data-place="australia">
-          <h2>{t.australiaTitle}</h2>
-          <p>{t.australiaBody}</p>
-          <External
-            url={site.membership}
-            label={text.join}
-            className="text-link"
           />
         </div>
       </div>
@@ -238,9 +220,8 @@ export function OpenLab({ locale }: { locale: Locale }) {
       </div>
       <div className="workbench">
         <div className="workbench__notes">
-          {text.activities.map(([n, title, body]) => (
-            <article key={n}>
-              <span className="annotation">{n}</span>
+          {text.activities.map(([, title, body]) => (
+            <article key={title}>
               <div>
                 <h3>{title}</h3>
                 <p>{body}</p>
@@ -278,8 +259,7 @@ export function About({ locale }: { locale: Locale }) {
   return (
     <section className="about section" id="about" aria-labelledby="about-title">
       <div className="section__label annotation">
-        <span>01 / {text.chapter}</span>
-        <span aria-hidden="true">[ DISCOVER ]</span>
+        <span>{text.chapter}</span>
       </div>
       <div className="about__intro">
         <h2 id="about-title">
@@ -293,9 +273,8 @@ export function About({ locale }: { locale: Locale }) {
         </div>
       </div>
       <div className="activities">
-        {text.activities.map(([n, title, body]) => (
-          <article key={n}>
-            <span className="annotation">[ {n} ]</span>
+        {text.activities.map(([, title, body]) => (
+          <article key={title}>
             <h3>{title}</h3>
             <p>{body}</p>
           </article>
@@ -334,8 +313,7 @@ export function Partnership({ locale }: { locale: Locale }) {
       aria-labelledby="partners-title"
     >
       <div className="section__label annotation">
-        <span>03 / {text.partnerLabel}</span>
-        <span aria-hidden="true">[ COLLABORATE ]</span>
+        <span>{text.partnerLabel}</span>
       </div>
       <div className="partners__body">
         <div>
@@ -362,8 +340,7 @@ export function Contact({ locale }: { locale: Locale }) {
       aria-labelledby="contact-title"
     >
       <div className="section__label annotation">
-        <span>04 / {text.contactLabel}</span>
-        <span aria-hidden="true">[ SAY HELLO ]</span>
+        <span>{text.contactLabel}</span>
       </div>
       <div className="section__intro">
         <h2 id="contact-title">
