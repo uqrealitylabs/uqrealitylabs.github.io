@@ -162,7 +162,7 @@ describe("the connected geographic world", () => {
     capturePoster("campus");
     scrollJourney(0.55);
     cy.get(".hero").should("have.attr", "data-chapter", "brisbane");
-    cy.get('[data-place="brisbane"] h2').should("be.visible");
+    cy.get('[aria-label="Fly to Brisbane"]').should("be.visible");
     cy.screenshot("world-brisbane", { capture: "viewport" });
     scrollJourney(1);
     cy.get(".hero").should("have.attr", "data-chapter", "australia");
@@ -228,18 +228,31 @@ describe("the connected geographic world", () => {
   });
   it("uses a static world with Save-Data, and keeps routes usable after a failed scene load", () => {
     cy.viewport(390, 844);
-    cy.visit("/", {
+    cy.visit("/?test=save-data", {
       onBeforeLoad(win) {
         Object.defineProperty(win.navigator, "connection", {
           value: { saveData: true },
+          configurable: true,
         });
       },
     });
     cy.get("#specimen").should("have.attr", "data-scene", "static");
     cy.get("#poster .poster-campus").should("be.visible");
     cy.get("#scene-load, #reset, [data-journey]").should("not.exist");
+    cy.then(() =>
+      Cypress.automation("remote:debugger:protocol", {
+        command: "Network.clearBrowserCache",
+      }),
+    );
     cy.intercept("GET", "/assets/world/campus.json", { statusCode: 503 });
-    cy.visit("/");
+    cy.visit("/?test=scene-error", {
+      onBeforeLoad(win) {
+        Object.defineProperty(win.navigator, "connection", {
+          value: { saveData: false },
+          configurable: true,
+        });
+      },
+    });
     cy.get("#specimen").should("have.attr", "data-scene", "error");
     cy.get("#poster .poster-campus").should("be.visible");
     cy.get("#station-about").click();
@@ -285,7 +298,7 @@ describe("the connected geographic world", () => {
   it("switches actual UTC night and day lighting without changing geographic scale", () => {
     cy.clock(Date.parse("2026-10-21T12:00:00Z"), ["Date"]);
     cy.viewport(1440, 1000);
-    cy.visit("/");
+    cy.visit("/?test=solar-cycle");
     cy.get("#specimen", { timeout: 20000 }).should(
       "have.attr",
       "data-scene",
@@ -306,7 +319,7 @@ describe("the connected geographic world", () => {
       [390, 844, "campus-mobile"],
     ] as const) {
       cy.viewport(width, height);
-      cy.visit("/", {
+      cy.visit(`/?test=grounded-${name}`, {
         onBeforeLoad(win) {
           Cypress.sinon.stub(win.performance, "now").returns(0);
         },
