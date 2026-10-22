@@ -104,13 +104,13 @@ jobs:
           preview_pid=$!
           trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
 
-          for attempt in {1..30}; do
+          for _ in {1..30}; do
             if ! kill -0 "$preview_pid" 2>/dev/null; then
               cat out/artifacts/preview.log
               exit 1
             fi
             if curl --fail --silent http://127.0.0.1:4173/ > /dev/null 2>&1; then
-              npm run test:e2e -- --config baseUrl=http://127.0.0.1:4173
+              npm run test:e2e -- --browser chrome --config baseUrl=http://127.0.0.1:4173
               exit 0
             fi
             sleep 1
