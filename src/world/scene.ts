@@ -800,6 +800,10 @@ export async function createScene(
         pixelRatioLimit = 0.75;
         frameInterval = 1 / 10;
         key.shadow.mapSize.set(256, 256);
+        // SwiftShader can expose parallel compilation without ever reporting completion
+        (
+          renderer.backend as typeof renderer.backend & { parallel: null }
+        ).parallel = null;
       }
     }
     if (signal?.aborted)
