@@ -475,7 +475,8 @@ export async function createScene(
         camera.far = Math.max(900, distance * 5);
         camera.updateProjectionMatrix();
         camera.updateMatrixWorld();
-        renderer.shadowMap.enabled = journey < 0.6 || !!cityFlight;
+        renderer.shadowMap.enabled =
+          !softwareRenderer && (journey < 0.6 || !!cityFlight);
         const width = stage.clientWidth,
           height = stage.clientHeight;
         for (const label of labels) {
@@ -801,7 +802,8 @@ export async function createScene(
         // Software rasterisers need a bounded fill rate to keep input and navigation responsive
         pixelRatioLimit = 0.75;
         frameInterval = 1 / 10;
-        key.shadow.mapSize.set(256, 256);
+        renderer.shadowMap.enabled = false;
+        key.castShadow = false;
         // SwiftShader can expose parallel compilation without ever reporting completion
         (
           renderer.backend as typeof renderer.backend & { parallel: null }
@@ -815,7 +817,7 @@ export async function createScene(
       if (lab) release(lab.group, lab.maps);
       throw new DOMException("Scene loading cancelled", "AbortError");
     }
-    if (lab) {
+    if (lab && !softwareRenderer) {
       const room = new RoomEnvironment();
       const generator = new THREE.PMREMGenerator(renderer);
       try {
