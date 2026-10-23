@@ -786,7 +786,9 @@ export async function createScene(
   };
   signal?.addEventListener("abort", dispose, { once: true });
   try {
+    console.info("[world] renderer init");
     await renderer.init();
+    console.info("[world] renderer ready");
     host.dataset.renderer =
       renderer.backend instanceof THREE.WebGPUBackend ? "webgpu" : "webgl";
     const context = renderer.getContext();
@@ -812,7 +814,9 @@ export async function createScene(
     }
     if (signal?.aborted)
       throw new DOMException("Scene loading cancelled", "AbortError");
+    console.info("[world] scene build");
     lab = world ? await makeLab(world, signal) : undefined;
+    console.info("[world] scene ready");
     if (disposed || signal?.aborted) {
       if (lab) release(lab.group, lab.maps);
       throw new DOMException("Scene loading cancelled", "AbortError");
@@ -986,7 +990,9 @@ export async function createScene(
     if (disposed || signal?.aborted)
       throw new DOMException("Scene loading cancelled", "AbortError");
     started = performance.now();
+    console.info("[world] first frame");
     renderer.render(scene, camera);
+    console.info("[world] first frame ready");
     ready = true;
     performance.mark("uqrl-world-visible");
     if (lab)
