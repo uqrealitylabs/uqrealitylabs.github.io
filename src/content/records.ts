@@ -165,11 +165,8 @@ export function parseDocument(source: string, file: string): Document {
         validateAsset(String(child.attrGet("src") ?? ""), file);
     }
   }
-  const slug = text(
-    data,
-    "slug",
-    file,
-    file.replace(/\.md$/, "").split("/").at(-1) ?? "",
+  const slug = encodeURIComponent(
+    text(data, "slug", file, file.replace(/\.md$/, "").split("/").at(-1) ?? ""),
   );
   if (!/^[a-z\d]+(?:-[a-z\d]+)*$/.test(slug))
     fail(file, "slug", "use lowercase words separated by hyphens");
