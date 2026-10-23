@@ -139,6 +139,7 @@ export async function createScene(
   });
   let pixelRatioLimit = 1.5;
   let frameInterval = 1 / 30;
+  let softwareRenderer = false;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioLimit));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -796,6 +797,7 @@ export async function createScene(
         ),
       );
       if (/swiftshader|llvmpipe|software/i.test(gpu)) {
+        softwareRenderer = true;
         // Software rasterisers need a bounded fill rate to keep input and navigation responsive
         pixelRatioLimit = 0.75;
         frameInterval = 1 / 10;
@@ -978,7 +980,7 @@ export async function createScene(
     canvas.addEventListener("webglcontextlost", onLoss);
     canvas.addEventListener("webglcontextrestored", onRestore);
     resize();
-    await renderer.compileAsync(scene, camera);
+    if (!softwareRenderer) await renderer.compileAsync(scene, camera);
     if (disposed || signal?.aborted)
       throw new DOMException("Scene loading cancelled", "AbortError");
     started = performance.now();
@@ -996,7 +998,10 @@ export async function createScene(
             wake();
           }
         },
-        (group) => renderer.compileAsync(group, camera, scene),
+        (group) =>
+          softwareRenderer
+            ? Promise.resolve()
+            : renderer.compileAsync(group, camera, scene),
       );
     host.dataset.scene = "ready";
     live?.setActive(visible && !document.hidden);
