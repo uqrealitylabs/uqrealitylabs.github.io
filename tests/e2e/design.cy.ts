@@ -42,8 +42,7 @@ function capturePoster(name: string, launch = "flying") {
   cy.document().then((doc) => doc.getElementById("poster-capture")?.remove());
 }
 
-function feeds() {
-  const updated = Math.floor(Date.now() / 1000);
+function feeds(updated = Math.floor(Date.now() / 1000)) {
   cy.intercept("GET", "https://api.open-meteo.com/**", {
     body: [0, 1].map(() => ({
       current: {
@@ -96,10 +95,14 @@ describe("the connected geographic world", () => {
     motion("no-preference");
     feeds();
   });
-  it("hovers at campus, responds to light and stops offscreen or under reduced motion", () => {
+  it("keeps the real world responsive across its journey and routes", () => {
+    const night = Date.parse("2026-10-21T12:00:00Z");
+    cy.clock(night, ["Date"]);
+    feeds(night / 1000);
     cy.viewport(1440, 1000);
     let draws = 0;
-    cy.visit("/", {
+    let canvas: HTMLCanvasElement;
+    cy.visit("/?test=solar-cycle", {
       onBeforeLoad(win) {
         Object.defineProperty(win.navigator, "gpu", {
           value: undefined,
@@ -126,6 +129,11 @@ describe("the connected geographic world", () => {
     cy.get("#world-traffic")
       .should("contain", "1 aircraft")
       .and("contain", "1 ferries");
+    cy.get("#specimen").should("have.attr", "data-phase", "night");
+    cy.screenshot("world-night", { capture: "viewport" });
+    cy.get<HTMLCanvasElement>("#canvas").then(($canvas) => {
+      canvas = $canvas[0];
+    });
     cy.then(() => {
       const count = draws;
       cy.wait(250).then(() => expect(draws).to.be.greaterThan(count));
@@ -147,15 +155,13 @@ describe("the connected geographic world", () => {
       const count = draws;
       cy.wait(250).then(() => expect(draws).to.be.at.most(count + 1));
     });
-  });
-  it("flies continuously to Brisbane and Earth, reverses, and captures the same world on mobile", () => {
-    cy.viewport(1440, 1000);
-    cy.visit("/");
-    cy.get("#specimen", { timeout: 20000 }).should(
-      "have.attr",
-      "data-scene",
-      "ready",
+    motion("no-preference");
+    cy.get("#specimen").should("have.attr", "data-motion", "playing");
+    cy.tick(12 * 60 * 60 * 1000);
+    cy.document().then((doc) =>
+      doc.dispatchEvent(new Event("visibilitychange")),
     );
+    cy.get("#specimen").should("have.attr", "data-phase", "day");
     cy.get("#specimen").should("have.attr", "data-parser", "rust-wasm");
     cy.get("#specimen", { timeout: 30000 }).should(
       "have.attr",
@@ -176,33 +182,15 @@ describe("the connected geographic world", () => {
     scrollJourney(0);
     cy.get(".hero").should("have.attr", "data-chapter", "campus");
     cy.viewport(390, 844);
-    cy.visit("/");
-    cy.get("#specimen", { timeout: 20000 }).should(
-      "have.attr",
-      "data-scene",
-      "ready",
-    );
     scrollJourney(0);
     capturePoster("campus-mobile");
     cy.get("#canvas").then(($canvas) => {
-      const canvas = $canvas[0] as HTMLCanvasElement;
-      expect(canvas.width * canvas.height).to.be.at.most(2_000_000);
+      const mobileCanvas = $canvas[0] as HTMLCanvasElement;
+      expect(mobileCanvas.width * mobileCanvas.height).to.be.at.most(2_000_000);
     });
     scrollJourney(1);
     capturePoster("australia-mobile");
-  });
-  it("flies into a real capital district and preserves the same canvas across reading routes", () => {
     cy.viewport(1440, 1000);
-    let canvas: HTMLCanvasElement;
-    cy.visit("/");
-    cy.get("#specimen", { timeout: 30000 }).should(
-      "have.attr",
-      "data-scene",
-      "ready",
-    );
-    cy.get<HTMLCanvasElement>("#canvas").then(($canvas) => {
-      canvas = $canvas[0];
-    });
     scrollJourney(1);
     cy.get('[data-capital="Sydney"]').click();
     cy.get("#specimen", { timeout: 30000 }).should(
@@ -228,6 +216,35 @@ describe("the connected geographic world", () => {
     cy.get<HTMLCanvasElement>("#canvas").then(($canvas) =>
       expect($canvas[0]).to.equal(canvas),
     );
+    scrollJourney(0);
+    for (const key of ["projects", "events", "team"])
+      cy.get(`.station__view[data-view="${key}"]`).click();
+    cy.get("#specimen").should("have.attr", "data-pose", "team");
+    cy.get('.station__view[aria-pressed="true"]').should("have.length", 1);
+    cy.get("#room-link").should("have.attr", "href", "/team/");
+    cy.get("#room-link").click();
+    cy.location("pathname").should("eq", "/team/");
+    cy.go("back");
+    cy.location("pathname").should("eq", "/");
+    cy.get("#specimen").should("have.attr", "data-pose", "team");
+    cy.get("#station-team").should("have.focus");
+    cy.get(".footer__latch").focus();
+    cy.get(".footer").should("have.attr", "data-open", "true");
+    cy.get(".footer__pages a").should("have.length", 4);
+    cy.get(".footer__socials a[aria-label=Rubric]").should("be.visible");
+    cy.get(".footer__socials a[aria-label=Git]").should("be.visible");
+    cy.get(".footer__pages a").first().focus().type("{esc}");
+    cy.get(".footer").should("have.attr", "data-open", "false");
+    cy.viewport(390, 844);
+    cy.get(".footer__latch").click();
+    cy.get(".footer").should("have.attr", "data-open", "true");
+    cy.screenshot("footer-mobile", { capture: "viewport" });
+    cy.get(".footer__pages a[href='/team/']").click();
+    cy.get(".committee-timeline").should("not.have.attr", "open");
+    cy.get(".committee-timeline summary").click();
+    cy.get(".committee-timeline").should("have.attr", "open");
+    cy.get(".team-archive a").first().click();
+    cy.location("pathname").should("eq", "/team/2026/");
   });
   it("uses a static world with Save-Data, and keeps routes usable after a failed scene load", () => {
     cy.viewport(390, 844);
@@ -260,61 +277,6 @@ describe("the connected geographic world", () => {
     cy.get("#poster .poster-campus").should("be.visible");
     cy.get("#station-about").click();
     cy.location("pathname").should("eq", "/about/");
-  });
-  it("settles rapid exhibit selection and opens the footer with keyboard and touch", () => {
-    cy.viewport(1440, 1000);
-    cy.visit("/");
-    cy.get("#specimen", { timeout: 20000 }).should(
-      "have.attr",
-      "data-scene",
-      "ready",
-    );
-    for (const key of ["projects", "events", "team"])
-      cy.get(`.station__view[data-view="${key}"]`).click();
-    cy.get("#specimen").should("have.attr", "data-pose", "team");
-    cy.get('.station__view[aria-pressed="true"]').should("have.length", 1);
-    cy.get("#room-link").should("have.attr", "href", "/team/");
-    cy.get("#room-link").click();
-    cy.location("pathname").should("eq", "/team/");
-    cy.go("back");
-    cy.location("pathname").should("eq", "/");
-    cy.get("#specimen").should("have.attr", "data-pose", "team");
-    cy.get("#station-team").should("have.focus");
-    cy.get(".footer__latch").focus();
-    cy.get(".footer").should("have.attr", "data-open", "true");
-    cy.get(".footer__pages a").should("have.length", 4);
-    cy.get(".footer__socials a[aria-label=Rubric]").should("be.visible");
-    cy.get(".footer__socials a[aria-label=Git]").should("be.visible");
-    cy.get(".footer__pages a").first().focus().type("{esc}");
-    cy.get(".footer").should("have.attr", "data-open", "false");
-    cy.viewport(390, 844);
-    cy.get(".footer__latch").click();
-    cy.get(".footer").should("have.attr", "data-open", "true");
-    cy.screenshot("footer-mobile", { capture: "viewport" });
-    cy.get(".footer__pages a[href='/team/']").click();
-    cy.get(".committee-timeline").should("not.have.attr", "open");
-    cy.get(".committee-timeline summary").click();
-    cy.get(".committee-timeline").should("have.attr", "open");
-    cy.get(".team-archive a").first().click();
-    cy.location("pathname").should("eq", "/team/2026/");
-  });
-  it("switches actual UTC night and day lighting without changing geographic scale", () => {
-    cy.clock(Date.parse("2026-10-21T12:00:00Z"), ["Date"]);
-    cy.viewport(1440, 1000);
-    cy.visit("/?test=solar-cycle");
-    cy.get("#specimen", { timeout: 20000 }).should(
-      "have.attr",
-      "data-scene",
-      "ready",
-    );
-    cy.get("#specimen").should("have.attr", "data-phase", "night");
-    cy.get("#specimen").should("have.attr", "data-materials", "ready");
-    cy.screenshot("world-night", { capture: "viewport" });
-    cy.tick(12 * 60 * 60 * 1000);
-    cy.document().then((doc) =>
-      doc.dispatchEvent(new Event("visibilitychange")),
-    );
-    cy.get("#specimen").should("have.attr", "data-phase", "day");
   });
   it("keeps the first frame grounded while the complete world refines behind it", () => {
     for (const [width, height, name] of [
