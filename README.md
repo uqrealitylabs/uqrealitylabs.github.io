@@ -1,28 +1,36 @@
-# UQ Reality Labs Website
+# UQ Reality Labs
 
-Website for the University of Queensland Reality Labs society. It covers the committee, projects, events, docs, socials, and the usual join-us chaos.
+A multipage React website for UQ’s augmented and virtual reality club
 
-[![Security](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/security.yml/badge.svg?branch=prod)](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/security.yml)
-[![Deploy](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/deploy.yml/badge.svg?branch=prod)](https://github.com/uqrealitylabs/uqrealitylabs.github.io/actions/workflows/deploy.yml)
+```sh
+npm ci
+npm run setup:rust
+npm run dev
+npm run check
+npm run build
+npm run preview
+npm run test:e2e
+```
 
-## Links
+Use Node 24 or newer, stable Rust with rustup, and npm with the checked-in lockfile
+`setup:rust` installs the WASM target and matching bindgen CLI locally under `out/tools`
 
-- [Code of Conduct](./docs/CODE_OF_CONDUCT.md)
-- [Contributing](./docs/CONTRIBUTING.md)
-- [Security](./docs/SECURITY.md)
-- [License](./LICENSE)
-- Constitution: add the official text here when it is published.
+Content editors start with [the content guide](docs/content-authoring.md) and edit files in `public/assets/content/` — structured data is TOML and long documents are Markdown with TOML frontmatter
 
-## Commands
+React renders complete HTML at build time
+TanStack Router changes the reading surface while preserving the world and an active camera session
+Calendar and search hydrate separately; the optional Three scene never blocks reading or navigation
 
-- Install: `npx --yes npm@11.12.1 ci`
-- Dev: `npm run dev`
-- Format: `npm run format`
-- Lint: `npm run lint`
-- Test: `npm run test:unit`
-- Build: `npm run build`
+- [Architecture and deployment](docs/stack.md)
+- [Ordered service rollout](docs/services.md)
+- [Search and AI discovery](docs/seo.md)
+- [Performance checks](docs/benchmark.md)
+- [Code of Conduct](docs/CODE_OF_CONDUCT.md)
+- [Constitution source](https://github.com/uqrealitylabs/constitution/tree/main)
+- [Contributing](docs/CONTRIBUTING.md)
 
-## Deploy
+`npm run check:budgets` writes measured bundle sizes to `out/artifacts/`
+`npm run report:branches` writes the local and remote branch inventory there
+`SITE_TARGET=projects npm run build` creates the separate project-domain site with projects at `/` and `/<projectname>/`
 
-Production builds are meant to come from the `prod` branch.
-The current deploy workflow publishes the static build artifact to GitHub Pages.
+Generated HTML, feeds, SEO files, icons and search data stay in `dist/` — tool JSON and check artefacts stay in `out/` — publishing remains a separate action

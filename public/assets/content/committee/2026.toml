@@ -1,0 +1,104 @@
+# Committee term confirmed by the club maintainer
+year = 2026
+title = "2026 committee"
+current = true
+published = true
+
+[[people]]
+id = "president-1"
+name = "Cyrus Forudi"
+role = "President"
+group = "t3"
+photo = "/assets/people/cyrus.webp"
+linkedin = "https://www.linkedin.com/in/cyrus-forudi/"
+order = 10
+
+[[people]]
+id = "secretary-1"
+name = "Navya"
+role = "Secretary"
+group = "t3"
+photo = "/assets/people/navya.webp"
+linkedin = "https://www.linkedin.com/in/navpas/"
+order = 20
+
+[[people]]
+id = "treasurer-1"
+name = "Amna"
+role = "Treasurer"
+group = "t3"
+photo = "/assets/people/amna.webp"
+linkedin = "https://www.linkedin.com/in/amna-ar/"
+order = 30
+
+[[people]]
+id = "media-1"
+name = "Chloe Lim"
+role = "Media"
+group = "officers"
+photo = "/assets/people/chloe.webp"
+linkedin = "https://www.linkedin.com/in/chloe-lim-10a840386/"
+order = 40
+
+[[people]]
+id = "events-1"
+name = "Clare Johnston-Koto"
+role = "Events"
+group = "officers"
+photo = "/assets/people/clare.webp"
+linkedin = "https://www.linkedin.com/in/clare-johnston-koto/"
+order = 50
+
+[[people]]
+id = "workshop-1"
+name = "Radhesh"
+role = "Workshop"
+group = "officers"
+photo = "/assets/people/radhesh.webp"
+linkedin = "https://www.linkedin.com/in/radhesh-g/"
+order = 60
+
+[[people]]
+id = "industry-1"
+name = "Doris Wei"
+role = "Industry"
+group = "officers"
+photo = "/assets/people/doris.jpg"
+linkedin = "https://www.linkedin.com/in/doriswei/"
+order = 70
+
+[[people]]
+id = "antra"
+name = "Antra"
+role = "General committee"
+group = "general"
+photo = "/assets/people/previous/antra.webp"
+linkedin = "https://www.linkedin.com/in/antraagrawal25/"
+order = 100
+
+[[people]]
+id = "connor"
+name = "Connor"
+role = "General committee"
+group = "general"
+photo = "/assets/people/previous/connor.webp"
+linkedin = ""
+order = 101
+
+[[people]]
+id = "keerthana"
+name = "Keerthana"
+role = "General committee"
+group = "general"
+photo = "/assets/people/previous/keerthana.webp"
+linkedin = "https://www.linkedin.com/in/kselvam/"
+order = 102
+
+[[people]]
+id = "william"
+name = "William"
+role = "General committee"
+group = "general"
+photo = "/assets/people/previous/william.webp"
+linkedin = "https://www.linkedin.com/in/william-o-driscoll-979725378/"
+order = 103

@@ -10,6 +10,7 @@ Start with an issue before doing non-trivial work. If an issue already exists, c
 ## Local setup
 
 - `npx --yes npm@11.12.1 ci`
+- `npm run setup:rust`
 - `npm run dev`
 
 ## Local checks

@@ -1,0 +1,305 @@
+import { motion } from "./preferences";
+
+function scrollJourney(progress: number) {
+  cy.window().then((win) => {
+    const hero = win.document.querySelector<HTMLElement>(".hero")!;
+    win.document.documentElement.style.scrollBehavior = "auto";
+    win.scrollTo(
+      0,
+      hero.offsetTop + (hero.offsetHeight - win.innerHeight) * progress,
+    );
+    return new Cypress.Promise<void>((resolve) =>
+      win.requestAnimationFrame(() =>
+        win.requestAnimationFrame(() => resolve()),
+      ),
+    );
+  });
+  cy.get("#specimen", { timeout: 10000 }).should(
+    "have.attr",
+    "data-pose",
+    "home",
+  );
+}
+function capturePoster(name: string, launch = "flying") {
+  cy.get("#specimen").should("have.attr", "data-materials", "ready");
+  cy.get("#specimen").should("have.attr", "data-launch", launch);
+  cy.document().then((doc) => {
+    const style = doc.createElement("style");
+    style.id = "poster-capture";
+    style.textContent = `.header, .hero__stage > *, .lab-stations, .world-label, .air-invite, .world-weather, .world-traffic, .world-credit { visibility: hidden !important } .hero__stage::after, .world::after { display: none !important }`;
+    doc.head.append(style);
+  });
+  cy.get(".hero__stage").screenshot(`poster-${name}`, {
+    overwrite: true,
+  });
+  cy.document().then((doc) => doc.getElementById("poster-capture")?.remove());
+}
+
+function feeds(updated = Math.floor(Date.now() / 1000)) {
+  cy.intercept("GET", "https://api.open-meteo.com/**", {
+    body: [0, 1].map(() => ({
+      current: {
+        time: updated,
+        temperature_2m: 24,
+        cloud_cover: 70,
+        precipitation: 0.2,
+        wind_speed_10m: 12,
+        wind_direction_10m: 120,
+        weather_code: 61,
+      },
+    })),
+  });
+  cy.intercept("GET", "/api/world/traffic", {
+    body: {
+      aircraft: {
+        status: "live",
+        updated,
+        vehicles: [
+          {
+            id: "TEST",
+            longitude: 153.02,
+            latitude: -27.48,
+            altitude: 350,
+            bearing: 120,
+            updated,
+          },
+        ],
+      },
+      ferries: {
+        status: "live",
+        updated,
+        vehicles: [
+          {
+            id: "CityCat",
+            longitude: 153.023,
+            latitude: -27.487,
+            altitude: 0,
+            bearing: 200,
+            updated,
+          },
+        ],
+      },
+    },
+  });
+}
+
+describe("the connected geographic world", () => {
+  beforeEach(() => {
+    motion("no-preference");
+    feeds();
+  });
+  it("keeps the real world responsive across its journey and routes", () => {
+    const night = Date.parse("2026-10-21T12:00:00Z");
+    cy.clock(night, ["Date"]);
+    feeds(night / 1000);
+    cy.viewport(1440, 1000);
+    let draws = 0;
+    let frames = 0;
+    let activeFrames = 0;
+    let canvas: HTMLCanvasElement;
+    cy.visit("/?test=solar-cycle", {
+      onBeforeLoad(win) {
+        Object.defineProperty(win.navigator, "gpu", {
+          value: undefined,
+          configurable: true,
+        });
+        const prototype = win.WebGL2RenderingContext.prototype;
+        const draw = prototype.drawElementsInstanced;
+        prototype.drawElementsInstanced = function (...args) {
+          draws++;
+          return draw.apply(this, args);
+        };
+        const request = win.requestAnimationFrame.bind(win);
+        win.requestAnimationFrame = (callback) =>
+          request((time) => {
+            const count = draws;
+            callback(time);
+            if (draws > count) frames++;
+          });
+      },
+    });
+    cy.get("#specimen", { timeout: 20000 }).should(
+      "have.attr",
+      "data-pose",
+      "home",
+    );
+    cy.get("#specimen")
+      .should("have.attr", "data-renderer", "webgl")
+      .and("have.attr", "data-graphics", "software");
+    cy.get("#specimen").should("have.attr", "data-materials", "ready");
+    cy.get("#world-weather").should("contain", "St Lucia");
+    cy.get("#world-traffic")
+      .should("contain", "1 aircraft")
+      .and("contain", "1 ferries");
+    cy.get("#specimen").should("have.attr", "data-phase", "night");
+    cy.get("#specimen", { timeout: 120000 }).should(
+      "have.attr",
+      "data-parser",
+      "rust-wasm",
+    );
+    cy.screenshot("world-night", { capture: "viewport" });
+    cy.get<HTMLCanvasElement>("#canvas").then(($canvas) => {
+      canvas = $canvas[0];
+    });
+    cy.then(() => {
+      const count = frames;
+      cy.wait(250).then(() => {
+        activeFrames = frames - count;
+        expect(activeFrames).to.be.greaterThan(0);
+      });
+    });
+    cy.get("#canvas").trigger("pointermove", {
+      clientX: 950,
+      clientY: 700,
+      pointerType: "mouse",
+    });
+    cy.scrollTo("bottom", { duration: 0 });
+    cy.wait(300).then(() => {
+      const count = frames;
+      cy.wait(250).then(() => expect(frames).to.equal(count));
+    });
+    motion("reduce");
+    cy.scrollTo("top", { duration: 0 });
+    cy.get("#specimen").should("have.attr", "data-motion", "paused");
+    cy.wait(300).then(() => {
+      const count = frames;
+      cy.wait(250).then(() =>
+        expect(frames - count).to.be.at.most(activeFrames),
+      );
+    });
+    motion("no-preference");
+    cy.get("#specimen").should("have.attr", "data-motion", "playing");
+    cy.tick(12 * 60 * 60 * 1000);
+    cy.document().then((doc) =>
+      doc.dispatchEvent(new Event("visibilitychange")),
+    );
+    cy.get("#specimen").should("have.attr", "data-phase", "day");
+    capturePoster("campus");
+    scrollJourney(0.55);
+    cy.get(".hero").should("have.attr", "data-chapter", "brisbane");
+    cy.get('[aria-label="Fly to Brisbane"]').should("be.visible");
+    cy.screenshot("world-brisbane", { capture: "viewport" });
+    scrollJourney(1);
+    cy.get(".hero").should("have.attr", "data-chapter", "australia");
+    capturePoster("australia");
+    cy.screenshot("world-australia", { capture: "viewport" });
+    scrollJourney(0.3);
+    scrollJourney(0.9);
+    scrollJourney(0);
+    cy.get(".hero").should("have.attr", "data-chapter", "campus");
+    cy.viewport(390, 844);
+    scrollJourney(0);
+    capturePoster("campus-mobile");
+    cy.get("#canvas").then(($canvas) => {
+      const mobileCanvas = $canvas[0] as HTMLCanvasElement;
+      expect(mobileCanvas.width * mobileCanvas.height).to.be.at.most(2_000_000);
+    });
+    scrollJourney(1);
+    capturePoster("australia-mobile");
+    cy.viewport(1440, 1000);
+    scrollJourney(1);
+    cy.get('[data-capital="Sydney"]').click();
+    cy.get("#specimen", { timeout: 30000 }).should(
+      "have.attr",
+      "data-city",
+      "Sydney",
+    );
+    cy.get("#specimen", { timeout: 10000 }).should(
+      "have.attr",
+      "data-flight",
+      "landed",
+    );
+    cy.screenshot("world-sydney", { capture: "viewport" });
+    cy.get(".world-return").click();
+    motion("reduce");
+    cy.get("#specimen").should("have.attr", "data-motion", "paused");
+    cy.get(".menu").click();
+    cy.get('#navigation a[href="/team/"]').click();
+    cy.get("#main").should("have.attr", "data-page", "team");
+    cy.get<HTMLCanvasElement>("#canvas").then(($canvas) =>
+      expect($canvas[0]).to.equal(canvas),
+    );
+    cy.go("back");
+    cy.get("#main").should("have.attr", "data-page", "home");
+    cy.get<HTMLCanvasElement>("#canvas").then(($canvas) =>
+      expect($canvas[0]).to.equal(canvas),
+    );
+    scrollJourney(0);
+    for (const key of ["projects", "events", "team"])
+      cy.get(`.station__view[data-view="${key}"]`).click();
+    cy.get("#specimen").should("have.attr", "data-pose", "team");
+    cy.get('.station__view[aria-pressed="true"]').should("have.length", 1);
+    cy.get("#room-link").should("have.attr", "href", "/team/");
+    cy.get("#room-link").click();
+    cy.get("#main").should("have.attr", "data-page", "team");
+    cy.go("back");
+    cy.get("#main").should("have.attr", "data-page", "home");
+    cy.get("#specimen").should("have.attr", "data-pose", "team");
+    cy.get("#station-team").should("have.focus");
+    cy.get(".footer__latch").focus();
+    cy.get(".footer").should("have.attr", "data-open", "true");
+    cy.get(".footer__pages a").should("have.length", 4);
+    cy.get(".footer__socials a[aria-label=Rubric]").should("be.visible");
+    cy.get(".footer__socials a[aria-label=Git]").should("be.visible");
+    cy.get(".footer__pages a").first().focus().type("{esc}");
+    cy.get(".footer").should("have.attr", "data-open", "false");
+    cy.viewport(390, 844);
+    cy.get(".footer__latch").click();
+    cy.get(".footer").should("have.attr", "data-open", "true");
+    cy.screenshot("footer-mobile", { capture: "viewport" });
+    cy.get(".footer__pages a[href='/team/']").click();
+    cy.get(".committee-timeline").should("not.have.attr", "open");
+    cy.get(".committee-timeline summary").click();
+    cy.get(".committee-timeline").should("have.attr", "open");
+    cy.get(".team-archive a").first().click();
+    cy.get("#main").should("have.attr", "data-page", "archive-2026");
+  });
+  it("uses a static world with Save-Data, and keeps routes usable after a failed scene load", () => {
+    cy.viewport(390, 844);
+    cy.visit("/?test=save-data", {
+      onBeforeLoad(win) {
+        Object.defineProperty(win.navigator, "connection", {
+          value: { saveData: true },
+          configurable: true,
+        });
+      },
+    });
+    cy.get("#specimen").should("have.attr", "data-scene", "static");
+    cy.get("#poster .poster-campus").should("be.visible");
+    cy.get("#scene-load, #reset, [data-journey]").should("not.exist");
+    cy.then(() =>
+      Cypress.automation("remote:debugger:protocol", {
+        command: "Network.clearBrowserCache",
+      }),
+    );
+    cy.intercept("GET", "/assets/world/campus.json", { statusCode: 503 });
+    cy.visit("/?test=scene-error", {
+      onBeforeLoad(win) {
+        Object.defineProperty(win.navigator, "connection", {
+          value: { saveData: false },
+          configurable: true,
+        });
+      },
+    });
+    cy.get("#specimen").should("have.attr", "data-scene", "error");
+    cy.get("#poster .poster-campus").should("be.visible");
+    cy.get("#station-about").click();
+    cy.location("pathname").should("eq", "/about/");
+  });
+  it("keeps the first frame grounded while the complete world refines behind it", () => {
+    cy.viewport(1440, 1000);
+    cy.visit("/?test=grounded-campus", {
+      onBeforeLoad(win) {
+        Cypress.sinon.stub(win.performance, "now").returns(0);
+      },
+    });
+    cy.get("#specimen", { timeout: 120000 }).should(
+      "have.attr",
+      "data-details",
+      "ready",
+    );
+    capturePoster("campus", "grounded");
+    cy.viewport(390, 844);
+    capturePoster("campus-mobile", "grounded");
+  });
+});

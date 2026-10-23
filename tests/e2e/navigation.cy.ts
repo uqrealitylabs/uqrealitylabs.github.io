@@ -1,408 +1,190 @@
-import {
-  getPageContent,
-  getSiteContent,
-} from "../../src/content/contentRegistry";
+import { motion } from "./preferences";
 
-const home = getPageContent("en", "home");
-const about = getPageContent("en", "about");
-const contact = getPageContent("en", "contact");
-const joinCta = about.hero.cta ?? { href: "", label: "" };
-const site = getSiteContent("en");
-type SocialMaterialDebug = {
-  label: string;
-  kind: string;
-  visible: boolean;
-  hasLogo: boolean;
-  hasUnderline: boolean;
-  hasGrassLogo: boolean;
-  grassBladeCount: number;
-  logoFillRatio: number;
-  underlineScaleY: number;
-  pressure: number;
-  screenX: number;
-  screenY: number;
-};
-
-function expectRendered(selector: string) {
-  cy.get(selector).should(($element) => {
-    const element = $element[0];
-    const style = getComputedStyle(element);
-    const rect = element.getBoundingClientRect();
-
-    expect(style.display).not.to.eq("none");
-    expect(style.visibility).not.to.eq("hidden");
-    expect(Number.parseFloat(style.opacity || "1")).to.be.greaterThan(0);
-    expect(rect.width).to.be.greaterThan(0);
-    expect(rect.height).to.be.greaterThan(0);
+function capture(name: string, selector?: string) {
+  cy.document().then(async (doc) => {
+    const transition = (
+      doc as Document & { activeViewTransition?: ViewTransition }
+    ).activeViewTransition;
+    await transition?.finished;
+    await Promise.all(
+      doc.getAnimations().map((animation) => animation.finished),
+    );
+    doc.documentElement.style.scrollBehavior = "auto";
+    const header = doc.querySelector<HTMLElement>(".header");
+    if (header) header.style.position = "relative";
+  });
+  if (selector) cy.get(selector).scrollIntoView({ duration: 0 });
+  else cy.scrollTo("top", { duration: 0 });
+  cy.screenshot(name, {
+    capture: selector ? "viewport" : "fullPage",
+    scale: true,
   });
 }
 
-describe("navigation shell", () => {
-  it("loads the app shell and keeps JSON-backed nav available", () => {
+describe("public journeys", () => {
+  beforeEach(() => motion("no-preference"));
+  after(() => motion("no-preference"));
+  it("reads separate pages and the verified archive without loading 3D", () => {
+    motion("reduce");
+    cy.viewport(1440, 1000);
+    cy.request({ url: "/missing-check-2027", failOnStatusCode: false })
+      .its("status")
+      .should("eq", 404);
     cy.visit("/");
-    cy.get("nav[aria-label='Main']").should("exist");
-    cy.get("#nav-links button").its("length").should("be.gte", 5);
-    cy.contains("#nav-links button", home.nav.label).should("exist");
-    cy.get("#canvas").should("exist");
+    cy.get("h1").should("contain", "Reality");
+    cy.get("#specimen").should("have.attr", "data-scene", "static");
+    cy.get(".menu").click();
+    cy.get('#navigation a[href="/about/"]').click();
+    cy.location("pathname").should("eq", "/about/");
+    cy.contains("a", "Constitution").first().click();
+    cy.get("h1").should("have.text", "Constitution");
+    cy.contains("a", "constitution on the main branch").should(
+      "have.attr",
+      "href",
+      "https://github.com/uqrealitylabs/constitution/blob/main/Constitution.md",
+    );
+    cy.visit("/sponsors/");
+    cy.contains("h2", "Talk All Sport").should("be.visible");
+    cy.get('a[href="https://talkallsport.com/"]').should("be.visible");
+    capture("sponsors-desktop");
+    cy.visit("/team/2026/");
+    cy.contains("h3", "Antra").should("be.visible");
+    cy.contains("h3", "Cyrus Forudi").should("be.visible");
+    cy.get('meta[name="description"]')
+      .should("have.attr", "content")
+      .and("not.be.empty");
+    capture("archive-desktop");
   });
-
-  it("keeps basic keyboard and canvas accessibility hooks", () => {
-    cy.visit("/");
-    cy.get("#nav-links button").first().focus().should("have.focus");
-    cy.get("#nav-links button[aria-current='page']").should(
-      "contain",
-      home.nav.label,
-    );
-    cy.get("#canvas").should("have.attr", "aria-label").and("not.be.empty");
-  });
-
-  it("exposes keyboard-safe fallbacks for canvas-only join and social links", () => {
-    cy.visit("/");
-    cy.get("#join-us-accessible-link")
-      .should("have.attr", "href", joinCta?.href)
-      .and("have.text", joinCta?.label);
-
-    site.socialLinks.forEach((social) => {
-      cy.get("#social-accessible-links")
-        .contains("a", social.label)
-        .should("have.attr", "href", social.url);
-    });
-  });
-
-  it("renders the visible living JOIN US face scaffold", () => {
-    cy.visit("/");
-    cy.contains("#nav-links button", about.nav.label).click();
-    cy.get("body").should("have.attr", "data-section", "1");
-    expectRendered(".bee-trail--join");
-    cy.get(".bee-trail--join").should("have.css", "color", "rgb(255, 87, 87)");
-    cy.get(".bee-trail--join").invoke("outerWidth").should("be.gt", 150);
-    cy.get(".bee-trail__bee").should("not.exist");
-    cy.get(".bee-trail--join .bee-trail__orb").should("exist");
-    cy.get(".bee-trail--join .bee-trail__join-letter").then((letters) => {
-      expect([...letters].map((node) => node.textContent).join("")).to.eq(
-        site.animationCopy.joinUs.replace(/\s+/g, ""),
-      );
-    });
-    cy.get(".bee-trail--join .bee-trail__eye--o .bee-trail__eye-ring").should(
-      "have.css",
-      "fill",
-      "rgb(255, 243, 210)",
-    );
-    cy.get(".bee-trail--join .bee-trail__eye--o .bee-trail__eye-pupil").should(
-      "have.css",
-      "fill",
-      "rgb(107, 63, 31)",
-    );
-    cy.get(".bee-trail--join .bee-trail__eye--u").should(
-      "have.css",
-      "opacity",
-      "1",
-    );
-    cy.get(".bee-trail--join .bee-trail__thought--near-awwww").should(
-      "contain",
-      site.animationCopy.nearThought,
-    );
-  });
-
-  it("hides JOIN eyes and shows AWWWW when the pointer gets near", () => {
-    cy.visit("/");
-    cy.contains("#nav-links button", about.nav.label).click();
-    expectRendered(".bee-trail--join");
-    cy.get(".bee-trail__join-word").then(([word]) => {
-      const rect = word.getBoundingClientRect();
-      cy.get("#canvas").trigger("pointermove", {
-        clientX: rect.left + rect.width / 2,
-        clientY: rect.top + rect.height / 2,
-        pointerId: 1,
-        pointerType: "mouse",
-      });
-    });
-    cy.get("body").should("have.attr", "data-join-state", "joinNear");
-    cy.get(".bee-trail--join .bee-trail__eye").should(
-      "have.css",
-      "opacity",
-      "0",
-    );
-    cy.get(".bee-trail--join .bee-trail__eye").should(
-      "have.css",
-      "transition-property",
-      "none",
-    );
-    cy.get(".bee-trail--join .bee-trail__thought--near-awwww").should(
-      "contain",
-      site.animationCopy.nearThought,
-    );
-    cy.get("#canvas").trigger("pointermove", {
-      clientX: 4,
-      clientY: 4,
-      pointerId: 1,
-      pointerType: "mouse",
-    });
-    cy.get("body").should("have.attr", "data-join-state", "idleCurious");
-    cy.get(".bee-trail--join .bee-trail__eye-pupil")
-      .first()
-      .should("have.attr", "transform")
-      .and("match", /^translate/);
-  });
-
-  it("keeps the About orb trail scaled and calm in reduced motion", () => {
+  it("operates mobile navigation, focus return and React search", () => {
+    motion("reduce");
     cy.viewport(390, 844);
+    cy.visit("/");
+    cy.get(".menu").focus().type("{enter}");
+    cy.get(".menu").should("have.attr", "aria-expanded", "true");
+    cy.get('#navigation a[href="/team/"]').click();
+    cy.location("pathname").should("eq", "/team/");
+    cy.get(".search-trigger").click();
+    cy.get("#query").type("QuestRelay");
+    cy.contains("#search-results a", "QuestRelay").should("be.visible");
+    cy.get("#query").clear().type("What is UQRL?");
+    cy.contains("#search-results a", "What is UQRL?").should("be.visible");
+    cy.get("#search [data-close]").click();
+    cy.get(".search-trigger").should("be.focused");
+    capture("team-mobile");
+    cy.get(".search-trigger").click();
+    cy.get("#query").clear().type("QuestRelay");
+    cy.contains("#search-results a", "QuestRelay").click();
+    cy.location("pathname").should("eq", "/projects/questrelay/");
+    cy.get("#search").should("not.be.visible");
+    cy.get("#main").should("have.focus");
+  });
+  it("moves between calendar months by keyboard and exposes a valid subscription", () => {
+    motion("reduce");
+    cy.viewport(820, 1000);
+    cy.clock(Date.parse("2026-10-31T13:59:59Z"), [
+      "Date",
+      "setTimeout",
+      "clearTimeout",
+    ]);
+    cy.visit("/events/");
+    cy.get(".calendar-controls").should("be.visible");
+    cy.get(".calendar-table caption")
+      .invoke("text")
+      .then((current) => {
+        cy.get('button[aria-label="Next month"]').focus();
+        cy.then(() =>
+          Cypress.automation("remote:debugger:protocol", {
+            command: "Input.dispatchKeyEvent",
+            params: {
+              type: "keyDown",
+              key: "Enter",
+              code: "Enter",
+              windowsVirtualKeyCode: 13,
+              text: "\r",
+            },
+          }),
+        );
+        cy.then(() =>
+          Cypress.automation("remote:debugger:protocol", {
+            command: "Input.dispatchKeyEvent",
+            params: {
+              type: "keyUp",
+              key: "Enter",
+              code: "Enter",
+              windowsVirtualKeyCode: 13,
+            },
+          }),
+        );
+        cy.get(".calendar-table caption").should("not.have.text", current);
+        cy.get("button").contains("Today").click();
+        cy.get(".calendar-table caption").should("have.text", current);
+      });
+    cy.get("#month-empty").should("be.visible");
+    cy.tick(2000);
+    cy.get(".calendar-table caption").should("have.text", "November 2026");
+    cy.get(".is-today > span").should("contain", "1");
+    cy.get('a[href="webcal://uqrealitylabs.com/events.ics"]').should(
+      "contain",
+      "Subscribe",
+    );
+    cy.request("/events.ics").its("body").should("contain", "BEGIN:VCALENDAR");
+    capture("events-tablet");
+  });
+  it("loads and restores the world after WebGL context loss", () => {
+    cy.viewport(1440, 1000);
     cy.visit("/", {
       onBeforeLoad(win) {
-        cy.stub(win, "matchMedia").callsFake((media) => ({
-          matches: media === "(prefers-reduced-motion: reduce)",
-          media,
-          onchange: null,
-          addListener: cy.stub(),
-          removeListener: cy.stub(),
-          addEventListener: cy.stub(),
-          removeEventListener: cy.stub(),
-          dispatchEvent: cy.stub(),
-        }));
+        Object.defineProperty(win.navigator, "gpu", {
+          value: undefined,
+          configurable: true,
+        });
       },
     });
-    cy.contains("#nav-links button", about.nav.label).click();
-    cy.get("body").should("have.attr", "data-section", "1");
-    expectRendered(".bee-trail--join");
-    cy.get(".bee-trail--join").invoke("outerWidth").should("be.gt", 130);
-    cy.get(".bee-trail__bee").should("not.exist");
-    cy.get(".bee-trail--join .bee-trail__orb").should("exist");
-    expectRendered(".bee-trail--join .bee-trail__orb-core");
-    cy.get(".bee-trail--join .bee-trail__orb-drift").should(
-      "have.css",
-      "animation-name",
-      "none",
-    );
-    cy.get(".bee-trail--join .bee-trail__path").should(
-      "have.css",
-      "stroke-dashoffset",
-      "0px",
-    );
-  });
-
-  it("drives JOIN US reactions from keyboard-safe RUBRICS activation", () => {
-    cy.visit("/");
-    cy.contains("#nav-links button", about.nav.label).click();
-    cy.get("body").should("have.attr", "data-section", "1");
-    expectRendered(".bee-trail--join");
-    cy.get("#nav-links button").should("have.length.gte", 5);
-    cy.clock();
-    cy.get("#join-us-accessible-link").focus();
-    cy.get("body").should(
+    cy.get("#specimen", { timeout: 15000 }).should(
       "have.attr",
-      "data-join-state",
-      "rubricsHoverExcited",
+      "data-scene",
+      "ready",
     );
-    cy.get(".bee-trail--join .bee-trail__join-smile").should(
-      "have.css",
-      "opacity",
-      "1",
-    );
-    cy.get(".bee-trail--join .bee-trail__eye--u").should(
-      "have.css",
-      "animation-name",
-      "join-u-hover-wink",
-    );
-    cy.tick(3000);
-    cy.get("body").should("have.attr", "data-join-state", "rubricsHoverBlush");
-    cy.get(".bee-trail--join .bee-trail__kawaii-blush").should(
-      "have.css",
-      "opacity",
-      "1",
-    );
-    cy.get("#join-us-accessible-link").blur();
-    cy.get("body").should("have.attr", "data-join-state", "sadShrivel");
-    cy.get(".bee-trail--join").should("have.css", "color", "rgb(56, 189, 248)");
-    cy.get(".bee-trail--join .bee-trail__join-frown").should(
-      "have.css",
-      "opacity",
-      "1",
-    );
-    cy.get(".bee-trail--join .bee-trail__join-tear").should(
-      "have.css",
-      "opacity",
-      "1",
-    );
-    cy.get(".bee-trail--join .bee-trail__thought--sad-ow").should(
-      "contain",
-      site.animationCopy.ow,
-    );
-    cy.get(".bee-trail--join .bee-trail__thought--sad-aw").should(
-      "contain",
-      site.animationCopy.sadThought,
-    );
-    cy.get(".bee-trail--join .bee-trail__dust").should(
-      "have.css",
-      "opacity",
-      "1",
-    );
-    cy.tick(760);
-    cy.get("body").should("have.attr", "data-join-state", "recoveringToIdle");
-    cy.tick(180);
-    cy.get("body").should("have.attr", "data-join-state", "idleCurious");
-  });
-
-  it("shows yay before delayed JOIN navigation", () => {
-    cy.visit("/");
-    cy.contains("#nav-links button", about.nav.label).click();
-    cy.get("body").should("have.attr", "data-section", "1");
-    cy.clock();
-    cy.window().then((win) => {
-      cy.stub(win, "open").as("open");
+    capture("home-desktop", "body");
+    cy.get("#canvas").then(($canvas) => {
+      const canvas = $canvas[0] as HTMLCanvasElement;
+      const gl = canvas.getContext("webgl2");
+      const extension = gl?.getExtension("WEBGL_lose_context");
+      expect(extension).not.to.be.null;
+      extension?.loseContext();
+      cy.get("#specimen")
+        .should("have.attr", "data-scene", "lost")
+        .then(() => extension?.restoreContext());
     });
-    cy.get("#nav-links button").should("have.length.gte", 5);
-    cy.get("#join-us-accessible-link")
-      .focus()
-      .should("be.visible")
-      .type("{enter}");
-    cy.get("body").should(
+    cy.get("#specimen", { timeout: 20000 }).should(
       "have.attr",
-      "data-join-state",
-      "rubricsClickCelebration",
-    );
-    cy.get(".bee-trail--join .bee-trail__thought--yay").should(
-      "contain",
-      site.animationCopy.yay,
-    );
-    cy.tick(500);
-    cy.get("@open").should(
-      "have.been.calledWith",
-      joinCta.href,
-      "_blank",
-      "noopener,noreferrer",
+      "data-scene",
+      "ready",
     );
   });
-
-  it("creates visible feelable social material cards from live content", () => {
-    cy.visit("/");
-    cy.contains("#nav-links button", contact.nav.label).click();
-    cy.get("body").should("have.attr", "data-section", "2");
-    cy.get("body").should("have.attr", "data-social-materials-ready", "true");
-    cy.get("#canvas").should("be.visible");
-    cy.window().should((win) => {
-      const readMaterials = (
-        win as unknown as {
-          __uqrlSocialMaterials?: () => SocialMaterialDebug[];
-        }
-      ).__uqrlSocialMaterials;
-
-      expect(readMaterials).to.be.a("function");
-      const materials = readMaterials?.() ?? [];
-      const visibleMaterials = materials.filter(
-        (material: SocialMaterialDebug) => material.visible,
-      );
-
-      expect(visibleMaterials).to.have.length(site.socialLinks.length);
-      expect(
-        new Set(
-          visibleMaterials.map(
-            (material: SocialMaterialDebug) => material.kind,
-          ),
-        ),
-      ).to.eql(new Set(["cloth", "rubber", "glass", "grass", "mail"]));
-      visibleMaterials.forEach((material: SocialMaterialDebug) => {
-        expect(material.hasLogo).to.eq(true);
-        expect(material.hasUnderline).to.eq(true);
-        expect(material.logoFillRatio).to.be.greaterThan(0.95);
-      });
-      expect(
-        visibleMaterials.find(
-          (material: SocialMaterialDebug) => material.label === "Email",
-        ),
-      ).to.include({ kind: "mail" });
-      expect(
-        visibleMaterials.find(
-          (material: SocialMaterialDebug) => material.label === "Instagram",
-        ),
-      ).to.include({ kind: "grass", hasGrassLogo: true });
-      expect(
-        visibleMaterials.find(
-          (material: SocialMaterialDebug) => material.label === "Instagram",
-        )?.grassBladeCount,
-      ).to.be.greaterThan(300);
+  it("keeps awards textual and loads optional objects", () => {
+    cy.viewport(1280, 900);
+    cy.visit("/about/");
+    cy.get(".award-gallery").scrollIntoView();
+    cy.get(".award-object").each(($award) => {
+      cy.wrap($award).should("have.attr", "data-scene", "ready");
+      cy.wrap($award).find("h3").should("not.be.empty");
+      cy.wrap($award).find("canvas").should("be.visible");
     });
+    capture("awards-desktop", ".award-gallery");
   });
-
-  it("pokes each live social material through the canvas", () => {
+  it("keeps content visible and 3D opt-in under reduced motion", () => {
+    motion("reduce");
+    cy.viewport(390, 844);
     cy.visit("/");
-    cy.contains("#nav-links button", contact.nav.label).click();
-    cy.get("body").should("have.attr", "data-section", "2");
-    cy.get("body").should("have.attr", "data-social-materials-ready", "true");
-    cy.window()
-      .its("__uqrlSocialMaterials")
-      .should("be.a", "function")
-      .then((readMaterials) => {
-        const materials = (
-          readMaterials as () => SocialMaterialDebug[]
-        )().filter((material) => material.visible);
-        expect(new Set(materials.map((material) => material.kind))).to.eql(
-          new Set(["cloth", "rubber", "glass", "grass", "mail"]),
-        );
-        cy.wrap(materials.sort((a, b) => a.kind.localeCompare(b.kind))).as(
-          "materials",
-        );
-      });
-
-    cy.get("@materials").then((subject) => {
-      const materials = subject as unknown as SocialMaterialDebug[];
-      materials.forEach((material) => {
-        cy.window().then((win) => {
-          const readMaterials = (
-            win as unknown as {
-              __uqrlSocialMaterials: () => SocialMaterialDebug[];
-            }
-          ).__uqrlSocialMaterials;
-          const current = readMaterials().find(
-            (item) => item.label === material.label,
-          );
-
-          expect(current, material.label).to.exist;
-          if (!current) throw new Error(`Missing ${material.label}`);
-          expect(current?.visible).to.eq(true);
-          const { screenX, screenY } = current;
-          cy.get("#canvas").trigger("pointermove", {
-            clientX: screenX,
-            clientY: screenY,
-            pointerId: 1,
-            pointerType: "mouse",
-            pressure: 0.35,
-          });
-          cy.get("#canvas").trigger("pointerdown", {
-            clientX: screenX,
-            clientY: screenY,
-            pointerId: 1,
-            pointerType: "mouse",
-            pressure: 0.9,
-          });
-          cy.get("body").should(
-            "have.attr",
-            "data-material-type",
-            material.kind,
-          );
-          cy.get("body").should(
-            "have.attr",
-            "data-interaction-state",
-            "pressed",
-          );
-          cy.window().should((latestWindow) => {
-            const latest = (
-              latestWindow as unknown as {
-                __uqrlSocialMaterials: () => SocialMaterialDebug[];
-              }
-            )
-              .__uqrlSocialMaterials()
-              .find((item) => item.label === material.label);
-            expect(latest?.pressure).to.be.greaterThan(0);
-            expect(latest?.underlineScaleY).to.be.greaterThan(1);
-          });
-          cy.get("#canvas").trigger("pointerup", {
-            clientX: screenX,
-            clientY: screenY,
-            pointerId: 1,
-            pointerType: "mouse",
-          });
-        });
-      });
-    });
+    cy.get("#poster").should("be.visible");
+    cy.get("#specimen").should("not.have.attr", "data-scene", "ready");
+    capture("home-mobile");
+    cy.visit("/about/");
+    cy.get(".award-gallery").scrollIntoView();
+    cy.get(".award-object__load").first().should("be.visible").click();
+    cy.get(".award-object")
+      .first()
+      .should("have.attr", "data-motion", "paused");
   });
 });

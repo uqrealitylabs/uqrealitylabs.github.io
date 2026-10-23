@@ -1,0 +1,179 @@
+# == Biome ==
+[biome]
+[biome.formatter]
+indentStyle = "space"
+indentWidth = 2
+
+[biome.javascript]
+jsxRuntime = "reactClassic"
+
+[biome.linter]
+enabled = true
+
+# == Browser ==
+[browser]
+screenshotsFolder = "out/cypress/screenshots"
+videosFolder = "out/cypress/videos"
+video = false
+reporter = "junit"
+reporterOptions = { mochaFile = "out/test-results/browser-[hash].xml", toConsole = false }
+
+[browser.e2e]
+baseUrl = "http://localhost:3000"
+specPattern = "tests/e2e/**/*.cy.ts"
+supportFile = false
+
+# == Budget ==
+[budget]
+baseJsGzip = 20480
+cssGzip = 12288
+largestLazyJsGzip = 256000
+
+# == Build ==
+[build]
+[build.source]
+tsconfigPath = "out/tools/tsconfig.json"
+
+[build.output]
+sourceMap = { js = false }
+distPath = { root = "dist", js = "bundled", css = "bundled", media = "bundled" }
+
+[build.tools.cssLoader]
+url = false
+
+[build.server]
+htmlFallback = false
+
+[build.performance]
+buildCache = { cacheDirectory = "out/.cache/rsbuild" }
+
+[build.performance.chunkSplit]
+strategy = "split-by-size"
+minSize = 40000
+maxSize = 480000
+
+# == Bundle ==
+[bundle]
+mode = "development"
+target = "web"
+devtool = "inline-source-map"
+
+[bundle.resolve]
+extensions = [".ts", ".tsx", ".js"]
+
+[bundle.cache]
+type = "memory"
+
+# == Deno ==
+[deno]
+nodeModulesDir = "manual"
+lock = false
+
+[deno.compilerOptions]
+strict = true
+
+# == Lighthouse ==
+[lighthouse]
+[lighthouse.ci.collect]
+numberOfRuns = 3
+url = [ "http://127.0.0.1:4173/", "http://127.0.0.1:4173/about/", "http://127.0.0.1:4173/events/" ]
+
+[lighthouse.ci.collect.settings]
+chromeFlags = "--headless=new --no-sandbox"
+
+[lighthouse.ci.assert.assertions]
+"categories:accessibility" = [ "warn", { minScore = 0.95 } ]
+"categories:best-practices" = [ "warn", { minScore = 0.95 } ]
+"categories:performance" = [ "warn", { minScore = 0.9 } ]
+"categories:seo" = [ "warn", { minScore = 0.9 } ]
+first-contentful-paint = [ "warn", { maxNumericValue = 1800 } ]
+largest-contentful-paint = [ "warn", { maxNumericValue = 2500 } ]
+cumulative-layout-shift = [ "warn", { maxNumericValue = 0.1 } ]
+total-blocking-time = [ "warn", { maxNumericValue = 200 } ]
+
+[lighthouse.ci.upload]
+target = "filesystem"
+outputDir = "out/artifacts/lighthouse"
+
+# == Publisher ==
+[publisher]
+name = "Publish approved constitution"
+
+[publisher.permissions]
+contents = "read"
+
+[publisher.concurrency]
+group = "constitution-publisher"
+cancel-in-progress = false
+
+[publisher.jobs.publish]
+if = "github.ref == 'refs/heads/main'"
+runs-on = "ubuntu-latest"
+timeout-minutes = 20
+
+[publisher.jobs.publish.permissions]
+contents = "write"
+
+[[publisher.jobs.publish.steps]]
+uses = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+
+[publisher.jobs.publish.steps.with]
+persist-credentials = false
+
+[[publisher.jobs.publish.steps]]
+name = "Install document tools"
+run = "sudo apt-get update\nsudo apt-get install -y --no-install-recommends pandoc texlive-xetex texlive-fonts-recommended\n"
+
+[[publisher.jobs.publish.steps]]
+name = "Build approved main documents"
+shell = "bash"
+run = "set -euo pipefail\nmkdir -p dist\nsources=(Constitution.md)\nif [ -d policies ]; then\n  while IFS= read -r -d '' policy; do sources+=(\"$policy\"); done < <(find policies -maxdepth 1 -type f -name '*.md' -print0 | sort -z)\nfi\npandoc \"${sources[@]}\" --standalone --toc --pdf-engine=xelatex --metadata title=\"UQ Reality Labs Constitution\" -o dist/constitution.pdf\ntest -s dist/constitution.pdf\n(cd dist && sha256sum constitution.pdf > constitution.pdf.sha256)\nSOURCE_FILES=\"$(printf '%s\\n' \"${sources[@]}\")\" python3 - <<'PY'\nimport hashlib, json, os, pathlib\nfrom datetime import datetime, timezone\npdf = pathlib.Path('dist/constitution.pdf')\nmanifest = {'repository': os.environ['GITHUB_REPOSITORY'], 'branch': 'main', 'commit': os.environ['GITHUB_SHA'], 'documents': os.environ['SOURCE_FILES'].splitlines(), 'publishedAt': datetime.now(timezone.utc).isoformat(), 'sha256': hashlib.sha256(pdf.read_bytes()).hexdigest()}\npathlib.Path('dist/manifest.json').write_text(json.dumps(manifest, indent=2) + '\\n')\nPY\n"
+
+[[publisher.jobs.publish.steps]]
+name = "Publish a verified immutable release"
+shell = "bash"
+run = "set -euo pipefail\ntag=\"constitution-${GITHUB_SHA:0:12}\"\nif gh release view \"$tag\" --repo \"$GITHUB_REPOSITORY\" --json isDraft --jq .isDraft > dist/existing; then\n  if [ \"$(cat dist/existing)\" = false ]; then exit 0; fi\n  echo 'A draft for this source exists; inspect it before retrying' >&2\n  exit 1\nfi\ngh release create \"$tag\" --repo \"$GITHUB_REPOSITORY\" --target \"$GITHUB_SHA\" --draft --title \"Constitution ${GITHUB_SHA:0:12}\" --notes \"Approved main documents at ${GITHUB_SHA}\" dist/constitution.pdf dist/constitution.pdf.sha256 dist/manifest.json\ngh release download \"$tag\" --repo \"$GITHUB_REPOSITORY\" --dir dist/verify --pattern 'constitution.pdf*'\n(cd dist/verify && sha256sum --check constitution.pdf.sha256)\ngh release edit \"$tag\" --repo \"$GITHUB_REPOSITORY\" --draft=false --latest\n"
+
+[publisher.jobs.publish.steps.env]
+GH_TOKEN = "${{ github.token }}"
+
+[publisher.on.push]
+branches = [ "main" ]
+paths = [ "Constitution.md", "policies/**", ".github/workflows/publish.yml" ]
+
+# == Test ==
+[test]
+cacheDir = "out/.cache/vitest"
+
+[test.test]
+environment = "node"
+include = ["tests/unit/**/*.test.{ts,tsx}"]
+reporters = ["default", "junit"]
+outputFile = { junit = "out/test-results/unit.xml" }
+
+[test.test.coverage]
+reportsDirectory = "out/coverage"
+
+# == Typescript ==
+[typescript]
+include = [ "../../src", "../../tests", "../../tools" ]
+
+[typescript.compilerOptions]
+target = "ES2022"
+useDefineForClassFields = true
+lib = [ "DOM", "DOM.Iterable", "ES2022" ]
+allowJs = false
+checkJs = false
+skipLibCheck = true
+esModuleInterop = true
+allowSyntheticDefaultImports = true
+allowImportingTsExtensions = true
+strict = true
+forceConsistentCasingInFileNames = true
+module = "ESNext"
+moduleResolution = "Bundler"
+resolveJsonModule = true
+isolatedModules = true
+noEmit = true
+jsx = "react"
+types = [ "node", "vitest/globals", "cypress" ]
