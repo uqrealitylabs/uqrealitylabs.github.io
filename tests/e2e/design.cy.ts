@@ -215,12 +215,12 @@ describe("the connected geographic world", () => {
     cy.get("#specimen").should("have.attr", "data-motion", "paused");
     cy.get(".menu").click();
     cy.get('#navigation a[href="/team/"]').click();
-    cy.location("pathname").should("eq", "/team/");
+    cy.get("#main").should("have.attr", "data-page", "team");
     cy.get<HTMLCanvasElement>("#canvas").then(($canvas) =>
       expect($canvas[0]).to.equal(canvas),
     );
     cy.go("back");
-    cy.location("pathname").should("eq", "/");
+    cy.get("#main").should("have.attr", "data-page", "home");
     cy.get<HTMLCanvasElement>("#canvas").then(($canvas) =>
       expect($canvas[0]).to.equal(canvas),
     );
@@ -231,9 +231,9 @@ describe("the connected geographic world", () => {
     cy.get('.station__view[aria-pressed="true"]').should("have.length", 1);
     cy.get("#room-link").should("have.attr", "href", "/team/");
     cy.get("#room-link").click();
-    cy.location("pathname").should("eq", "/team/");
+    cy.get("#main").should("have.attr", "data-page", "team");
     cy.go("back");
-    cy.location("pathname").should("eq", "/");
+    cy.get("#main").should("have.attr", "data-page", "home");
     cy.get("#specimen").should("have.attr", "data-pose", "team");
     cy.get("#station-team").should("have.focus");
     cy.get(".footer__latch").focus();
@@ -252,7 +252,7 @@ describe("the connected geographic world", () => {
     cy.get(".committee-timeline summary").click();
     cy.get(".committee-timeline").should("have.attr", "open");
     cy.get(".team-archive a").first().click();
-    cy.location("pathname").should("eq", "/team/2026/");
+    cy.get("#main").should("have.attr", "data-page", "archive-2026");
   });
   it("uses a static world with Save-Data, and keeps routes usable after a failed scene load", () => {
     cy.viewport(390, 844);
