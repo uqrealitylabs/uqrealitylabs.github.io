@@ -211,6 +211,8 @@ describe("the connected geographic world", () => {
     );
     cy.screenshot("world-sydney", { capture: "viewport" });
     cy.get(".world-return").click();
+    motion("reduce");
+    cy.get("#specimen").should("have.attr", "data-motion", "paused");
     cy.get(".menu").click();
     cy.get('#navigation a[href="/team/"]').click();
     cy.location("pathname").should("eq", "/team/");
