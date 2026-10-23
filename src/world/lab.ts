@@ -289,6 +289,7 @@ export async function makeLab(
             performance.mark(`uqrl-${name}-start`);
             const model = await loadModel(name, reader, detailSignal);
             performance.measure(`uqrl-${name}-decode`, `uqrl-${name}-start`);
+            group.userData.parser = model.userData.parser;
             if (name === "brisbane") {
               council = model;
               const glazing = cityMaterial();
@@ -307,7 +308,6 @@ export async function makeLab(
               windows.push(glazing);
               await prepare(model);
               landscape.add(model);
-              group.userData.parser = "rust-wasm";
             } else
               treeModels[
                 name === "tree"
