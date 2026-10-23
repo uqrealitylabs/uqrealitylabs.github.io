@@ -134,12 +134,12 @@ export async function createScene(
   const renderer = new THREE.WebGPURenderer({
     canvas,
     alpha: true,
-    antialias: true,
+    antialias: !navigator.webdriver,
     powerPreference: "low-power",
   });
-  let pixelRatioLimit = 1.5;
-  let frameInterval = 1 / 30;
-  let softwareRenderer = false;
+  let pixelRatioLimit = navigator.webdriver ? 0.5 : 1.5;
+  let frameInterval = navigator.webdriver ? 1 / 5 : 1 / 30;
+  let softwareRenderer = navigator.webdriver;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioLimit));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -162,9 +162,9 @@ export async function createScene(
   fill.position.set(-3, -2, 4);
   scene.add(fill);
   if (!visual) {
-    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.enabled = !softwareRenderer;
     renderer.shadowMap.type = THREE.PCFShadowMap;
-    key.castShadow = true;
+    key.castShadow = !softwareRenderer;
     key.shadow.mapSize.set(1024, 1024);
     Object.assign(key.shadow.camera, {
       left: -24,
@@ -800,8 +800,8 @@ export async function createScene(
       if (navigator.webdriver || /swiftshader|llvmpipe|software/i.test(gpu)) {
         softwareRenderer = true;
         // Software rasterisers need a bounded fill rate to keep input and navigation responsive
-        pixelRatioLimit = 0.75;
-        frameInterval = 1 / 10;
+        pixelRatioLimit = Math.min(pixelRatioLimit, 0.75);
+        frameInterval = Math.max(frameInterval, 1 / 10);
         renderer.shadowMap.enabled = false;
         key.castShadow = false;
         // SwiftShader can expose parallel compilation without ever reporting completion
