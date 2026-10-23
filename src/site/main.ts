@@ -70,22 +70,24 @@ let hero = document.querySelector<HTMLElement>(".hero");
 let disposePage = () => {};
 function setJourney(progress: number) {
   if (!hero) return;
-  hero.style.setProperty("--journey", String(progress));
-  worldState.setState({ progress, selected: "home" });
   const chapter = progress < 0.32 ? 0 : progress < 0.77 ? 1 : 2;
   hero.dataset.chapter = ["campus", "brisbane", "australia"][chapter];
+  const current = worldState.getState();
+  if (current.progress !== progress || current.selected !== "home")
+    worldState.setState({ progress, selected: "home" });
 }
 const followJourney = () => {
   const world = document.querySelector<HTMLElement>(".world");
-  if (world) world.hidden = !!hero && hero.getBoundingClientRect().bottom <= 0;
+  const bounds = hero?.getBoundingClientRect();
+  const hidden = !!bounds && bounds.bottom <= 0;
+  if (world && world.hidden !== hidden) world.hidden = hidden;
   if (
-    !hero ||
+    !bounds ||
     motion.matches ||
     worldState.getState().city ||
     worldState.getState().selected !== "home"
   )
     return;
-  const bounds = hero.getBoundingClientRect();
   setJourney(
     Math.min(
       1,
@@ -93,11 +95,19 @@ const followJourney = () => {
     ),
   );
 };
+let journeyFrame = 0;
+const queueJourney = () => {
+  if (journeyFrame) return;
+  journeyFrame = requestAnimationFrame(() => {
+    journeyFrame = 0;
+    followJourney();
+  });
+};
 // Focus-driven scrolling must not cancel an exhibit selection
 const resumeJourney = () => {
   if (worldState.getState().selected === "home" || motion.matches) return;
   worldState.setState({ selected: "home" });
-  followJourney();
+  queueJourney();
 };
 for (const event of ["wheel", "touchmove"] as const)
   window.addEventListener(event, resumeJourney, {
@@ -129,11 +139,11 @@ window.addEventListener(
   },
   { signal: lifetime.signal },
 );
-window.addEventListener("scroll", followJourney, {
+window.addEventListener("scroll", queueJourney, {
   passive: true,
   signal: lifetime.signal,
 });
-window.addEventListener("resize", followJourney, { signal: lifetime.signal });
+window.addEventListener("resize", queueJourney, { signal: lifetime.signal });
 setJourney(0);
 followJourney();
 motion.addEventListener(
@@ -250,6 +260,7 @@ if (
 window.addEventListener("pagehide", (event) => {
   if (event.persisted) return;
   disposed = true;
+  cancelAnimationFrame(journeyFrame);
   lifetime.abort();
   unsubscribeWorld();
   scene?.dispose();
