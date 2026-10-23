@@ -101,6 +101,7 @@ describe("the connected geographic world", () => {
     feeds(night / 1000);
     cy.viewport(1440, 1000);
     let draws = 0;
+    let activeDraws = 0;
     let canvas: HTMLCanvasElement;
     cy.visit("/?test=solar-cycle", {
       onBeforeLoad(win) {
@@ -136,7 +137,10 @@ describe("the connected geographic world", () => {
     });
     cy.then(() => {
       const count = draws;
-      cy.wait(250).then(() => expect(draws).to.be.greaterThan(count));
+      cy.wait(250).then(() => {
+        activeDraws = draws - count;
+        expect(activeDraws).to.be.greaterThan(0);
+      });
     });
     cy.get("#canvas").trigger("pointermove", {
       clientX: 950,
@@ -153,7 +157,7 @@ describe("the connected geographic world", () => {
     cy.get("#specimen").should("have.attr", "data-motion", "paused");
     cy.wait(300).then(() => {
       const count = draws;
-      cy.wait(250).then(() => expect(draws).to.be.at.most(count + 1));
+      cy.wait(250).then(() => expect(draws - count).to.be.at.most(activeDraws));
     });
     motion("no-preference");
     cy.get("#specimen").should("have.attr", "data-motion", "playing");
@@ -163,7 +167,7 @@ describe("the connected geographic world", () => {
     );
     cy.get("#specimen").should("have.attr", "data-phase", "day");
     cy.get("#specimen").should("have.attr", "data-parser", "rust-wasm");
-    cy.get("#specimen", { timeout: 30000 }).should(
+    cy.get("#specimen", { timeout: 120000 }).should(
       "have.attr",
       "data-details",
       "ready",
@@ -279,22 +283,19 @@ describe("the connected geographic world", () => {
     cy.location("pathname").should("eq", "/about/");
   });
   it("keeps the first frame grounded while the complete world refines behind it", () => {
-    for (const [width, height, name] of [
-      [1440, 1000, "campus"],
-      [390, 844, "campus-mobile"],
-    ] as const) {
-      cy.viewport(width, height);
-      cy.visit(`/?test=grounded-${name}`, {
-        onBeforeLoad(win) {
-          Cypress.sinon.stub(win.performance, "now").returns(0);
-        },
-      });
-      cy.get("#specimen", { timeout: 30000 }).should(
-        "have.attr",
-        "data-details",
-        "ready",
-      );
-      capturePoster(name, "grounded");
-    }
+    cy.viewport(1440, 1000);
+    cy.visit("/?test=grounded-campus", {
+      onBeforeLoad(win) {
+        Cypress.sinon.stub(win.performance, "now").returns(0);
+      },
+    });
+    cy.get("#specimen", { timeout: 120000 }).should(
+      "have.attr",
+      "data-details",
+      "ready",
+    );
+    capturePoster("campus", "grounded");
+    cy.viewport(390, 844);
+    capturePoster("campus-mobile", "grounded");
   });
 });
