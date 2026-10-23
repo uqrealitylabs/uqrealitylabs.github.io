@@ -29,16 +29,9 @@ function capturePoster(name: string, launch = "flying") {
     style.textContent = `.header, .hero__stage > *, .lab-stations, .world-label, .air-invite, .world-weather, .world-traffic, .world-credit { visibility: hidden !important } .hero__stage::after, .world::after { display: none !important }`;
     doc.head.append(style);
   });
-  let path = "";
   cy.get(".hero__stage").screenshot(`poster-${name}`, {
     overwrite: true,
-    onAfterScreenshot(_element, result) {
-      path = result.path;
-    },
   });
-  cy.then(() => cy.readFile(path, "base64")).then((bytes) =>
-    cy.writeFile(`out/artifacts/posters/${name}.png`, bytes, "base64"),
-  );
   cy.document().then((doc) => doc.getElementById("poster-capture")?.remove());
 }
 
@@ -131,6 +124,12 @@ describe("the connected geographic world", () => {
       .should("contain", "1 aircraft")
       .and("contain", "1 ferries");
     cy.get("#specimen").should("have.attr", "data-phase", "night");
+    cy.get("#specimen", { timeout: 120000 }).should(
+      "have.attr",
+      "data-details",
+      "ready",
+    );
+    cy.get("#specimen").should("have.attr", "data-parser", "rust-wasm");
     cy.screenshot("world-night", { capture: "viewport" });
     cy.get<HTMLCanvasElement>("#canvas").then(($canvas) => {
       canvas = $canvas[0];
@@ -166,12 +165,6 @@ describe("the connected geographic world", () => {
       doc.dispatchEvent(new Event("visibilitychange")),
     );
     cy.get("#specimen").should("have.attr", "data-phase", "day");
-    cy.get("#specimen").should("have.attr", "data-parser", "rust-wasm");
-    cy.get("#specimen", { timeout: 120000 }).should(
-      "have.attr",
-      "data-details",
-      "ready",
-    );
     capturePoster("campus");
     scrollJourney(0.55);
     cy.get(".hero").should("have.attr", "data-chapter", "brisbane");
