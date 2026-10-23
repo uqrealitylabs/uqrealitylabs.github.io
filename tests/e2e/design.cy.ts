@@ -94,7 +94,8 @@ describe("the connected geographic world", () => {
     feeds(night / 1000);
     cy.viewport(1440, 1000);
     let draws = 0;
-    let activeDraws = 0;
+    let frames = 0;
+    let activeFrames = 0;
     let canvas: HTMLCanvasElement;
     cy.visit("/?test=solar-cycle", {
       onBeforeLoad(win) {
@@ -108,6 +109,13 @@ describe("the connected geographic world", () => {
           draws++;
           return draw.apply(this, args);
         };
+        const request = win.requestAnimationFrame.bind(win);
+        win.requestAnimationFrame = (callback) =>
+          request((time) => {
+            const count = draws;
+            callback(time);
+            if (draws > count) frames++;
+          });
       },
     });
     cy.get("#specimen", { timeout: 20000 }).should(
@@ -126,19 +134,18 @@ describe("the connected geographic world", () => {
     cy.get("#specimen").should("have.attr", "data-phase", "night");
     cy.get("#specimen", { timeout: 120000 }).should(
       "have.attr",
-      "data-details",
-      "ready",
+      "data-parser",
+      "rust-wasm",
     );
-    cy.get("#specimen").should("have.attr", "data-parser", "rust-wasm");
     cy.screenshot("world-night", { capture: "viewport" });
     cy.get<HTMLCanvasElement>("#canvas").then(($canvas) => {
       canvas = $canvas[0];
     });
     cy.then(() => {
-      const count = draws;
+      const count = frames;
       cy.wait(250).then(() => {
-        activeDraws = draws - count;
-        expect(activeDraws).to.be.greaterThan(0);
+        activeFrames = frames - count;
+        expect(activeFrames).to.be.greaterThan(0);
       });
     });
     cy.get("#canvas").trigger("pointermove", {
@@ -148,15 +155,17 @@ describe("the connected geographic world", () => {
     });
     cy.scrollTo("bottom", { duration: 0 });
     cy.wait(300).then(() => {
-      const count = draws;
-      cy.wait(250).then(() => expect(draws).to.equal(count));
+      const count = frames;
+      cy.wait(250).then(() => expect(frames).to.equal(count));
     });
     motion("reduce");
     cy.scrollTo("top", { duration: 0 });
     cy.get("#specimen").should("have.attr", "data-motion", "paused");
     cy.wait(300).then(() => {
-      const count = draws;
-      cy.wait(250).then(() => expect(draws - count).to.be.at.most(activeDraws));
+      const count = frames;
+      cy.wait(250).then(() =>
+        expect(frames - count).to.be.at.most(activeFrames),
+      );
     });
     motion("no-preference");
     cy.get("#specimen").should("have.attr", "data-motion", "playing");

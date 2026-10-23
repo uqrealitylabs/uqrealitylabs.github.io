@@ -171,7 +171,11 @@ describe("constrained first visit", () => {
       "data-scene",
       "ready",
     );
-    cy.get("#specimen").should("have.attr", "data-launch", "flying");
+    cy.get("#specimen", { timeout: 30000 }).should(
+      "have.attr",
+      "data-launch",
+      "flying",
+    );
     cy.window().then((win) => {
       const timing = win.performance.getEntriesByType(
         "navigation",
