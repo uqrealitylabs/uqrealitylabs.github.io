@@ -118,6 +118,9 @@ describe("the connected geographic world", () => {
       "data-pose",
       "home",
     );
+    cy.get("#specimen")
+      .should("have.attr", "data-renderer", "webgl")
+      .and("have.attr", "data-graphics", "software");
     cy.get("#specimen").should("have.attr", "data-materials", "ready");
     cy.get("#world-weather").should("contain", "St Lucia");
     cy.get("#world-traffic")
