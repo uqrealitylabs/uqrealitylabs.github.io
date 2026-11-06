@@ -106,11 +106,11 @@ export type MusicCue = {
   duration?: number;
 };
 
-const socialMaterialKinds = ["cloth", "rubber", "glass", "grass", "mail"];
+const socialMaterialKinds = ["cloth", "rubber", "glass", "mail"];
 
 export type MemberContent = {
   name: string;
-  role: string;
+  role?: string;
   photo: string;
   photoWidth?: number;
   photoHeight?: number;
@@ -135,7 +135,19 @@ export type RoleContent = {
   pathVariant?: string;
   order?: number;
   music?: MusicCue;
-  members: MemberContent[];
+};
+
+export type CommitteeYear = {
+  year: number;
+  members: Record<string, MemberContent>;
+  general?: MemberContent[];
+};
+
+export type CommitteeContent = {
+  rows: string[][];
+  roles: string[];
+  generalRole?: string;
+  years: CommitteeYear[];
 };
 
 export type SiteContent = {
@@ -167,13 +179,13 @@ export type SiteContent = {
     label: string;
     url: string;
     texture: string;
-    material?: "cloth" | "rubber" | "glass" | "grass" | "mail";
+    material?: "cloth" | "rubber" | "glass" | "mail";
     accent: string;
     accentColor?: string;
     music?: MusicCue;
     order?: number;
   }[];
-  committee: { rows: string[][]; roles: string[] };
+  committee: CommitteeContent;
   roles: Record<string, RoleContent>;
 };
 
@@ -577,6 +589,28 @@ function validateMusic(
   validateHref(issues, music.url, `${path}.url`);
 }
 
+function validateCommitteeMember(
+  issues: ValidationIssue[],
+  member: unknown,
+  memberPath: string,
+) {
+  if (!isRecord(member)) {
+    issue(issues, memberPath, "member object", member);
+    return;
+  }
+  if (!hasText(member.name))
+    issue(issues, `${memberPath}.name`, "text", member.name);
+  if (member.role !== undefined && !hasText(member.role))
+    issue(issues, `${memberPath}.role`, "text", member.role);
+  validateAssetPath(issues, member.photo, `${memberPath}.photo`);
+  validateHref(issues, member.linkedin, `${memberPath}.linkedin`);
+  if (member.shortBio !== undefined && !hasText(member.shortBio))
+    issue(issues, `${memberPath}.shortBio`, "text", member.shortBio);
+  if (member.bio !== undefined && !hasText(member.bio))
+    issue(issues, `${memberPath}.bio`, "text", member.bio);
+  validateMusic(member.music, `${memberPath}.music`, issues);
+}
+
 export function validateSiteContent(
   site: unknown,
   filePath = "site",
@@ -739,6 +773,65 @@ export function validateSiteContent(
         site.committee.rows,
       );
     }
+    if (
+      !Array.isArray(site.committee.years) ||
+      site.committee.years.length === 0
+    ) {
+      issue(
+        issues,
+        `${filePath}.committee.years`,
+        "non-empty year array",
+        site.committee.years,
+      );
+    } else {
+      site.committee.years.forEach((yearEntry, yearIndex) => {
+        const yearPath = `${filePath}.committee.years.${yearIndex}`;
+        if (!isRecord(yearEntry)) {
+          issue(issues, yearPath, "year object", yearEntry);
+          return;
+        }
+        if (
+          typeof yearEntry.year !== "number" ||
+          !Number.isInteger(yearEntry.year)
+        ) {
+          issue(issues, `${yearPath}.year`, "integer year", yearEntry.year);
+        }
+        if (!isRecord(yearEntry.members)) {
+          issue(
+            issues,
+            `${yearPath}.members`,
+            "role members object",
+            yearEntry.members,
+          );
+        } else {
+          Object.entries(yearEntry.members).forEach(([slug, member]) => {
+            validateCommitteeMember(
+              issues,
+              member,
+              `${yearPath}.members.${slug}`,
+            );
+          });
+        }
+        if (yearEntry.general !== undefined) {
+          if (!Array.isArray(yearEntry.general)) {
+            issue(
+              issues,
+              `${yearPath}.general`,
+              "member array",
+              yearEntry.general,
+            );
+          } else {
+            yearEntry.general.forEach((member, memberIndex) => {
+              validateCommitteeMember(
+                issues,
+                member,
+                `${yearPath}.general.${memberIndex}`,
+              );
+            });
+          }
+        }
+      });
+    }
   }
 
   if (!Array.isArray(site.socialLinks))
@@ -782,27 +875,6 @@ export function validateSiteContent(
       if (!hasText(role.slugline))
         issue(issues, `${path}.slugline`, "text", role.slugline);
       validateMusic(role.music, `${path}.music`, issues);
-      if (!Array.isArray(role.members))
-        issue(issues, `${path}.members`, "members array", role.members);
-      else
-        role.members.forEach((member, index) => {
-          const memberPath = `${path}.members.${index}`;
-          if (!isRecord(member)) {
-            issue(issues, memberPath, "member object", member);
-            return;
-          }
-          if (!hasText(member.name))
-            issue(issues, `${memberPath}.name`, "text", member.name);
-          if (!hasText(member.role))
-            issue(issues, `${memberPath}.role`, "text", member.role);
-          validateAssetPath(issues, member.photo, `${memberPath}.photo`);
-          validateHref(issues, member.linkedin, `${memberPath}.linkedin`);
-          if (member.shortBio !== undefined && !hasText(member.shortBio))
-            issue(issues, `${memberPath}.shortBio`, "text", member.shortBio);
-          if (member.bio !== undefined && !hasText(member.bio))
-            issue(issues, `${memberPath}.bio`, "text", member.bio);
-          validateMusic(member.music, `${memberPath}.music`, issues);
-        });
     });
 
   if (isRecord(site.roles) && isRecord(site.committee)) {
@@ -832,6 +904,34 @@ export function validateSiteContent(
             );
           }
         });
+      });
+    }
+    if (
+      typeof site.committee.generalRole === "string" &&
+      !roleSlugs.has(site.committee.generalRole)
+    ) {
+      issue(
+        issues,
+        `${filePath}.committee.generalRole`,
+        "existing role slug",
+        site.committee.generalRole,
+      );
+    }
+    if (Array.isArray(site.committee.years)) {
+      site.committee.years.forEach((yearEntry, yearIndex) => {
+        if (!isRecord(yearEntry)) return;
+        if (isRecord(yearEntry.members)) {
+          Object.keys(yearEntry.members).forEach((slug) => {
+            if (!roleSlugs.has(slug)) {
+              issue(
+                issues,
+                `${filePath}.committee.years.${yearIndex}.members.${slug}`,
+                "existing role slug",
+                slug,
+              );
+            }
+          });
+        }
       });
     }
   }

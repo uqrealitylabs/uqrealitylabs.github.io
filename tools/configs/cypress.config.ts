@@ -7,6 +7,7 @@ export default defineConfig({
     baseUrl: "http://localhost:3000",
     specPattern: "tests/e2e/**/*.cy.ts",
     supportFile: false,
+    testIsolation: false,
   },
   component: {
     indexHtmlFile: "tests/component/component-index.html",

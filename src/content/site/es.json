@@ -29,20 +29,24 @@
       "slugline": "Caos presupuestario auditado."
     },
     "media": {
-      "role": "Medios",
+      "role": "Director de Medios y Marketing",
       "slugline": "Hace que los píxeles se porten bien."
     },
     "events": {
-      "role": "Eventos",
+      "role": "Director de Eventos",
       "slugline": "Agenda el caos."
     },
     "workshop": {
-      "role": "Talleres",
+      "role": "Director de Talleres",
       "slugline": "Especialista en demos."
     },
     "industry": {
-      "role": "Industria",
+      "role": "Director de Industria",
       "slugline": "Misión de apretones de manos."
+    },
+    "general": {
+      "role": "Comité General",
+      "slugline": "El equipo ampliado."
     }
   }
 }

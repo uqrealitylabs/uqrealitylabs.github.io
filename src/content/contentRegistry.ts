@@ -42,19 +42,7 @@ type PageRoute = {
   canonicalPath?: string;
 };
 type CtaEntry = { id?: string; href?: string; ref?: string };
-type RoleProfile = Omit<RoleContent, "role" | "slugline" | "members"> & {
-  members: (Pick<
-    RoleContent["members"][number],
-    | "name"
-    | "photo"
-    | "photoWidth"
-    | "photoHeight"
-    | "photoFocus"
-    | "linkedin"
-    | "music"
-    | "order"
-  > & { role?: string })[];
-};
+type RoleProfile = Omit<RoleContent, "role" | "slugline">;
 type SharedContentGraph = {
   routes: Record<PageId, PageRoute>;
   ctas: Record<string, CtaEntry>;
@@ -82,12 +70,7 @@ type RawSiteContent = Pick<
   seo: Pick<SiteContent["seo"], "defaultDescription"> & {
     defaultSocialImage: Pick<SocialImage, "alt">;
   };
-  roles: Record<
-    string,
-    Pick<RoleContent, "role" | "slugline" | "microcopy"> & {
-      members?: Pick<RoleContent["members"][number], "shortBio" | "bio">[];
-    }
-  >;
+  roles: Record<string, Pick<RoleContent, "role" | "slugline" | "microcopy">>;
 };
 
 const graph = sharedGraphRaw as SharedContentGraph;
@@ -185,18 +168,7 @@ function resolveSite(locale: Locale): SiteContent {
   const roles = Object.fromEntries(
     Object.entries(graph.roleProfiles).map(([slug, profile]) => {
       const overlay = raw.roles[slug];
-      return [
-        slug,
-        {
-          ...profile,
-          ...overlay,
-          members: profile.members.map((member, index) => ({
-            ...member,
-            ...(overlay?.members?.[index] ?? {}),
-            role: member.role ?? overlay?.role,
-          })),
-        },
-      ];
+      return [slug, { ...profile, ...overlay }];
     }),
   ) as SiteContent["roles"];
 
@@ -392,6 +364,30 @@ export function validateContentGraph(
       issue(issues, `graph.committee.rows.${role}`, "known role", role);
     }
   });
+
+  for (const yearEntry of input.committee.years || []) {
+    Object.keys(yearEntry.members || {}).forEach((role) => {
+      if (!roleIds.has(role)) {
+        issue(
+          issues,
+          `graph.committee.years.${yearEntry.year}.members.${role}`,
+          "known role",
+          role,
+        );
+      }
+    });
+  }
+  if (
+    input.committee.generalRole &&
+    !roleIds.has(input.committee.generalRole)
+  ) {
+    issue(
+      issues,
+      "graph.committee.generalRole",
+      "known role",
+      input.committee.generalRole,
+    );
+  }
 
   return issues;
 }

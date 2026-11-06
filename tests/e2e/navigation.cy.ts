@@ -6,16 +6,17 @@ import {
 const home = getPageContent("en", "home");
 const about = getPageContent("en", "about");
 const contact = getPageContent("en", "contact");
+const committee = getPageContent("en", "committee");
 const joinCta = about.hero.cta ?? { href: "", label: "" };
 const site = getSiteContent("en");
+const years = site.committee.years.map((entry) => entry.year);
+
 type SocialMaterialDebug = {
   label: string;
   kind: string;
   visible: boolean;
   hasLogo: boolean;
   hasUnderline: boolean;
-  hasGrassLogo: boolean;
-  grassBladeCount: number;
   logoFillRatio: number;
   underlineScaleY: number;
   pressure: number;
@@ -23,23 +24,23 @@ type SocialMaterialDebug = {
   screenY: number;
 };
 
-function expectRendered(selector: string) {
-  cy.get(selector).should(($element) => {
-    const element = $element[0];
-    const style = getComputedStyle(element);
-    const rect = element.getBoundingClientRect();
-
-    expect(style.display).not.to.eq("none");
-    expect(style.visibility).not.to.eq("hidden");
-    expect(Number.parseFloat(style.opacity || "1")).to.be.greaterThan(0);
-    expect(rect.width).to.be.greaterThan(0);
-    expect(rect.height).to.be.greaterThan(0);
+function scrollToViewport(index: number) {
+  cy.window().then((win) => {
+    win.scrollTo(0, win.innerHeight * index);
   });
 }
 
 describe("navigation shell", () => {
-  it("loads the app shell and keeps JSON-backed nav available", () => {
+  before(() => {
     cy.visit("/");
+    cy.get("body", { timeout: 60000 }).should(
+      "have.attr",
+      "data-scene-ready",
+      "true",
+    );
+  });
+
+  it("loads the app shell and keeps JSON-backed nav available", () => {
     cy.get("nav[aria-label='Main']").should("exist");
     cy.get("#nav-links button").its("length").should("be.gte", 5);
     cy.contains("#nav-links button", home.nav.label).should("exist");
@@ -47,7 +48,8 @@ describe("navigation shell", () => {
   });
 
   it("keeps basic keyboard and canvas accessibility hooks", () => {
-    cy.visit("/");
+    scrollToViewport(0);
+    cy.contains("#nav-links button", home.nav.label).click();
     cy.get("#nav-links button").first().focus().should("have.focus");
     cy.get("#nav-links button[aria-current='page']").should(
       "contain",
@@ -57,7 +59,6 @@ describe("navigation shell", () => {
   });
 
   it("exposes keyboard-safe fallbacks for canvas-only join and social links", () => {
-    cy.visit("/");
     cy.get("#join-us-accessible-link")
       .should("have.attr", "href", joinCta?.href)
       .and("have.text", joinCta?.label);
@@ -69,213 +70,40 @@ describe("navigation shell", () => {
     });
   });
 
-  it("renders the visible living JOIN US face scaffold", () => {
-    cy.visit("/");
-    cy.contains("#nav-links button", about.nav.label).click();
-    cy.get("body").should("have.attr", "data-section", "1");
-    expectRendered(".bee-trail--join");
-    cy.get(".bee-trail--join").should("have.css", "color", "rgb(255, 87, 87)");
-    cy.get(".bee-trail--join").invoke("outerWidth").should("be.gt", 150);
-    cy.get(".bee-trail__bee").should("not.exist");
-    cy.get(".bee-trail--join .bee-trail__orb").should("exist");
-    cy.get(".bee-trail--join .bee-trail__join-letter").then((letters) => {
-      expect([...letters].map((node) => node.textContent).join("")).to.eq(
-        site.animationCopy.joinUs.replace(/\s+/g, ""),
-      );
-    });
-    cy.get(".bee-trail--join .bee-trail__eye--o .bee-trail__eye-ring").should(
-      "have.css",
-      "fill",
-      "rgb(255, 243, 210)",
-    );
-    cy.get(".bee-trail--join .bee-trail__eye--o .bee-trail__eye-pupil").should(
-      "have.css",
-      "fill",
-      "rgb(107, 63, 31)",
-    );
-    cy.get(".bee-trail--join .bee-trail__eye--u").should(
-      "have.css",
-      "opacity",
-      "1",
-    );
-    cy.get(".bee-trail--join .bee-trail__thought--near-awwww").should(
-      "contain",
-      site.animationCopy.nearThought,
-    );
+  it("keeps the nav expanded and jumps to the committee section", () => {
+    cy.get("#navbar").should("not.have.class", "is-condensed");
+
+    cy.contains("#nav-links button", committee.nav.label).click();
+    cy.get("body").should("have.attr", "data-on-committee", "true");
   });
 
-  it("hides JOIN eyes and shows AWWWW when the pointer gets near", () => {
-    cy.visit("/");
-    cy.contains("#nav-links button", about.nav.label).click();
-    expectRendered(".bee-trail--join");
-    cy.get(".bee-trail__join-word").then(([word]) => {
-      const rect = word.getBoundingClientRect();
-      cy.get("#canvas").trigger("pointermove", {
-        clientX: rect.left + rect.width / 2,
-        clientY: rect.top + rect.height / 2,
-        pointerId: 1,
-        pointerType: "mouse",
-      });
-    });
-    cy.get("body").should("have.attr", "data-join-state", "joinNear");
-    cy.get(".bee-trail--join .bee-trail__eye").should(
-      "have.css",
-      "opacity",
-      "0",
-    );
-    cy.get(".bee-trail--join .bee-trail__eye").should(
-      "have.css",
-      "transition-property",
-      "none",
-    );
-    cy.get(".bee-trail--join .bee-trail__thought--near-awwww").should(
-      "contain",
-      site.animationCopy.nearThought,
-    );
-    cy.get("#canvas").trigger("pointermove", {
-      clientX: 4,
-      clientY: 4,
-      pointerId: 1,
-      pointerType: "mouse",
-    });
-    cy.get("body").should("have.attr", "data-join-state", "idleCurious");
-    cy.get(".bee-trail--join .bee-trail__eye-pupil")
-      .first()
-      .should("have.attr", "transform")
-      .and("match", /^translate/);
+  it("navigates committee years from the side rail", () => {
+    cy.get("#year-rail button").should("have.length", years.length);
+    cy.get("#year-rail button").contains(String(years[0])).click();
+    cy.get("body").should("have.attr", "data-committee-year", String(years[0]));
+
+    cy.get("#year-rail button").contains(String(years[1])).click();
+    cy.get("body").should("have.attr", "data-committee-year", String(years[1]));
   });
 
-  it("keeps the About orb trail scaled and calm in reduced motion", () => {
-    cy.viewport(390, 844);
-    cy.visit("/", {
-      onBeforeLoad(win) {
-        cy.stub(win, "matchMedia").callsFake((media) => ({
-          matches: media === "(prefers-reduced-motion: reduce)",
-          media,
-          onchange: null,
-          addListener: cy.stub(),
-          removeListener: cy.stub(),
-          addEventListener: cy.stub(),
-          removeEventListener: cy.stub(),
-          dispatchEvent: cy.stub(),
-        }));
-      },
-    });
-    cy.contains("#nav-links button", about.nav.label).click();
-    cy.get("body").should("have.attr", "data-section", "1");
-    expectRendered(".bee-trail--join");
-    cy.get(".bee-trail--join").invoke("outerWidth").should("be.gt", 130);
-    cy.get(".bee-trail__bee").should("not.exist");
-    cy.get(".bee-trail--join .bee-trail__orb").should("exist");
-    expectRendered(".bee-trail--join .bee-trail__orb-core");
-    cy.get(".bee-trail--join .bee-trail__orb-drift").should(
-      "have.css",
-      "animation-name",
-      "none",
-    );
-    cy.get(".bee-trail--join .bee-trail__path").should(
-      "have.css",
-      "stroke-dashoffset",
-      "0px",
-    );
-  });
+  it("scrolls natively between sections", () => {
+    scrollToViewport(0);
+    cy.get("body").should("have.attr", "data-section", "0");
 
-  it("drives JOIN US reactions from keyboard-safe RUBRICS activation", () => {
-    cy.visit("/");
-    cy.contains("#nav-links button", about.nav.label).click();
+    scrollToViewport(1);
     cy.get("body").should("have.attr", "data-section", "1");
-    expectRendered(".bee-trail--join");
-    cy.get("#nav-links button").should("have.length.gte", 5);
-    cy.clock();
-    cy.get("#join-us-accessible-link").focus();
-    cy.get("body").should(
+
+    scrollToViewport(2);
+    cy.get("body").should("have.attr", "data-section", "2");
+    cy.contains("#nav-links button", contact.nav.label).should(
       "have.attr",
-      "data-join-state",
-      "rubricsHoverExcited",
-    );
-    cy.get(".bee-trail--join .bee-trail__join-smile").should(
-      "have.css",
-      "opacity",
-      "1",
-    );
-    cy.get(".bee-trail--join .bee-trail__eye--u").should(
-      "have.css",
-      "animation-name",
-      "join-u-hover-wink",
-    );
-    cy.tick(3000);
-    cy.get("body").should("have.attr", "data-join-state", "rubricsHoverBlush");
-    cy.get(".bee-trail--join .bee-trail__kawaii-blush").should(
-      "have.css",
-      "opacity",
-      "1",
-    );
-    cy.get("#join-us-accessible-link").blur();
-    cy.get("body").should("have.attr", "data-join-state", "sadShrivel");
-    cy.get(".bee-trail--join").should("have.css", "color", "rgb(56, 189, 248)");
-    cy.get(".bee-trail--join .bee-trail__join-frown").should(
-      "have.css",
-      "opacity",
-      "1",
-    );
-    cy.get(".bee-trail--join .bee-trail__join-tear").should(
-      "have.css",
-      "opacity",
-      "1",
-    );
-    cy.get(".bee-trail--join .bee-trail__thought--sad-ow").should(
-      "contain",
-      site.animationCopy.ow,
-    );
-    cy.get(".bee-trail--join .bee-trail__thought--sad-aw").should(
-      "contain",
-      site.animationCopy.sadThought,
-    );
-    cy.get(".bee-trail--join .bee-trail__dust").should(
-      "have.css",
-      "opacity",
-      "1",
-    );
-    cy.tick(760);
-    cy.get("body").should("have.attr", "data-join-state", "recoveringToIdle");
-    cy.tick(180);
-    cy.get("body").should("have.attr", "data-join-state", "idleCurious");
-  });
-
-  it("shows yay before delayed JOIN navigation", () => {
-    cy.visit("/");
-    cy.contains("#nav-links button", about.nav.label).click();
-    cy.get("body").should("have.attr", "data-section", "1");
-    cy.clock();
-    cy.window().then((win) => {
-      cy.stub(win, "open").as("open");
-    });
-    cy.get("#nav-links button").should("have.length.gte", 5);
-    cy.get("#join-us-accessible-link")
-      .focus()
-      .should("be.visible")
-      .type("{enter}");
-    cy.get("body").should(
-      "have.attr",
-      "data-join-state",
-      "rubricsClickCelebration",
-    );
-    cy.get(".bee-trail--join .bee-trail__thought--yay").should(
-      "contain",
-      site.animationCopy.yay,
-    );
-    cy.tick(500);
-    cy.get("@open").should(
-      "have.been.calledWith",
-      joinCta.href,
-      "_blank",
-      "noopener,noreferrer",
+      "aria-current",
+      "page",
     );
   });
 
   it("creates visible feelable social material cards from live content", () => {
-    cy.visit("/");
-    cy.contains("#nav-links button", contact.nav.label).click();
+    scrollToViewport(2);
     cy.get("body").should("have.attr", "data-section", "2");
     cy.get("body").should("have.attr", "data-social-materials-ready", "true");
     cy.get("#canvas").should("be.visible");
@@ -299,7 +127,7 @@ describe("navigation shell", () => {
             (material: SocialMaterialDebug) => material.kind,
           ),
         ),
-      ).to.eql(new Set(["cloth", "rubber", "glass", "grass", "mail"]));
+      ).to.eql(new Set(["cloth", "rubber", "glass", "mail"]));
       visibleMaterials.forEach((material: SocialMaterialDebug) => {
         expect(material.hasLogo).to.eq(true);
         expect(material.hasUnderline).to.eq(true);
@@ -307,26 +135,14 @@ describe("navigation shell", () => {
       });
       expect(
         visibleMaterials.find(
-          (material: SocialMaterialDebug) => material.label === "Email",
-        ),
-      ).to.include({ kind: "mail" });
-      expect(
-        visibleMaterials.find(
           (material: SocialMaterialDebug) => material.label === "Instagram",
         ),
-      ).to.include({ kind: "grass", hasGrassLogo: true });
-      expect(
-        visibleMaterials.find(
-          (material: SocialMaterialDebug) => material.label === "Instagram",
-        )?.grassBladeCount,
-      ).to.be.greaterThan(300);
+      ).to.include({ kind: "cloth" });
     });
   });
 
   it("pokes each live social material through the canvas", () => {
-    cy.visit("/");
-    cy.contains("#nav-links button", contact.nav.label).click();
-    cy.get("body").should("have.attr", "data-section", "2");
+    scrollToViewport(2);
     cy.get("body").should("have.attr", "data-social-materials-ready", "true");
     cy.window()
       .its("__uqrlSocialMaterials")
@@ -336,7 +152,7 @@ describe("navigation shell", () => {
           readMaterials as () => SocialMaterialDebug[]
         )().filter((material) => material.visible);
         expect(new Set(materials.map((material) => material.kind))).to.eql(
-          new Set(["cloth", "rubber", "glass", "grass", "mail"]),
+          new Set(["cloth", "rubber", "glass", "mail"]),
         );
         cy.wrap(materials.sort((a, b) => a.kind.localeCompare(b.kind))).as(
           "materials",

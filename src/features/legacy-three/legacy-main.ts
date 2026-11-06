@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { gsap } from "gsap";
-import { Observer } from "gsap/all";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
@@ -8,25 +7,15 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Text } from "troika-three-text";
 import { getPageContent, getSiteContent } from "../../content/contentRegistry";
 import {
-  JOIN_US_BLUSH_DELAY_MS,
-  JOIN_US_NAVIGATION_DELAY_MS,
-  constrainPupilOffset,
-  getOrganicWinkDelayMs,
-  joinUsStates,
-} from "../living-join-us/joinUsState";
-import {
   getSocialMaterialConfig,
   getSocialMaterialKind,
 } from "../social-materials/materialConfig";
 import {
   applyPoke,
   createPokeState,
-  getPokeInfluence,
   getPokeVelocity,
   stepPoke,
 } from "../social-materials/socialPokeModel";
-
-gsap.registerPlugin(Observer);
 
 const CLEAR_COLOUR = 0x0f1118;
 const CAM_FOV = 60;
@@ -45,16 +34,15 @@ const CAM_DISTANCE_FACTOR = 0.2;
 const CAM_LEFT_FACTOR = 0.0;
 const CAM_HEIGHT_FACTOR = 0.05;
 
-const SCROLL_DURATION = 1;
-const SCROLL_TOLERANCE = 30;
-const STAR_COUNT = 90;
+const STAR_COUNT = 500;
 const STAR_RADIUS = 0.16;
-const STAR_DRIFT_DISTANCE = 200;
 const SECTION_Y_STEP = 200;
+const SECTION_Y_SPAN = 24;
+const SECTION_Z_SPAN = 12;
+const SECTION_X_SPAN = 70;
+const STAR_SCROLL_STEP = 80;
+const SECTION_SHRINK = 0.7;
 const TEXT_FONT_SIZE = 1.84;
-const TEXT_MAX_WIDTH = 40;
-const TEXT_REVEAL_DURATION = 0.42;
-const TEXT_HIDE_DURATION = 0.22;
 const DESCRIPTION_Y_OFFSET = -5;
 const DESCRIPTION_FONT_SIZE = 1.12;
 const COMPACT_VIEWPORT_WIDTH = 860;
@@ -146,50 +134,81 @@ async function loadSocialContent() {
     .sort((a, b) => a.order - b.order);
 }
 
-async function loadCommitteeRows() {
+function committeeMember(entry, role, roleSlug) {
+  return {
+    image: withBasePath(entry.photo),
+    url: entry.linkedin || LINKEDIN_LINK,
+    name: entry.name,
+    title: entry.role || role?.role || roleSlug,
+    shortBio: entry.shortBio,
+    body: entry.bio || "",
+    slugline: role?.slugline || "",
+    accentColor: entry.accentColor || role?.accentColor || "#FF5757",
+    trailColor: role?.trailColor || role?.accentColor || "#FF5757",
+    pathVariant: entry.pathVariant || role?.pathVariant || "underline-swoop",
+    music: entry.music || role?.music || null,
+    order: Number.isFinite(entry.order) ? entry.order : 0,
+    roleSlug,
+    photoFocus: entry.photoFocus || "50% 50%",
+    photoWidth: entry.photoWidth,
+    photoHeight: entry.photoHeight,
+  };
+}
+
+async function loadCommitteeYears() {
   const site = getSiteContent(currentLocale());
   const manifest = site.committee || {};
-  const membersByRole = new Map();
+  const generalRole = manifest.generalRole || "general";
   const roleSlugs = manifest.roles || [
     ...new Set((manifest.rows || []).flat()),
   ];
 
-  roleSlugs.forEach((slug) => {
-    const role = site.roles?.[slug];
-    if (!role) return;
-    const roleColor = role.accentColor || role.accentColors?.[0] || "#FF5757";
-    const roleMusic = role.music || null;
-    const members = (role.members || [])
-      .map((member) => ({
-        image: withBasePath(member.photo),
-        url: member.linkedin,
-        name: member.name,
-        title: member.role || role.role || role.label,
-        shortBio: member.shortBio,
-        body: member.bio || "",
-        slugline: role.slugline || role.microcopy || role.label || role.role,
-        microcopy: role.microcopy || role.slugline || role.label || role.role,
-        accentColor: member.accentColor || roleColor,
-        trailColor: role.trailColor || roleColor,
-        pathVariant:
-          member.pathVariant || role.pathVariant || "underline-swoop",
-        music: member.music || roleMusic,
-        order: Number.isFinite(member.order) ? member.order : 0,
-        roleSlug: role.slug || slug,
-        photoFocus: member.photoFocus || "50% 50%",
-        photoWidth: member.photoWidth,
-        photoHeight: member.photoHeight,
+  return (manifest.years || []).map((yearEntry) => {
+    const execRows = (manifest.rows || [])
+      .map((row) =>
+        row
+          .map((slug) => {
+            const entry = yearEntry.members?.[slug];
+            if (!entry) return null;
+            const role = site.roles?.[slug];
+            return committeeMember(entry, role, role?.slug || slug);
+          })
+          .filter(Boolean)
+          .sort((a, b) => a.order - b.order),
+      )
+      .filter((row) => row.length > 0);
+
+    const generalRoleContent = site.roles?.[generalRole];
+    const general = (yearEntry.general || [])
+      .map((entry, index) => ({
+        ...committeeMember(entry, generalRoleContent, generalRole),
+        order: Number.isFinite(entry.order) ? entry.order : index,
       }))
       .sort((a, b) => a.order - b.order);
 
-    membersByRole.set(slug, members);
+    if (roleSlugs.length === 0) return null;
+
+    return { year: yearEntry.year, execRows, general };
+  }).filter(Boolean);
+}
+
+function buildCommitteeGroups(years) {
+  const groups = [];
+
+  years.forEach((entry) => {
+    if (entry.execRows.length > 0) {
+      groups.push({ year: entry.year, kind: "exec", rows: entry.execRows });
+    }
+    if (entry.general.length > 0) {
+      groups.push({
+        year: entry.year,
+        kind: "general",
+        rows: [entry.general],
+      });
+    }
   });
 
-  const rows = (manifest.rows || []).map((row) =>
-    row.flatMap((roleSlug) => membersByRole.get(roleSlug) || []),
-  );
-
-  return rows.filter((row) => row.length > 0);
+  return groups;
 }
 
 let TABS = [];
@@ -212,7 +231,7 @@ const COMMITTEE_IMAGE_SPACING = 11.4;
 const COMMITTEE_ROW_SPACING = 8.9;
 const COMMITTEE_CAPTION_GAP = 0.5;
 const COMMITTEE_CAPTION_FONT_SIZE = 0.85;
-let COMMITTEE_ROWS = [];
+let COMMITTEE_GROUPS = [];
 
 const INSTAGRAM_LINK = "https://www.instagram.com/uqrealitylabs/";
 const LINKEDIN_LINK = "https://www.linkedin.com/company/uq-reality-labs";
@@ -230,15 +249,6 @@ const SOCIAL_CUBE_BASE = {
 };
 const SOCIAL_CUBE_SCALE_MIN = 1;
 const SOCIAL_CUBE_SCALE_MAX = 1.08;
-const SOCIAL_CUBE_FLOAT_DISTANCE = 0.22;
-const SOCIAL_CUBE_FLOAT_DURATION = 0.72;
-const SOCIAL_CUBE_GROW_DURATION = 0.18;
-const SOCIAL_CUBE_ENTRANCE_DURATION = 0.68;
-const SOCIAL_CUBE_ENTRANCE_EASE = "power3.out";
-const SOCIAL_CUBE_ENTRANCE_OFFSET = 12;
-const SOCIAL_CUBE_EXIT_DURATION = 0.5;
-const SOCIAL_CUBE_EXIT_EASE = "power3.in";
-const SOCIAL_CUBE_EXIT_OFFSET = 35;
 const SOCIAL_CARD_DEPTH = 0.42;
 const SOCIAL_TOUCH_TEXTURE_SIZE = 256;
 let SOCIAL_CUBES = [];
@@ -344,12 +354,13 @@ const MODEL_ROTATION = { x: -20, y: 160, z: 180 }; // degrees
 const MODEL_ENTRANCE_DURATION = 1.5;
 const MODEL_ENTRANCE_EASE = "power3.out";
 const MODEL_ENTRANCE_OFFSET_FACTOR = 200; // distance below final position (× model size)
+const MODEL_PARALLAX_X = 0.35; // horizontal cursor parallax (× model size)
+const MODEL_PARALLAX_Y = 0.2; // vertical cursor parallax (× model size)
 
 // light offsets relative to model center (camera views from +Z)
 const KEY_LIGHT_OFFSET = { x: 2, y: 10, z: 40 };
 const FILL_LIGHT_OFFSET = { x: -12, y: 4, z: 25 };
 const RAINBOW_Z_OFFSET = -80; // behind model (home model z -20 → light z -100)
-const RAINBOW_FADE_DURATION = 0.6;
 const RAINBOW_GLOW_SCALE = 11.8;
 const RAINBOW_OUTER_GLOW_SCALE = 17.6;
 const RAINBOW_LIGHT_INTENSITY = 3.1;
@@ -362,9 +373,10 @@ const navbar = document.querySelector("#navbar");
 const navLogoImage = document.querySelector("#nav-logo-img");
 const navLinks = document.querySelector("#nav-links");
 const joinUsAccessibleLink = document.querySelector("#join-us-accessible-link");
-const joinWord = document.querySelector(".bee-trail__join-word");
-const joinEyePupils = document.querySelectorAll(".bee-trail--join .bee-trail__eye-pupil");
 const socialAccessibleLinks = document.querySelector("#social-accessible-links");
+const scrollTrack = document.querySelector("#scroll-track");
+const yearRail = document.querySelector("#year-rail");
+let yearRailButtons = [];
 let navSectionButtons = [];
 const memberPopup = document.querySelector("#member-popup");
 const memberPopupCard = document.querySelector(".member-popup__card");
@@ -382,10 +394,14 @@ if (DEBUG && statusLabel) {
 }
 
 document.body.dataset.section = "0";
-document.body.dataset.joinState = joinUsStates.idleCurious;
 document.body.dataset.sceneReady = "false";
 document.body.dataset.socialMaterialsReady = "false";
 document.body.dataset.pokeState = "idle";
+document.body.dataset.onCommittee = "false";
+
+if ("scrollRestoration" in history) {
+  history.scrollRestoration = "manual";
+}
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(CLEAR_COLOUR);
@@ -393,9 +409,10 @@ let canvasRect = canvas.getBoundingClientRect();
 let viewportWidth = Math.max(canvas.clientWidth || window.innerWidth, 320);
 let viewportHeight = Math.max(canvas.clientHeight || window.innerHeight, 320);
 
-const stars = [];
 const starGeometry = new THREE.SphereGeometry(STAR_RADIUS, 8, 8);
 const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const starField = new THREE.Group();
+scene.add(starField);
 
 function generateStars() {
   const star = new THREE.Mesh(starGeometry, starMaterial);
@@ -404,21 +421,7 @@ function generateStars() {
     .map(() => THREE.MathUtils.randFloatSpread(800));
 
   star.position.set(x, y, z);
-  scene.add(star);
-  stars.push(star);
-}
-
-function animateStarsOnTransition() {
-  stars.forEach((star) => {
-    gsap.killTweensOf(star.position);
-    gsap.to(star.position, {
-      x: star.position.x + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
-      y: star.position.y + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
-      z: star.position.z + THREE.MathUtils.randFloatSpread(STAR_DRIFT_DISTANCE),
-      duration: SCROLL_DURATION,
-      ease: "power2.inOut",
-    });
-  });
+  starField.add(star);
 }
 
 Array(STAR_COUNT).fill().forEach(generateStars);
@@ -501,40 +504,32 @@ const loader = new GLTFLoader(loadManager);
 const textureLoader = new THREE.TextureLoader(loadManager);
 
 const lookTarget = new THREE.Vector3();
+const modelCenter = new THREE.Vector3();
 let modelGroup = null;
 let modelLookHeight = 0;
+let modelSizeMax = 1;
 let cameraZ = 5;
 let camLeftOffset = 0;
 let camHeightOffset = 0;
 let currentIndex = 0;
 let isAnimating = false;
 let entranceComplete = false;
-let queuedSectionIndex = null;
 let sectionTexts = [];
 let sectionDescriptionTexts = [];
+let sectionGroups = [];
 let socialCubes = [];
 let sponsorImage = null;
 let aboutJoinImage = null;
-let joinStateTimer = 0;
-let joinBlushTimer = 0;
-let joinNavigationTimer = 0;
-let joinWinkTimer = 0;
-let joinWinkCount = 0;
 let committeeMembers = [];
 let hoveredCommitteeImage = null;
 let cachedViewportLayout = null;
-let hoveredSocialCube = null;
-let socialHoverKey = "";
-let audioContext = null;
-let activeSound = null;
-let audioUnlocked = false;
-let logoFallbackTexture = null;
 let clothTexture = null;
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 let pointerDirty = true;
 let rainbowBackdrop = null;
+let modelScrollScale = 1;
 let rainbowHue = 0;
 let roundedAlphaTexture = null;
 let baseCameraZ = 5;
@@ -553,10 +548,10 @@ let parallaxActive = false;
 const prefersReducedMotion = window.matchMedia(
   "(prefers-reduced-motion: reduce)",
 );
-const coarsePointer = window.matchMedia("(pointer: coarse)");
 let animationFrame = 0;
 let resizeObserver = null;
-let scrollObserver = null;
+let scrollStops = [];
+let activeStop = -1;
 
 function syncReducedMotionState() {
   document.body.dataset.reducedMotion = prefersReducedMotion.matches
@@ -617,317 +612,6 @@ function createClothTexture() {
   clothTexture.generateMipmaps = true;
   clothTexture.needsUpdate = true;
   return clothTexture;
-}
-
-function createLogoFallbackTexture() {
-  if (logoFallbackTexture) return logoFallbackTexture;
-
-  const size = 512;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d");
-
-  ctx.fillStyle = "#10131b";
-  ctx.fillRect(0, 0, size, size);
-
-  const stroke = size * 0.14;
-  const center = size * 0.5;
-  const ringRadius = size * 0.22;
-
-  ctx.strokeStyle = "#f6f2ea";
-  ctx.lineWidth = stroke;
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.arc(
-    center,
-    center + size * 0.02,
-    ringRadius,
-    Math.PI * 0.07,
-    Math.PI * 0.93,
-  );
-  ctx.stroke();
-
-  ctx.fillStyle = "#f6f2ea";
-  ctx.fillRect(center - stroke * 0.33, size * 0.17, stroke * 0.66, size * 0.26);
-
-  ctx.fillStyle = "#10131b";
-  ctx.fillRect(size * 0.17, size * 0.69, size * 0.66, size * 0.16);
-  ctx.fillRect(size * 0.12, size * 0.76, size * 0.76, size * 0.08);
-
-  logoFallbackTexture = new THREE.CanvasTexture(canvas);
-  logoFallbackTexture.colorSpace = THREE.SRGBColorSpace;
-  logoFallbackTexture.flipY = false;
-  logoFallbackTexture.minFilter = THREE.LinearMipmapLinearFilter;
-  logoFallbackTexture.magFilter = THREE.LinearFilter;
-  logoFallbackTexture.generateMipmaps = true;
-  logoFallbackTexture.needsUpdate = true;
-  return logoFallbackTexture;
-}
-
-function bakeLogoTexture(sourceTexture) {
-  if (!sourceTexture) return sourceTexture;
-
-  const image = sourceTexture.image;
-
-  if (image?.width && image?.height) {
-    const size = Math.max(image.width, image.height);
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext("2d");
-
-    ctx.fillStyle = "#10131b";
-    ctx.fillRect(0, 0, size, size);
-    ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, size, size);
-    ctx.fillStyle = "#10131b";
-    ctx.fillRect(size * 0.14, size * 0.68, size * 0.72, size * 0.18);
-
-    const bakedTexture = new THREE.CanvasTexture(canvas);
-    bakedTexture.colorSpace = THREE.SRGBColorSpace;
-    bakedTexture.flipY = false;
-    bakedTexture.minFilter = THREE.LinearMipmapLinearFilter;
-    bakedTexture.magFilter = THREE.LinearFilter;
-    bakedTexture.generateMipmaps = true;
-    bakedTexture.needsUpdate = true;
-    return bakedTexture;
-  }
-
-  sourceTexture.colorSpace = THREE.SRGBColorSpace;
-  sourceTexture.flipY = false;
-  sourceTexture.minFilter = THREE.LinearMipmapLinearFilter;
-  sourceTexture.magFilter = THREE.LinearFilter;
-  sourceTexture.generateMipmaps = true;
-  sourceTexture.needsUpdate = true;
-  return sourceTexture;
-}
-
-function hashString(value = "") {
-  let hash = 0;
-
-  for (let i = 0; i < value.length; i += 1) {
-    hash = (hash << 5) - hash + value.charCodeAt(i);
-    hash |= 0;
-  }
-
-  return Math.abs(hash);
-}
-
-function ensureAudioContext() {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  }
-
-  return audioContext;
-}
-
-function primeAudioContext(context) {
-  try {
-    const buffer = context.createBuffer(1, 1, context.sampleRate || 44100);
-    const source = context.createBufferSource();
-    const gain = context.createGain();
-
-    gain.gain.value = 0;
-    source.buffer = buffer;
-    source.connect(gain);
-    gain.connect(context.destination);
-    source.onended = () => {
-      try {
-        source.disconnect();
-      } catch {}
-      try {
-        gain.disconnect();
-      } catch {}
-    };
-    source.start();
-    source.stop(context.currentTime + 0.01);
-  } catch {}
-}
-
-function unlockAudio() {
-  if (audioUnlocked) return;
-
-  try {
-    const context = ensureAudioContext();
-    audioUnlocked = true;
-    pointerDirty = true;
-    updateSocialCubeHover();
-    updateAboutJoinHover();
-    updateCommitteeHover();
-    const resumePromise =
-      context.state === "suspended" ? context.resume() : Promise.resolve();
-    resumePromise
-      .then(() => {
-        primeAudioContext(context);
-        playCurrentHoverAudio();
-      })
-      .catch(() => {
-        primeAudioContext(context);
-        playCurrentHoverAudio();
-      });
-  } catch {}
-}
-
-function playCurrentHoverAudio() {
-  if (hoveredSocialCube?.visible) {
-    playMusicCue(
-      hoveredSocialCube.userData.music,
-      socialHoverKey ||
-        `social:${hoveredSocialCube.userData.socialIndex}:${hoveredSocialCube.userData.url}`,
-    );
-    return;
-  }
-
-  if (hoveredCommitteeImage?.visible) {
-    playMusicCue(
-      hoveredCommitteeImage.userData.music,
-      `committee:${hoveredCommitteeImage.userData.memberIndex}`,
-    );
-  }
-}
-
-function stopActiveSound(immediate = false) {
-  if (!activeSound) return;
-
-  const { gain, nodes, cleanupTimer } = activeSound;
-  window.clearTimeout(cleanupTimer);
-
-  if (immediate) {
-    try {
-      gain.gain.cancelScheduledValues(audioContext?.currentTime || 0);
-      gain.gain.value = 0;
-    } catch {}
-    nodes.forEach((node) => {
-      try {
-        node.stop();
-      } catch {}
-      try {
-        node.disconnect();
-      } catch {}
-    });
-    try {
-      gain.disconnect();
-    } catch {}
-    activeSound = null;
-    return;
-  }
-
-  const context = audioContext;
-  const now = context?.currentTime || 0;
-
-  try {
-    gain.gain.cancelScheduledValues(now);
-    gain.gain.setValueAtTime(gain.gain.value || 0.0001, now);
-    gain.gain.linearRampToValueAtTime(0.0001, now + 0.09);
-  } catch {}
-
-  activeSound.cleanupTimer = window.setTimeout(() => {
-    nodes.forEach((node) => {
-      try {
-        node.stop();
-      } catch {}
-      try {
-        node.disconnect();
-      } catch {}
-    });
-    try {
-      gain.disconnect();
-    } catch {}
-    activeSound = null;
-  }, 120);
-}
-
-function playMusicCue(music, key = "") {
-  if (!music) return;
-  if (!audioUnlocked) return;
-
-  const context = ensureAudioContext();
-  if (!context) return;
-
-  if (context.state === "suspended") {
-    context
-      .resume()
-      .then(() => {
-        primeAudioContext(context);
-        if (context.state === "running") {
-          playMusicCue(music, key);
-        }
-      })
-      .catch(() => {});
-    return;
-  }
-
-  if (activeSound?.key === key) return;
-  stopActiveSound(false);
-
-  const seed = hashString(`${music.label || ""}|${music.url || ""}|${key}`);
-  const baseFrequency = 164 + (seed % 6) * 18;
-  const scale = music.source === "youtube" ? [0, 5, 7, 12] : [0, 3, 7, 10];
-  const noteCount = Math.max(3, Math.min(4, scale.length));
-  const noteLength = Math.max(
-    0.08,
-    ((music.duration || 2.4) / (noteCount + 1)) * 0.5,
-  );
-  const gap = Math.max(0.06, noteLength * 0.75);
-  const gain = context.createGain();
-  const filter = context.createBiquadFilter();
-  const nodes = [];
-  const now = context.currentTime + 0.01;
-
-  filter.type = music.source === "youtube" ? "lowpass" : "bandpass";
-  filter.frequency.setValueAtTime(1200 + (seed % 5) * 220, now);
-  filter.Q.setValueAtTime(0.8 + (seed % 3) * 0.18, now);
-
-  gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.linearRampToValueAtTime(
-    clamp01(Math.min(0.46, (music.volume || 0.3) + 0.12)),
-    now + 0.04,
-  );
-  gain.connect(filter);
-  filter.connect(context.destination);
-
-  const timbre =
-    music.source === "youtube"
-      ? "square"
-      : seed % 2 === 0
-        ? "sawtooth"
-        : "triangle";
-
-  for (let i = 0; i < noteCount; i += 1) {
-    const oscillator = context.createOscillator();
-    const noteGain = context.createGain();
-    const octave = i === noteCount - 1 ? 12 : 0;
-    const note = scale[i % scale.length] + octave;
-    const frequency = baseFrequency * 2 ** (note / 12);
-    const startAt = now + i * gap;
-    const stopAt = startAt + noteLength;
-
-    oscillator.type = timbre;
-    oscillator.frequency.setValueAtTime(frequency, startAt);
-    oscillator.detune.setValueAtTime(((seed >> (i * 3)) % 9) - 4, startAt);
-    noteGain.gain.setValueAtTime(0.0001, startAt);
-    noteGain.gain.linearRampToValueAtTime(1, startAt + 0.02);
-    noteGain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
-    oscillator.connect(noteGain);
-    noteGain.connect(gain);
-    oscillator.start(startAt);
-    oscillator.stop(stopAt + 0.04);
-    nodes.push(oscillator, noteGain);
-  }
-
-  activeSound = {
-    key,
-    gain,
-    nodes,
-    cleanupTimer: 0,
-  };
-}
-
-function setupAudioUnlock() {
-  const unlockEvents = ["pointerdown", "touchstart", "keydown", "click"];
-  unlockEvents.forEach((eventName) => {
-    window.addEventListener(eventName, unlockAudio, { capture: true });
-  });
 }
 
 function isCompactViewport() {
@@ -995,10 +679,10 @@ function applyPointerMotion() {
   const sectionPos = getCameraAnchorPos();
   const parallaxX = reduced
     ? 0
-    : pointerCurrent.x * (layout.compact ? 0.24 : 0.48);
+    : pointerCurrent.x * (layout.compact ? 0.14 : 0.26);
   const parallaxY = reduced
     ? 0
-    : pointerCurrent.y * (layout.compact ? 0.18 : 0.3);
+    : pointerCurrent.y * (layout.compact ? 0.1 : 0.16);
 
   camera.position.set(
     sectionPos.x - camLeftOffset + parallaxX,
@@ -1014,11 +698,19 @@ function applyPointerMotion() {
 
   modelGroup.rotation.set(
     THREE.MathUtils.degToRad(MODEL_ROTATION.x) -
-      (reduced ? 0 : pointerCurrent.y * 0.075),
+    (reduced ? 0 : pointerCurrent.y * 0.075),
     THREE.MathUtils.degToRad(MODEL_ROTATION.y) +
-      (reduced ? 0 : pointerCurrent.x * 0.105),
+    (reduced ? 0 : pointerCurrent.x * 0.105),
     THREE.MathUtils.degToRad(MODEL_ROTATION.z),
   );
+
+  if (!reduced) {
+    modelGroup.position.x +=
+      pointerCurrent.x * modelSizeMax * MODEL_PARALLAX_X;
+    modelGroup.position.y +=
+      pointerCurrent.y * modelSizeMax * MODEL_PARALLAX_Y;
+  }
+  updateRainbowBackdropPosition();
 
   const tiltX = reduced ? 0 : -pointerCurrent.y * 0.095;
   const tiltY = reduced ? 0 : pointerCurrent.x * 0.14;
@@ -1045,7 +737,7 @@ function applyPointerMotion() {
         : pointerCurrent.y * profile.driftY * 0.18 * hoverBoost;
       member.image.rotation.set(
         tiltX * (0.65 + profile.driftY * hoverBoost) +
-          (member.image === hoveredCommitteeImage ? profile.rotate : 0),
+        (member.image === hoveredCommitteeImage ? profile.rotate : 0),
         tiltY * (0.65 + profile.driftX * hoverBoost),
         0,
       );
@@ -1134,7 +826,7 @@ function getViewportLayout() {
     socialCardWidth: narrow ? 2.75 : compact ? 3.05 : 3.25,
     socialCardHeight: narrow ? 2.75 : compact ? 3.05 : 3.25,
     committeeImageHeight: narrow
-      ? 3
+      ? 2.85
       : compact
         ? 3.35
         : tablet
@@ -1143,7 +835,7 @@ function getViewportLayout() {
             ? 6.3
             : COMMITTEE_IMAGE_HEIGHT,
     committeeImageSpacing: narrow
-      ? 4.15
+      ? 3.65
       : compact
         ? 5.1
         : tablet
@@ -1152,7 +844,7 @@ function getViewportLayout() {
             ? 12.9
             : COMMITTEE_IMAGE_SPACING,
     committeeRowSpacing: narrow
-      ? 4.7
+      ? 4.35
       : compact
         ? 5
         : tablet
@@ -1165,7 +857,7 @@ function getViewportLayout() {
       : compact
         ? 0.7
         : COMMITTEE_CAPTION_FONT_SIZE,
-    committeeBaseY: narrow ? 4.1 : compact ? 3.55 : COMMITTEE_BASE_POSITION.y,
+    committeeBaseY: narrow ? 2.35 : compact ? 3.55 : COMMITTEE_BASE_POSITION.y,
     committeeMobileRows: narrow ? [1, 2, 4] : compact ? [1, 2, 4] : null,
   };
 
@@ -1386,7 +1078,6 @@ function updatePointerFromEvent(event) {
   lastPointerAt = performance.now();
   parallaxActive = true;
   pointerDirty = true;
-  updateJoinCuriosityState();
 }
 
 function logCameraPosition(context = "Camera") {
@@ -1407,18 +1098,6 @@ function logModelPosition(context = "Model") {
     y: THREE.MathUtils.radToDeg(ry),
     z: THREE.MathUtils.radToDeg(rz),
   });
-}
-
-function applyModelTransform() {
-  if (!modelGroup) return;
-
-  const pos = getCurrentSectionPos();
-  modelGroup.position.set(pos.x, pos.y, pos.z);
-  modelGroup.rotation.set(
-    THREE.MathUtils.degToRad(MODEL_ROTATION.x),
-    THREE.MathUtils.degToRad(MODEL_ROTATION.y),
-    THREE.MathUtils.degToRad(MODEL_ROTATION.z),
-  );
 }
 
 function applyModelRotation() {
@@ -1568,7 +1247,11 @@ function coverSquareTexture(texture, aspect, focus) {
 }
 
 function createSocialTexture({ texture }) {
-  return polishTexture(textureLoader.load(texture));
+  const loaded = textureLoader.load(texture, (decoded) => {
+    renderer.initTexture?.(decoded);
+  });
+
+  return polishTexture(loaded);
 }
 
 function createRoundedIconMaterial(texture) {
@@ -1630,23 +1313,6 @@ function getSocialMaterialProfile(label = "") {
     };
   }
 
-  if (kind === "grass") {
-    return {
-      base: 0x385629,
-      top: 0x4f7837,
-      bottom: 0x25381b,
-      back: 0x304925,
-      roughness: 0.99,
-      metalness: 0.01,
-      clearcoat: 0.02,
-      clearcoatRoughness: 0.96,
-      sheen: 0.2,
-      sheenColor: new THREE.Color(0xd8efb0),
-      sheenRoughness: 0.84,
-      roughnessMap: createClothTexture(),
-    };
-  }
-
   if (kind === "cloth") {
     return {
       base: 0x1d2230,
@@ -1700,7 +1366,7 @@ function getSocialMaterialProfile(label = "") {
 function createMaterialTouchField(label = "") {
   const config = getSocialMaterialConfig(label);
   const size =
-    config.kind === "mail" || config.kind === "grass"
+    config.kind === "mail"
       ? SOCIAL_TOUCH_TEXTURE_SIZE / 2
       : SOCIAL_TOUCH_TEXTURE_SIZE;
   const canvas = document.createElement("canvas");
@@ -1854,16 +1520,13 @@ function tuneLogoMaterial(material, label, touchField) {
   material.bumpScale = kind === "glass" ? 0.018 : kind === "rubber" ? 0.05 : 0.032;
   material.displacementMap = kind === "glass" ? null : touchField.texture;
   material.displacementScale =
-    kind === "rubber" ? -0.1 : kind === "mail" || kind === "grass" ? -0.045 : -0.07;
+    kind === "rubber" ? -0.1 : kind === "mail" ? -0.045 : -0.07;
   material.envMapIntensity = kind === "glass" ? 1.4 : 0.9;
   material.needsUpdate = true;
 
   if (kind === "glass") {
     material.transparent = true;
     material.opacity = 0.86;
-  } else if (kind === "grass") {
-    material.transparent = true;
-    material.opacity = 0.18;
   }
 }
 
@@ -1883,82 +1546,6 @@ function createSocialLogoMesh(texture, label, touchField, layout) {
   mesh.userData.isSocialLogo = true;
   mesh.userData.touchField = touchField;
   mesh.renderOrder = 35;
-  return mesh;
-}
-
-const grassBladeDummy = new THREE.Object3D();
-
-function createGrassLogoBlades(touchField, layout) {
-  const kind = touchField.config.kind;
-  if (kind !== "grass") return null;
-
-  const logoWidth = layout.socialCardWidth;
-  const logoHeight = layout.socialCardHeight;
-  const logoSize = Math.min(logoWidth, logoHeight);
-  const targetBladeCount = layout.narrow ? 360 : 640;
-  const blades = [];
-
-  const random = (seed) => {
-    const value = Math.sin(seed * 12.9898) * 43758.5453;
-    return value - Math.floor(value);
-  };
-  const isGrassLogoBlade = (x, y) => {
-    const nx = x / (logoWidth * 0.42);
-    const ny = y / (logoHeight * 0.42);
-    const square =
-      Math.abs(nx) < 0.72 &&
-      Math.abs(ny) < 0.72 &&
-      (Math.abs(Math.abs(nx) - 0.72) < 0.08 ||
-        Math.abs(Math.abs(ny) - 0.72) < 0.08);
-    const lens = Math.abs(Math.hypot(nx, ny) - 0.34) < 0.08;
-    const dot = Math.hypot(nx - 0.43, ny + 0.43) < 0.09;
-    return square || lens || dot;
-  };
-
-  for (let i = 0; blades.length < targetBladeCount && i < targetBladeCount * 90; i += 1) {
-    const x = (random(i + 1) - 0.5) * logoWidth;
-    const y = (random(i + 101) - 0.5) * logoHeight;
-    if (!isGrassLogoBlade(x, y)) continue;
-
-    blades.push({
-      x,
-      y,
-      uvx: 0.5 + x / logoWidth,
-      uvy: 0.5 + y / logoHeight,
-      height: logoSize * (0.06 + random(i + 17) * 0.055),
-      angle: (random(i + 29) - 0.5) * 0.28,
-      stiffness: 0.55 + random(i + 41) * 0.38,
-      highlight: random(i + 53) > 0.72,
-    });
-  }
-
-  if (blades.length === 0) return null;
-
-  const geometry = new THREE.PlaneGeometry(0.035, 0.18, 1, 2);
-  geometry.translate(0, 0.09, 0);
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x73c447,
-    roughness: 0.86,
-    metalness: 0,
-    side: THREE.DoubleSide,
-    transparent: true,
-    alphaTest: 0.25,
-  });
-  const mesh = new THREE.InstancedMesh(geometry, material, blades.length);
-
-  blades.forEach((blade, index) => {
-    const color = new THREE.Color(
-      blade.highlight ? 0xc6f46b : index % 2 === 0 ? 0x72c543 : 0x4d982f,
-    );
-    mesh.setColorAt(index, color);
-  });
-
-  mesh.instanceColor.needsUpdate = true;
-  mesh.position.set(0, 0, SOCIAL_CARD_DEPTH / 2 + 0.08);
-  mesh.userData.blades = blades;
-  mesh.userData.touchField = touchField;
-  mesh.userData.isSocialGrass = true;
-  mesh.renderOrder = 45;
   return mesh;
 }
 
@@ -2094,12 +1681,22 @@ function resizeRainbowBackdrop(target = rainbowBackdrop) {
 function updateRainbowBackdropPosition() {
   if (!rainbowBackdrop || !modelGroup) return;
 
-  const pos = modelGroup.position;
+  const center = modelCenter
+    .clone()
+    .multiplyScalar(modelScrollScale)
+    .add(modelGroup.position);
+
+  const zPlane = center.z + RAINBOW_Z_OFFSET;
+  const cam = camera.position;
+  const denom = center.z - cam.z;
+  const t = Math.abs(denom) > 0.001 ? (zPlane - cam.z) / denom : 1;
+
   rainbowBackdrop.position.set(
-    pos.x,
-    pos.y + modelLookHeight,
-    pos.z + RAINBOW_Z_OFFSET,
+    cam.x + (center.x - cam.x) * t,
+    cam.y + (center.y - cam.y) * t,
+    zPlane,
   );
+  rainbowBackdrop.scale.setScalar(modelScrollScale);
 }
 
 function updateRainbowBackdropRotation() {
@@ -2108,56 +1705,15 @@ function updateRainbowBackdropRotation() {
   rainbowBackdrop.lookAt(camera.position);
 }
 
-function stopRainbowFade() {
+function setRainbowVisible(visible) {
   if (!rainbowBackdrop) return;
 
-  for (const mesh of rainbowBackdrop.userData.glowMeshes) {
-    gsap.killTweensOf(mesh.material);
-  }
-  gsap.killTweensOf(rainbowBackdrop.userData.pointLight);
-}
-
-function setRainbowBackdropVisible(visible) {
-  if (!rainbowBackdrop) return Promise.resolve();
-
-  stopRainbowFade();
-
   const { glowMeshes, glowOpacities, pointLight } = rainbowBackdrop.userData;
-  const targetIntensity = visible ? RAINBOW_LIGHT_INTENSITY : 0;
-
-  rainbowBackdrop.visible = true;
-
-  return new Promise((resolve) => {
-    glowMeshes.forEach((mesh, index) => {
-      gsap.to(mesh.material, {
-        opacity: visible ? glowOpacities[index] : 0,
-        duration: RAINBOW_FADE_DURATION,
-        ease: visible ? "power2.out" : "power2.in",
-      });
-    });
-
-    gsap.to(pointLight, {
-      intensity: targetIntensity,
-      duration: RAINBOW_FADE_DURATION,
-      ease: visible ? "power2.out" : "power2.in",
-      onComplete: () => {
-        if (!visible) {
-          rainbowBackdrop.visible = false;
-        }
-        resolve();
-      },
-    });
+  rainbowBackdrop.visible = visible;
+  pointLight.intensity = visible ? RAINBOW_LIGHT_INTENSITY : 0;
+  glowMeshes.forEach((mesh, index) => {
+    mesh.material.opacity = visible ? glowOpacities[index] : 0;
   });
-}
-
-function hideRainbowBackdrop() {
-  return setRainbowBackdropVisible(false);
-}
-
-function showRainbowBackdrop() {
-  updateRainbowBackdropPosition();
-  updateRainbowBackdropRotation();
-  return setRainbowBackdropVisible(true);
 }
 
 function animateRainbowBackdrop() {
@@ -2237,55 +1793,13 @@ function updateHudState() {
     "--content-trail",
     tab?.trailColor || tab?.accentColor || "#FF5757",
   );
-  document.body.removeAttribute("data-trails-ready");
-
   if (currentIndex !== COMMITTEE_SECTION_INDEX) {
     closeMemberPopup();
   }
 }
 
-function showSectionShell(index) {
-  if (index < 0 || index >= MODEL_SECTIONS.length || index === currentIndex) {
-    return;
-  }
-
-  currentIndex = index;
-  updateStatus();
-  setNavbarCondensed(false);
-  scheduleNavbarCondense(900);
-
-  if (index === CONTACT_SECTION_INDEX) {
-    setSocialCubesVisible(true);
-  } else if (socialCubes.length > 0) {
-    setSocialCubesVisible(false);
-  }
-
-  if (index === ABOUT_SECTION_INDEX) {
-    restartChalkTrailMotion(".bee-trail--join");
-  } else {
-    restartChalkTrailMotion();
-  }
-}
-
-function restartChalkTrailMotion(selector = ".bee-trail") {
-  document.body.dataset.trailsReady = "true";
-  if (prefersReducedMotion.matches) return;
-
-  window.requestAnimationFrame(() => {
-    document.querySelectorAll(selector).forEach((node) => {
-      const trail = node.closest?.(".bee-trail") || node;
-      trail.style.animation = "none";
-      trail.getBoundingClientRect();
-      trail.style.animation = "";
-      trail
-        .querySelectorAll("animateMotion")
-        .forEach((animation) => animation.beginElement?.());
-    });
-  });
-}
-
 function getCommitteeCards() {
-  return COMMITTEE_ROWS.flat();
+  return committeeMembers;
 }
 
 function getPopupViewport() {
@@ -2427,9 +1941,9 @@ function refreshMemberPopupPosition() {
   const anchor = currentPopupAnchorObject
     ? getObjectScreenBounds(currentPopupAnchorObject).center
     : {
-        x: getPopupViewport().left + getPopupViewport().width / 2,
-        y: getPopupViewport().top + getPopupViewport().height / 2,
-      };
+      x: getPopupViewport().left + getPopupViewport().width / 2,
+      y: getPopupViewport().top + getPopupViewport().height / 2,
+    };
 
   positionMemberPopup(anchor);
 }
@@ -2440,13 +1954,14 @@ function openMemberPopup(index, originObject = null) {
   const origin = originObject
     ? getObjectScreenBounds(originObject).center
     : {
-        x: getPopupViewport().left + getPopupViewport().width / 2,
-        y: getPopupViewport().top + getPopupViewport().height / 2,
-      };
+      x: getPopupViewport().left + getPopupViewport().width / 2,
+      y: getPopupViewport().top + getPopupViewport().height / 2,
+    };
 
-  memberPopupImage.src = member.image;
+  const imagePath = member.sourceImage;
+  memberPopupImage.src = imagePath;
   memberPopupImage.srcset = member.photoWidth
-    ? `${member.image} ${member.photoWidth}w`
+    ? `${imagePath} ${member.photoWidth}w`
     : "";
   memberPopupImage.sizes = "(max-width: 860px) min(38vw, 7.2rem), 7.2rem";
   memberPopupImage.width = member.photoWidth || 900;
@@ -2458,14 +1973,11 @@ function openMemberPopup(index, originObject = null) {
   memberPopupCopy.textContent = member.shortBio || member.body || "";
   memberPopupLink.href = member.url;
   memberPopupCard?.style.setProperty("--member-accent", member.accentColor);
-  memberPopupCard.dataset.microcopy =
-    member.slugline || member.microcopy || member.title;
   document.body.dataset.popupOpen = "true";
   currentPopupAnchorObject = originObject;
   memberPopup.classList.remove("is-open");
   memberPopup.hidden = false;
   positionMemberPopup(origin);
-  playMusicCue(member.music, `committee:${member.memberIndex}`);
 
   requestAnimationFrame(() => {
     refreshMemberPopupPosition();
@@ -2480,7 +1992,6 @@ function closeMemberPopup() {
   memberPopup.classList.remove("is-open");
   document.body.removeAttribute("data-popup-open");
   currentPopupAnchorObject = null;
-  stopActiveSound(false);
   window.setTimeout(
     () => {
       if (!memberPopup.classList.contains("is-open")) {
@@ -2509,81 +2020,245 @@ function setupMemberPopup() {
   });
 }
 
-let navCondenseTimer = 0;
-
-function setNavbarCondensed(condensed) {
-  if (!navbar) return;
-
-  navbar.classList.toggle("is-condensed", condensed);
+function firstStopForSection(sectionIndex) {
+  const index = scrollStops.findIndex(
+    (stop) => stop.sectionIndex === sectionIndex,
+  );
+  return index === -1 ? 0 : index;
 }
 
-function scheduleNavbarCondense(delay = 1200) {
-  if (coarsePointer.matches) return;
+function scrollToStop(index, smooth = true) {
+  if (!scrollStops.length) return;
 
-  window.clearTimeout(navCondenseTimer);
-  navCondenseTimer = window.setTimeout(() => {
-    if (
-      !navbar?.matches(":hover") &&
-      !navbar?.contains(document.activeElement)
-    ) {
-      setNavbarCondensed(true);
+  const top = Math.max(0, Math.min(index, scrollStops.length - 1)) *
+    window.innerHeight;
+
+  window.scrollTo({
+    top,
+    behavior: smooth && !prefersReducedMotion.matches ? "smooth" : "auto",
+  });
+}
+
+function goToSection(sectionIndex) {
+  scrollToStop(firstStopForSection(sectionIndex));
+}
+
+function buildScrollStops() {
+  scrollStops = [];
+  TABS.forEach((tab, sectionIndex) => {
+    if (sectionIndex === COMMITTEE_SECTION_INDEX) {
+      COMMITTEE_GROUPS.forEach((group, groupIndex) => {
+        scrollStops.push({ sectionIndex, groupIndex });
+      });
+      return;
     }
-  }, delay);
+    scrollStops.push({ sectionIndex, groupIndex: null });
+  });
 }
 
-function setupNavbarCondense() {
-  if (!navbar) return;
+function resizeScrollTrack() {
+  if (!scrollTrack) return;
+  scrollTrack.style.height = `${Math.max(scrollStops.length, 1) * window.innerHeight}px`;
+}
 
-  navbar.addEventListener("pointerenter", () => {
-    setNavbarCondensed(false);
-    window.clearTimeout(navCondenseTimer);
+function buildYearRail() {
+  if (!yearRail) return;
+
+  const years = [...new Set(COMMITTEE_GROUPS.map((group) => group.year))];
+  yearRail.replaceChildren(
+    ...years.map((year) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.year = String(year);
+      button.textContent = String(year);
+      button.addEventListener("click", () => {
+        const index = scrollStops.findIndex(
+          (stop) => COMMITTEE_GROUPS[stop.groupIndex]?.year === year,
+        );
+        if (index !== -1) scrollToStop(index);
+      });
+      return button;
+    }),
+  );
+  yearRailButtons = [...yearRail.querySelectorAll("button")];
+}
+
+function updateYearRail() {
+  const stop = scrollStops[activeStop];
+  const group =
+    stop?.groupIndex !== null && stop?.groupIndex !== undefined
+      ? COMMITTEE_GROUPS[stop.groupIndex]
+      : null;
+  const year = group?.year ?? null;
+
+  document.body.dataset.committeeYear = year ? String(year) : "";
+  yearRailButtons.forEach((button) => {
+    button.classList.toggle("is-active", Number(button.dataset.year) === year);
   });
+}
 
-  navbar.addEventListener("pointerleave", () => scheduleNavbarCondense(600));
-  navbar.addEventListener("pointerdown", () => setNavbarCondensed(false));
-  navbar.addEventListener("focusin", () => {
-    setNavbarCondensed(false);
-    window.clearTimeout(navCondenseTimer);
-  });
+function applyStopVisibility(stop) {
+  const sectionIndex = stop.sectionIndex;
 
-  navbar.addEventListener("focusout", (event) => {
-    if (!navbar.contains(event.relatedTarget)) {
-      scheduleNavbarCondense(700);
+  sectionTexts.forEach((textMesh, index) =>
+    setTextMeshVisible(textMesh, index === sectionIndex),
+  );
+  sectionDescriptionTexts.forEach((textMesh, index) =>
+    setTextMeshVisible(textMesh, index === sectionIndex),
+  );
+  setSponsorVisible(sectionIndex === SPONSOR_SECTION_INDEX);
+  setAboutJoinVisible(sectionIndex === ABOUT_SECTION_INDEX);
+
+  if (sectionIndex === CONTACT_SECTION_INDEX) {
+    ensureSocialCubes();
+  }
+
+  setSocialCubesVisible(sectionIndex === CONTACT_SECTION_INDEX);
+  setCommitteeGroupVisible(
+    sectionIndex === COMMITTEE_SECTION_INDEX ? stop.groupIndex : -1,
+  );
+  setRainbowVisible(sectionIndex === 0);
+
+  document.body.dataset.onCommittee =
+    sectionIndex === COMMITTEE_SECTION_INDEX ? "true" : "false";
+}
+
+function getSectionDelta(stopFloat, sectionIndex) {
+  let settledStart = sectionIndex;
+  let settledEnd = sectionIndex;
+
+  if (sectionIndex === COMMITTEE_SECTION_INDEX) {
+    const committeeStops = scrollStops
+      .map((stop, index) => (stop.sectionIndex === sectionIndex ? index : -1))
+      .filter((index) => index >= 0);
+
+    if (committeeStops.length > 0) {
+      settledStart = committeeStops[0];
+      settledEnd = committeeStops[committeeStops.length - 1];
     }
-  });
+  }
 
-  setNavbarCondensed(false);
-  scheduleNavbarCondense(1400);
+  if (stopFloat < settledStart) return stopFloat - settledStart;
+  if (stopFloat > settledEnd) return stopFloat - settledEnd;
+  return 0;
 }
 
-function goToSection(index) {
-  if (index < 0 || index >= MODEL_SECTIONS.length) return;
-  if (!modelGroup || !entranceComplete) {
-    showSectionShell(index);
-    return;
-  }
-  if (isAnimating) {
-    queuedSectionIndex = index;
-    return;
-  }
+function applyContentMotion(group, delta) {
+  if (!group) return;
 
-  transitionToSection(index);
+  const distance = Math.abs(delta);
+  group.position.set(
+    0,
+    delta * SECTION_Y_SPAN,
+    -distance * SECTION_Z_SPAN,
+  );
+  group.scale.setScalar(Math.max(0.2, 1 - distance * SECTION_SHRINK));
 }
 
-function flushQueuedSection() {
-  if (
-    queuedSectionIndex === null ||
-    !modelGroup ||
-    isAnimating ||
-    !entranceComplete
-  ) {
-    return;
+function applyCommitteeMotion(group, delta) {
+  if (!group) return;
+
+  const distance = Math.abs(delta);
+  group.position.set(
+    -delta * SECTION_X_SPAN,
+    0,
+    -distance * SECTION_Z_SPAN,
+  );
+  group.scale.setScalar(Math.max(0.2, 1 - distance * SECTION_SHRINK));
+}
+
+function updateSectionMotion(stopFloat) {
+  const stopIndex = Math.round(stopFloat);
+  const stop = scrollStops[stopIndex];
+  if (!stop) return;
+
+  const groupDelta = stopFloat - stopIndex;
+  const isCommittee = stop.sectionIndex === COMMITTEE_SECTION_INDEX;
+  const firstCommitteeStop =
+    isCommittee &&
+    scrollStops.findIndex(
+      (entry) => entry.sectionIndex === COMMITTEE_SECTION_INDEX,
+    ) === stopIndex;
+  const entersCommitteeVertically = firstCommitteeStop && groupDelta < 0;
+
+  if (isCommittee && !entersCommitteeVertically) {
+    applyCommitteeMotion(sectionGroups[stop.sectionIndex], groupDelta);
+  } else {
+    applyContentMotion(sectionGroups[stop.sectionIndex], groupDelta);
   }
 
-  const nextIndex = queuedSectionIndex;
-  queuedSectionIndex = null;
+  const textIndex = stop.sectionIndex;
+  const textDelta = getSectionDelta(stopFloat, textIndex);
+  const textDistance = Math.abs(textDelta);
+  const textScale = Math.max(0.2, 1 - textDistance * SECTION_SHRINK);
 
-  transitionToSection(nextIndex);
+  const applyText = (textMesh) => {
+    if (!textMesh) return;
+    const base = textMesh.userData.basePosition;
+    if (!base) return;
+
+    textMesh.position.set(
+      base.x,
+      base.y + textDelta * SECTION_Y_SPAN,
+      base.z - textDistance * SECTION_Z_SPAN,
+    );
+    textMesh.scale.setScalar(textScale);
+  };
+
+  applyText(sectionTexts[textIndex]);
+  applyText(sectionDescriptionTexts[textIndex]);
+
+}
+
+function setActiveStop(index, force = false) {
+  if (!scrollStops.length) return;
+
+  const clamped = Math.max(0, Math.min(index, scrollStops.length - 1));
+  if (!force && clamped === activeStop) return;
+
+  activeStop = clamped;
+  const stop = scrollStops[clamped];
+
+  currentIndex = stop.sectionIndex;
+  updateStatus();
+  applyStopVisibility(stop);
+  updateYearRail();
+}
+
+function updateModelScroll(stopFloat) {
+  const active = Math.round(stopFloat) === 0;
+  const delta = active ? stopFloat : 0;
+  const distance = Math.abs(delta);
+
+  modelScrollScale = Math.max(0.2, 1 - distance * SECTION_SHRINK);
+  modelGroup.visible = active;
+  modelGroup.position.set(
+    0,
+    delta * SECTION_Y_SPAN,
+    -20 - distance * SECTION_Z_SPAN,
+  );
+  modelGroup.scale.setScalar(MODEL_SCALE * modelScrollScale);
+  aimLightsAtModel();
+}
+
+function updateScrollPosition() {
+  if (!modelGroup || !entranceComplete) return;
+
+  const maxScroll = scrollTrack
+    ? Math.max(scrollTrack.offsetHeight - window.innerHeight, 0)
+    : 0;
+  const progress = maxScroll > 0 ? clamp01(window.scrollY / maxScroll) : 0;
+  const stopFloat = progress * (scrollStops.length - 1);
+
+  updateModelScroll(stopFloat);
+  starField.position.y = stopFloat * STAR_SCROLL_STEP;
+
+  const stopIndex = Math.round(stopFloat);
+  if (stopIndex !== activeStop) {
+    setActiveStop(stopIndex);
+  }
+
+  updateSectionMotion(stopFloat);
 }
 
 function setupNavbar() {
@@ -2611,128 +2286,49 @@ function setupNavbar() {
     button.addEventListener("click", (event) => {
       event.preventDefault();
       goToSection(Number(button.dataset.section));
-      scheduleNavbarCondense(500);
     });
   });
 
   updateNavbarActive();
-  setupNavbarCondense();
 }
 
-function stopTextAnimation(textMesh) {
-  if (textMesh.userData.textTween) {
-    textMesh.userData.textTween.kill();
-    textMesh.userData.textTween = null;
+function setTextMeshVisible(textMesh, visible) {
+  if (!textMesh) return;
+
+  const text = visible ? textMesh.userData.fullText : "";
+  const changed = textMesh.text !== text;
+
+  textMesh.visible = visible;
+  textMesh.scale.setScalar(1);
+
+  if (visible) {
+    const base = textMesh.userData.basePosition;
+    if (base) textMesh.position.set(base.x, base.y, base.z);
+    textMesh.fillOpacity = 1;
+  }
+
+  if (changed) {
+    textMesh.text = text;
+    textMesh.sync();
   }
 }
 
-function revealTextMesh(textMesh) {
-  if (!textMesh) return Promise.resolve();
-
-  stopTextAnimation(textMesh);
-
-  const full = textMesh.userData.fullText;
-  textMesh.visible = true;
-  textMesh.text = full;
-  textMesh.scale.setScalar(prefersReducedMotion.matches ? 1 : 0.94);
-
-  return new Promise((resolve) => {
-    textMesh.sync(() => {
-      textMesh.userData.textTween = gsap.to(textMesh.scale, {
-        x: 1,
-        y: 1,
-        z: 1,
-        duration: prefersReducedMotion.matches ? 0 : TEXT_REVEAL_DURATION,
-        ease: "power2.out",
-        onComplete: () => {
-          textMesh.userData.textTween = null;
-          resolve();
-        },
-      });
-    });
+function createSectionGroups() {
+  sectionGroups = TABS.map(() => {
+    const group = new THREE.Group();
+    scene.add(group);
+    return group;
   });
 }
 
-function hideTextMesh(textMesh, duration = TEXT_HIDE_DURATION) {
-  if (!textMesh) return Promise.resolve();
+function addToSection(sectionIndex, object) {
+  const group = sectionGroups[sectionIndex];
 
-  stopTextAnimation(textMesh);
-
-  return new Promise((resolve) => {
-    textMesh.userData.textTween = gsap.to(textMesh.scale, {
-      x: prefersReducedMotion.matches ? 1 : 0.96,
-      y: prefersReducedMotion.matches ? 1 : 0.96,
-      z: prefersReducedMotion.matches ? 1 : 0.96,
-      duration: prefersReducedMotion.matches ? 0 : duration,
-      ease: "power2.in",
-      onComplete: () => {
-        textMesh.text = "";
-        textMesh.visible = false;
-        textMesh.scale.setScalar(1);
-        textMesh.sync();
-        textMesh.userData.textTween = null;
-        resolve();
-      },
-    });
-  });
+  if (group) group.add(object);
+  else scene.add(object);
 }
 
-function revealSectionText(index) {
-  return revealTextMesh(sectionTexts[index]);
-}
-
-function hideSectionText(index) {
-  return hideTextMesh(sectionTexts[index]);
-}
-
-function revealSectionDescription(index) {
-  return revealTextMesh(sectionDescriptionTexts[index]);
-}
-
-function hideSectionDescription(index) {
-  return hideTextMesh(sectionDescriptionTexts[index]);
-}
-
-function revealSectionContent(index) {
-  const promises = [revealSectionText(index), revealSectionDescription(index)];
-
-  if (index === SPONSOR_SECTION_INDEX) {
-    promises.push(revealSponsorImage());
-  }
-
-  if (index === ABOUT_SECTION_INDEX) {
-    promises.push(revealAboutJoinImage());
-  }
-
-  if (index === COMMITTEE_SECTION_INDEX) {
-    promises.push(revealCommitteeMembers());
-  }
-
-  return Promise.all(promises).then((results) => {
-    if (index === currentIndex) restartChalkTrailMotion();
-    return results;
-  });
-}
-
-function hideSectionContent(index) {
-  const promises = [hideSectionText(index), hideSectionDescription(index)];
-
-  if (index === SPONSOR_SECTION_INDEX) {
-    promises.push(hideSponsorImage());
-  }
-
-  if (index === ABOUT_SECTION_INDEX) {
-    promises.push(hideAboutJoinImage());
-  }
-
-  if (index === COMMITTEE_SECTION_INDEX) {
-    promises.push(hideCommitteeMembers());
-  }
-
-  return Promise.all(promises);
-}
-
-function createSectionText(section, options = {}) {
+function createSectionText(section, options = {}, sectionIndex = 0) {
   const {
     font = TITLE_FONT,
     fontSize = TEXT_FONT_SIZE,
@@ -2744,6 +2340,11 @@ function createSectionText(section, options = {}) {
   const outText = new Text();
 
   outText.userData.fullText = section.text;
+  outText.userData.basePosition = {
+    x: section.x,
+    y: section.y,
+    z: section.z,
+  };
   outText.text = "";
   outText.font = font;
   outText.fontSize = fontSize;
@@ -2761,13 +2362,19 @@ function createSectionText(section, options = {}) {
 }
 
 function initSectionTexts() {
-  sectionTexts = TEXT_SECTIONS.map((section) => createSectionText(section));
-  sectionDescriptionTexts = DESCRIPTION_SECTIONS.map((section) =>
-    createSectionText(section, {
-      font: DESCRIPTION_FONT,
-      fontSize: DESCRIPTION_FONT_SIZE,
-      anchorY: "top",
-    }),
+  sectionTexts = TEXT_SECTIONS.map((section, index) =>
+    createSectionText(section, {}, index),
+  );
+  sectionDescriptionTexts = DESCRIPTION_SECTIONS.map((section, index) =>
+    createSectionText(
+      section,
+      {
+        font: DESCRIPTION_FONT,
+        fontSize: DESCRIPTION_FONT_SIZE,
+        anchorY: "top",
+      },
+      index,
+    ),
   );
 }
 
@@ -2787,6 +2394,11 @@ function applyTextMeshLayout(textMesh, section) {
 
   if (textMesh.userData.layoutKey === layoutKey) return;
 
+  textMesh.userData.basePosition = {
+    x: section.x,
+    y: section.y,
+    z: section.z,
+  };
   textMesh.position.set(section.x, section.y, section.z);
   textMesh.textAlign = section.textAlign ?? "left";
   textMesh.anchorX = section.anchorX ?? "left";
@@ -2897,7 +2509,7 @@ function createSponsorImage() {
     sponsorDescription.z,
   );
   mesh.visible = false;
-  scene.add(mesh);
+  addToSection(SPONSOR_SECTION_INDEX, mesh);
 
   textureLoader.load(NUAXION_LOGO_PATH, (texture) => {
     material.map = polishTexture(texture);
@@ -2910,44 +2522,11 @@ function createSponsorImage() {
   return mesh;
 }
 
-function stopSponsorImageFade() {
+function setSponsorVisible(visible) {
   if (!sponsorImage) return;
 
-  gsap.killTweensOf(sponsorImage.material);
-}
-
-function revealSponsorImage() {
-  if (!sponsorImage) return Promise.resolve();
-
-  stopSponsorImageFade();
-  sponsorImage.visible = true;
-
-  return new Promise((resolve) => {
-    gsap.to(sponsorImage.material, {
-      opacity: 1,
-      duration: TEXT_REVEAL_DURATION,
-      ease: "power2.out",
-      onComplete: resolve,
-    });
-  });
-}
-
-function hideSponsorImage() {
-  if (!sponsorImage) return Promise.resolve();
-
-  stopSponsorImageFade();
-
-  return new Promise((resolve) => {
-    gsap.to(sponsorImage.material, {
-      opacity: 0,
-      duration: TEXT_HIDE_DURATION,
-      ease: "power2.in",
-      onComplete: () => {
-        sponsorImage.visible = false;
-        resolve();
-      },
-    });
-  });
+  sponsorImage.visible = visible;
+  sponsorImage.material.opacity = visible ? 1 : 0;
 }
 
 function createAboutJoinImage() {
@@ -2964,7 +2543,7 @@ function createAboutJoinImage() {
   mesh.renderOrder = 100;
   mesh.userData.url = JOIN_LINK;
   mesh.visible = false;
-  scene.add(mesh);
+  addToSection(ABOUT_SECTION_INDEX, mesh);
 
   textureLoader.load(RUBRIC_IMAGE_PATH, (texture) => {
     material.map = polishTexture(texture);
@@ -2975,108 +2554,6 @@ function createAboutJoinImage() {
   });
 
   return mesh;
-}
-
-function stopAboutJoinImageFade() {
-  if (!aboutJoinImage) return;
-
-  gsap.killTweensOf(aboutJoinImage.material);
-}
-
-function setJoinState(state) {
-  if (document.body.dataset.joinState === state) return;
-
-  document.body.dataset.joinState = state;
-}
-
-function clearJoinTimers() {
-  window.clearTimeout(joinStateTimer);
-  window.clearTimeout(joinBlushTimer);
-}
-
-function stopJoinWink() {
-  window.clearTimeout(joinWinkTimer);
-  document.body.removeAttribute("data-join-wink");
-}
-
-function scheduleJoinWink() {
-  window.clearTimeout(joinWinkTimer);
-  joinWinkTimer = window.setTimeout(
-    () => {
-      if (document.body.dataset.joinState === joinUsStates.idleCurious) {
-        document.body.dataset.joinWink = "true";
-        window.setTimeout(() => {
-          document.body.removeAttribute("data-join-wink");
-        }, prefersReducedMotion.matches ? 1 : 150);
-      }
-      joinWinkCount += 1;
-      scheduleJoinWink();
-    },
-    prefersReducedMotion.matches
-      ? 9000
-      : getOrganicWinkDelayMs(hashString(JOIN_LABEL || "JOIN US"), joinWinkCount),
-  );
-}
-
-function updateJoinEyes() {
-  if (!joinWord || joinEyePupils.length === 0) return;
-  if (
-    document.body.dataset.joinState === joinUsStates.joinNear ||
-    document.body.dataset.joinState === joinUsStates.sadShrivel
-  ) {
-    joinEyePupils.forEach((pupil) => pupil.removeAttribute("transform"));
-    return;
-  }
-
-  const rect = joinWord.getBoundingClientRect();
-  if (!rect.width || !Number.isFinite(lastPointerClientX)) return;
-
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  const offset = constrainPupilOffset(
-    (lastPointerClientX - centerX) * 0.035,
-    (lastPointerClientY - centerY) * 0.035,
-    { width: 11, height: 10 },
-  );
-
-  joinEyePupils.forEach((pupil, index) => {
-    const sideBias = index === 0 ? -0.25 : 0.25;
-    pupil.setAttribute(
-      "transform",
-      `translate(${(offset.x + sideBias).toFixed(2)} ${offset.y.toFixed(2)})`,
-    );
-  });
-}
-
-function updateJoinCuriosityState() {
-  const state = document.body.dataset.joinState || joinUsStates.idleCurious;
-  updateJoinEyes();
-
-  if (
-    currentIndex !== ABOUT_SECTION_INDEX ||
-    state === joinUsStates.rubricsHoverExcited ||
-    state === joinUsStates.rubricsHoverBlush ||
-    state === joinUsStates.rubricsClickCelebration ||
-    state === joinUsStates.sadShrivel ||
-    state === joinUsStates.recoveringToIdle
-  ) {
-    return;
-  }
-
-  const rect = joinWord?.getBoundingClientRect();
-  if (!rect?.width || !Number.isFinite(lastPointerClientX)) {
-    setJoinState(joinUsStates.idleCurious);
-    return;
-  }
-
-  const nearPad = Math.max(72, Math.min(128, viewportWidth * 0.08));
-  const nearJoin =
-    lastPointerClientX >= rect.left - nearPad &&
-    lastPointerClientX <= rect.right + nearPad &&
-    lastPointerClientY >= rect.top - nearPad &&
-    lastPointerClientY <= rect.bottom + nearPad;
-
-  setJoinState(nearJoin ? joinUsStates.joinNear : joinUsStates.idleCurious);
 }
 
 function stopRubricsDance() {
@@ -3104,8 +2581,6 @@ function startRubricsDance() {
 function stopAboutJoinHover() {
   if (!aboutJoinImage) return;
 
-  clearJoinTimers();
-  setJoinState(joinUsStates.idleCurious);
   stopRubricsDance();
   gsap.killTweensOf(aboutJoinImage.position);
   gsap.killTweensOf(aboutJoinImage.scale);
@@ -3117,39 +2592,12 @@ function stopAboutJoinHover() {
   document.body.removeAttribute("data-content-hover");
 }
 
-function revealAboutJoinImage() {
-  if (!aboutJoinImage) return Promise.resolve();
+function setAboutJoinVisible(visible) {
+  if (!aboutJoinImage) return;
 
-  stopAboutJoinImageFade();
-  aboutJoinImage.visible = true;
-
-  return new Promise((resolve) => {
-    gsap.to(aboutJoinImage.material, {
-      opacity: 1,
-      duration: TEXT_REVEAL_DURATION,
-      ease: "power2.out",
-      onComplete: resolve,
-    });
-  });
-}
-
-function hideAboutJoinImage() {
-  if (!aboutJoinImage) return Promise.resolve();
-
-  stopAboutJoinImageFade();
-  stopAboutJoinHover();
-
-  return new Promise((resolve) => {
-    gsap.to(aboutJoinImage.material, {
-      opacity: 0,
-      duration: TEXT_HIDE_DURATION,
-      ease: "power2.in",
-      onComplete: () => {
-        aboutJoinImage.visible = false;
-        resolve();
-      },
-    });
-  });
+  if (!visible) stopAboutJoinHover();
+  aboutJoinImage.visible = visible;
+  aboutJoinImage.material.opacity = visible ? 1 : 0;
 }
 
 function updateAboutJoinHover() {
@@ -3177,14 +2625,8 @@ function setAboutJoinImageHovered(hovered) {
   const baseY = aboutJoinImage.userData.baseY ?? aboutJoinImage.position.y;
 
   if (hovered) {
-    clearJoinTimers();
     document.body.dataset.contentHover = "join";
-    setJoinState(joinUsStates.rubricsHoverExcited);
     startRubricsDance();
-    joinBlushTimer = window.setTimeout(
-      () => setJoinState(joinUsStates.rubricsHoverBlush),
-      prefersReducedMotion.matches ? 800 : JOIN_US_BLUSH_DELAY_MS,
-    );
     gsap.to(aboutJoinImage.scale, {
       x: 1.035,
       y: 1.035,
@@ -3192,29 +2634,9 @@ function setAboutJoinImageHovered(hovered) {
       duration: motionDuration(0.12),
       ease: "back.out(2)",
     });
-    gsap.to(aboutJoinImage.position, {
-      y: baseY,
-      duration: motionDuration(0.12),
-      ease: "power2.out",
-    });
   } else {
     document.body.removeAttribute("data-content-hover");
-    clearJoinTimers();
     stopRubricsDance();
-    setJoinState(joinUsStates.sadShrivel);
-    restartChalkTrailMotion(".bee-trail--join");
-    joinStateTimer = window.setTimeout(
-      () => {
-        setJoinState(joinUsStates.recoveringToIdle);
-        joinStateTimer = window.setTimeout(
-          () => {
-            setJoinState(joinUsStates.idleCurious);
-          },
-          prefersReducedMotion.matches ? 100 : 180,
-        );
-      },
-      prefersReducedMotion.matches ? 320 : 760,
-    );
     aboutJoinImage.userData.tiltZ = 0;
     gsap.to(aboutJoinImage.scale, {
       x: 1,
@@ -3223,12 +2645,13 @@ function setAboutJoinImageHovered(hovered) {
       duration: motionDuration(0.12),
       ease: "power2.out",
     });
-    gsap.to(aboutJoinImage.position, {
-      y: baseY,
-      duration: motionDuration(0.12),
-      ease: "power2.out",
-    });
   }
+
+  gsap.to(aboutJoinImage.position, {
+    y: baseY,
+    duration: motionDuration(0.12),
+    ease: "power2.out",
+  });
 }
 
 function navigateJoinTarget(url) {
@@ -3241,22 +2664,8 @@ function navigateJoinTarget(url) {
 }
 
 function celebrateAndNavigateJoin(url) {
-  if (!url || aboutJoinImage?.userData.navigating) return;
-
-  if (aboutJoinImage) aboutJoinImage.userData.navigating = true;
-  clearJoinTimers();
-  window.clearTimeout(joinNavigationTimer);
-  stopRubricsDance();
-  setJoinState(joinUsStates.rubricsClickCelebration);
-  document.body.dataset.contentHover = "join";
-
-  joinNavigationTimer = window.setTimeout(
-    () => {
-      if (aboutJoinImage) aboutJoinImage.userData.navigating = false;
-      navigateJoinTarget(url);
-    },
-    prefersReducedMotion.matches ? 220 : JOIN_US_NAVIGATION_DELAY_MS,
-  );
+  if (!url) return;
+  navigateJoinTarget(url);
 }
 
 function setupAboutJoinInteraction() {
@@ -3281,32 +2690,7 @@ function setupAboutJoinInteraction() {
 }
 
 function triggerJoinHoverFromKeyboard(active) {
-  if (active) {
-    clearJoinTimers();
-    document.body.dataset.contentHover = "join";
-    setJoinState(joinUsStates.rubricsHoverExcited);
-    joinBlushTimer = window.setTimeout(
-      () => setJoinState(joinUsStates.rubricsHoverBlush),
-      prefersReducedMotion.matches ? 800 : JOIN_US_BLUSH_DELAY_MS,
-    );
-    startRubricsDance();
-    return;
-  }
-
-  document.body.removeAttribute("data-content-hover");
-  clearJoinTimers();
-  stopRubricsDance();
-  setJoinState(joinUsStates.sadShrivel);
-  joinStateTimer = window.setTimeout(
-    () => {
-      setJoinState(joinUsStates.recoveringToIdle);
-      joinStateTimer = window.setTimeout(
-        () => setJoinState(joinUsStates.idleCurious),
-        prefersReducedMotion.matches ? 100 : 180,
-      );
-    },
-    prefersReducedMotion.matches ? 320 : 760,
-  );
+  setAboutJoinImageHovered(active);
 }
 
 function setupJoinAccessibleInteraction() {
@@ -3329,30 +2713,36 @@ function setupJoinAccessibleInteraction() {
   });
 }
 
-function getCommitteeMemberPosition(
-  rowIndex,
-  colIndex,
-  rowLength,
-  memberIndex = 0,
-) {
+function getCommitteeMemberPosition(group, rowIndex, colIndex, indexInGroup) {
   const layout = getViewportLayout();
+  const rowLength = group.rows[rowIndex].length;
   let xOffset;
   let y;
 
-  if (layout.committeeMobileRows) {
+  if (layout.committeeMobileRows && group.kind === "exec") {
     let row = 0;
     let firstIndex = 0;
 
     while (
       row < layout.committeeMobileRows.length - 1 &&
-      memberIndex >= firstIndex + layout.committeeMobileRows[row]
+      indexInGroup >= firstIndex + layout.committeeMobileRows[row]
     ) {
       firstIndex += layout.committeeMobileRows[row];
       row += 1;
     }
 
     const rowLengthForIndex = layout.committeeMobileRows[row];
-    const col = memberIndex - firstIndex;
+    const col = indexInGroup - firstIndex;
+
+    xOffset =
+      (col - (rowLengthForIndex - 1) / 2) * layout.committeeImageSpacing;
+    y = layout.committeeBaseY - row * layout.committeeRowSpacing;
+  } else if (layout.compact && group.kind === "general") {
+    const perRow = 2;
+    const total = group.rows[0].length;
+    const row = Math.floor(indexInGroup / perRow);
+    const rowLengthForIndex = Math.min(perRow, total - row * perRow);
+    const col = indexInGroup - row * perRow;
 
     xOffset =
       (col - (rowLengthForIndex - 1) / 2) * layout.committeeImageSpacing;
@@ -3376,6 +2766,7 @@ function createCommitteeCaption(title, position, imageHeight) {
   caption.text = title;
   caption.font = DESCRIPTION_FONT;
   caption.fontSize = layout.committeeCaptionFontSize;
+  caption.maxWidth = layout.committeeImageSpacing * 0.92;
   caption.color = 0xffffff;
   caption.anchorX = "center";
   caption.anchorY = "top";
@@ -3389,7 +2780,7 @@ function createCommitteeCaption(title, position, imageHeight) {
   caption.visible = false;
   caption.sync();
 
-  scene.add(caption);
+  addToSection(COMMITTEE_SECTION_INDEX, caption);
   return caption;
 }
 
@@ -3397,73 +2788,77 @@ function createCommitteeMembers() {
   const members = [];
   let memberIndex = 0;
 
-  COMMITTEE_ROWS.forEach((row, rowIndex) => {
-    row.forEach((config, colIndex) => {
-      const position = getCommitteeMemberPosition(
-        rowIndex,
-        colIndex,
-        row.length,
-        memberIndex,
-      );
-      const material = createRoundedImageMaterial();
-      const image = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+  COMMITTEE_GROUPS.forEach((group, groupIndex) => {
+    let indexInGroup = 0;
 
-      image.position.set(position.x, position.y, position.z);
-      image.userData.baseX = position.x;
-      image.userData.url = config.url;
-      image.userData.name = config.name;
-      image.userData.title = config.title;
-      image.userData.image = config.image;
-      image.userData.accentColor = config.accentColor;
-      image.userData.pathVariant = config.pathVariant;
-      image.userData.roleSlug = config.roleSlug;
-      image.userData.music = config.music || null;
-      image.userData.memberIndex = memberIndex;
-      image.userData.texturePath = config.image;
-      image.userData.layout = {
-        rowIndex,
-        colIndex,
-        rowLength: row.length,
-        memberIndex,
-      };
-      image.userData.baseY = position.y;
-      image.userData.fadeTween = null;
-      image.visible = false;
-      scene.add(image);
+    group.rows.forEach((row, rowIndex) => {
+      row.forEach((config, colIndex) => {
+        const position = getCommitteeMemberPosition(
+          group,
+          rowIndex,
+          colIndex,
+          indexInGroup,
+        );
+        const material = createRoundedImageMaterial();
+        const image = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
 
-      const caption = createCommitteeCaption(
-        config.title,
-        position,
-        getViewportLayout().committeeImageHeight,
-      );
-      caption.userData.layout = image.userData.layout;
-      caption.userData.fadeTween = null;
-      caption.userData.baseColor = 0xffffff;
-      image.userData.caption = caption;
+        image.position.set(position.x, position.y, position.z);
+        image.userData.baseX = position.x;
+        image.userData.url = config.url;
+        image.userData.name = config.name;
+        image.userData.title = config.title;
+        image.userData.image = config.image;
+        image.userData.accentColor = config.accentColor;
+        image.userData.pathVariant = config.pathVariant;
+        image.userData.roleSlug = config.roleSlug;
+        image.userData.memberIndex = memberIndex;
+        image.userData.texturePath = config.image;
+        image.userData.groupIndex = groupIndex;
+        image.userData.layout = {
+          rowIndex,
+          colIndex,
+          rowLength: row.length,
+          memberIndex,
+        };
+        image.userData.baseY = position.y;
+        image.visible = false;
+        addToSection(COMMITTEE_SECTION_INDEX, image);
 
-      members.push({
-        image,
-        caption,
-        url: config.url,
-        name: config.name,
-        title: config.title,
-        slugline: config.slugline,
-        shortBio: config.shortBio,
-        body: config.body,
-        microcopy: config.microcopy,
-        accentColor: config.accentColor,
-        pathVariant: config.pathVariant,
-        roleSlug: config.roleSlug,
-        sourceImage: config.image,
-        photoFocus: config.photoFocus,
-        photoWidth: config.photoWidth,
-        photoHeight: config.photoHeight,
-        rowIndex,
-        colIndex,
-        rowLength: row.length,
-        memberIndex,
+        const caption = createCommitteeCaption(
+          config.title,
+          position,
+          getViewportLayout().committeeImageHeight,
+        );
+        caption.userData.layout = image.userData.layout;
+        caption.userData.baseColor = 0xffffff;
+        image.userData.caption = caption;
+
+        members.push({
+          image,
+          caption,
+          url: config.url,
+          name: config.name,
+          title: config.title,
+          slugline: config.slugline,
+          shortBio: config.shortBio,
+          body: config.body,
+          accentColor: config.accentColor,
+          pathVariant: config.pathVariant,
+          roleSlug: config.roleSlug,
+          sourceImage: config.image,
+          photoFocus: config.photoFocus,
+          photoWidth: config.photoWidth,
+          photoHeight: config.photoHeight,
+          groupIndex,
+          indexInGroup,
+          rowIndex,
+          colIndex,
+          rowLength: row.length,
+          memberIndex,
+        });
+        memberIndex += 1;
+        indexInGroup += 1;
       });
-      memberIndex += 1;
     });
   });
 
@@ -3474,11 +2869,14 @@ function applyCommitteeLayout() {
   const layout = getViewportLayout();
 
   committeeMembers.forEach((member) => {
+    const group = COMMITTEE_GROUPS[member.groupIndex];
+    if (!group) return;
+
     const position = getCommitteeMemberPosition(
+      group,
       member.rowIndex,
       member.colIndex,
-      member.rowLength,
-      member.memberIndex,
+      member.indexInGroup,
     );
 
     member.image.position.set(position.x, position.y, position.z);
@@ -3487,6 +2885,7 @@ function applyCommitteeLayout() {
     resizeAvatarPlane(member.image, layout.committeeImageHeight);
 
     member.caption.fontSize = layout.committeeCaptionFontSize;
+    member.caption.maxWidth = layout.committeeImageSpacing * 0.92;
     member.caption.position.set(
       position.x,
       position.y - layout.committeeImageHeight / 2 - COMMITTEE_CAPTION_GAP,
@@ -3494,18 +2893,6 @@ function applyCommitteeLayout() {
     );
     member.caption.sync();
   });
-}
-
-function stopCommitteeMemberFade(member) {
-  if (member.image.userData.fadeTween) {
-    member.image.userData.fadeTween.kill();
-    member.image.userData.fadeTween = null;
-  }
-
-  if (member.caption.userData.fadeTween) {
-    member.caption.userData.fadeTween.kill();
-    member.caption.userData.fadeTween = null;
-  }
 }
 
 function loadCommitteeMemberTexture(member) {
@@ -3538,61 +2925,24 @@ function loadCommitteeMemberTexture(member) {
   return member.image.userData.texturePromise;
 }
 
-async function revealCommitteeMembers() {
-  if (committeeMembers.length === 0) return Promise.resolve();
-
-  await Promise.allSettled(committeeMembers.map(loadCommitteeMemberTexture));
-
-  return Promise.all(
-    committeeMembers.map((member) => {
-      stopCommitteeMemberFade(member);
-      member.image.visible = true;
-      member.caption.visible = true;
-      member.caption.fillOpacity = 1;
-      member.caption.sync();
-
-      return new Promise((resolve) => {
-        member.image.userData.fadeTween = gsap.to(member.image.material, {
-          opacity: 1,
-          duration: TEXT_REVEAL_DURATION,
-          ease: "power2.out",
-          onComplete: () => {
-            member.image.userData.fadeTween = null;
-            resolve();
-          },
-        });
-      });
-    }),
-  );
+function preloadCommitteeTextures() {
+  return Promise.allSettled(committeeMembers.map(loadCommitteeMemberTexture));
 }
 
-function hideCommitteeMembers() {
-  if (committeeMembers.length === 0) return Promise.resolve();
-
+function setCommitteeGroupVisible(groupIndex) {
   setCommitteeImageHovered(null);
 
-  return Promise.all(
-    committeeMembers.map((member) => {
-      stopCommitteeMemberFade(member);
+  committeeMembers.forEach((member) => {
+    const active = member.groupIndex === groupIndex;
 
-      member.caption.fillOpacity = 0;
-      member.caption.visible = false;
-      member.caption.sync();
+    member.image.visible = active;
+    if (active) member.image.material.opacity = 1;
+    member.caption.visible = active;
+    member.caption.fillOpacity = active ? 1 : 0;
+    if (active) member.caption.sync();
+  });
 
-      return new Promise((resolve) => {
-        member.image.userData.fadeTween = gsap.to(member.image.material, {
-          opacity: 0,
-          duration: TEXT_HIDE_DURATION,
-          ease: "power2.in",
-          onComplete: () => {
-            member.image.visible = false;
-            member.image.userData.fadeTween = null;
-            resolve();
-          },
-        });
-      });
-    }),
-  );
+  pointerDirty = true;
 }
 
 function getVisibleCommitteeImages() {
@@ -3670,12 +3020,6 @@ function setCommitteeImageHovered(image) {
       duration: motionDuration(0.18),
       ease: "power2.out",
     });
-    playMusicCue(
-      hoveredCommitteeImage.userData.music,
-      `committee:${hoveredCommitteeImage.userData.memberIndex}`,
-    );
-  } else {
-    stopActiveSound(false);
   }
 }
 
@@ -3718,39 +3062,12 @@ function setupCommitteeInteraction() {
 
     if (intersects.length > 0) {
       lastMemberTrigger = canvas;
-      playMusicCue(
-        intersects[0].object.userData.music,
-        `committee:${intersects[0].object.userData.memberIndex}`,
-      );
       openMemberPopup(
         intersects[0].object.userData.memberIndex,
         intersects[0].object,
       );
     }
   });
-}
-
-function warmupTextMeshes(textMeshes) {
-  return Promise.all(
-    textMeshes.map(
-      (textMesh) =>
-        new Promise((resolve) => {
-          textMesh.text = textMesh.userData.fullText;
-          textMesh.sync(() => {
-            textMesh.text = "";
-            textMesh.visible = false;
-            textMesh.sync(resolve);
-          });
-        }),
-    ),
-  );
-}
-
-function warmupSectionTexts() {
-  return Promise.all([
-    warmupTextMeshes(sectionTexts),
-    warmupTextMeshes(sectionDescriptionTexts),
-  ]);
 }
 
 function getSocialCubeBasePosition(index) {
@@ -3822,17 +3139,6 @@ function resizeSocialCard(card) {
       SOCIAL_CARD_DEPTH / 2 + 0.055,
     );
   }
-
-  if (card.userData.grassLogo) {
-    card.remove(card.userData.grassLogo);
-    card.userData.grassLogo.geometry.dispose();
-    card.userData.grassLogo.material.dispose();
-    card.userData.grassLogo = createGrassLogoBlades(
-      card.userData.touchField,
-      layout,
-    );
-    if (card.userData.grassLogo) card.add(card.userData.grassLogo);
-  }
 }
 
 function applySocialCubeLayout() {
@@ -3842,10 +3148,7 @@ function applySocialCubeLayout() {
     cube.userData.baseX = basePosition.x;
     cube.userData.baseY = basePosition.y;
     resizeSocialCard(cube);
-
-    if (!cube.userData.entranceTween && !cube.userData.exitTween) {
-      cube.position.set(basePosition.x, basePosition.y, basePosition.z);
-    }
+    cube.position.set(basePosition.x, basePosition.y, basePosition.z);
   });
 }
 
@@ -3865,10 +3168,51 @@ function createSocialCaption(label) {
     -layout.socialCardHeight / 2 - 0.42,
     SOCIAL_CARD_DEPTH / 2 + 0.04,
   );
-  caption.raycast = () => {};
+  caption.raycast = () => { };
   caption.sync();
 
   return caption;
+}
+
+let socialCubesReady = false;
+
+function warmSocialCubeMaterials() {
+  if (socialCubes.length === 0) return;
+
+  const previous = socialCubes.map((cube) => cube.visible);
+
+  socialCubes.forEach((cube) => {
+    cube.visible = true;
+  });
+
+  try {
+    renderer.compile(scene, camera);
+  } catch { }
+
+  socialCubes.forEach((cube, index) => {
+    cube.visible = previous[index];
+  });
+}
+
+function ensureSocialCubes() {
+  if (socialCubesReady) return socialCubes;
+
+  socialCubesReady = true;
+  socialCubes = createSocialCubes();
+  applySocialCubeLayout();
+  exposeSocialMaterialTestState();
+  warmSocialCubeMaterials();
+
+  return socialCubes;
+}
+
+function scheduleSocialCubeWarmup() {
+  const idle =
+    typeof window.requestIdleCallback === "function"
+      ? (callback) => window.requestIdleCallback(callback, { timeout: 2500 })
+      : (callback) => window.setTimeout(callback, 900);
+
+  idle(() => ensureSocialCubes());
 }
 
 function createSocialCubes() {
@@ -3895,7 +3239,6 @@ function createSocialCubes() {
       touchField,
       layout,
     );
-    const grassLogo = createGrassLogoBlades(touchField, layout);
     const underline = new THREE.Mesh(
       new THREE.PlaneGeometry(layout.socialCardWidth * 0.56, 0.055),
       new THREE.MeshBasicMaterial({
@@ -3918,16 +3261,11 @@ function createSocialCubes() {
     cube.userData.height = layout.socialCardHeight;
     cube.userData.caption = caption;
     cube.userData.logoMesh = logoMesh;
-    cube.userData.grassLogo = grassLogo;
     cube.userData.underline = underline;
     cube.userData.baseX = cube.position.x;
     cube.userData.baseY = cube.position.y;
     cube.userData.hovered = false;
-    cube.userData.music = config.music || null;
-    cube.userData.floatTween = null;
     cube.userData.growTween = null;
-    cube.userData.entranceTween = null;
-    cube.userData.exitTween = null;
     cube.visible = false;
     cube.scale.set(
       SOCIAL_CUBE_SCALE_MIN,
@@ -3942,10 +3280,9 @@ function createSocialCubes() {
     underline.userData.isSocialUnderline = true;
     underline.renderOrder = 42;
     cube.add(logoMesh);
-    if (grassLogo) cube.add(grassLogo);
     cube.add(underline);
     cube.add(caption);
-    scene.add(cube);
+    addToSection(CONTACT_SECTION_INDEX, cube);
     return cube;
   });
 }
@@ -3965,15 +3302,13 @@ function exposeSocialMaterialTestState() {
         visible: cube.visible,
         hasLogo: Boolean(cube.userData.logoMesh),
         hasUnderline: Boolean(cube.userData.underline),
-        hasGrassLogo: Boolean(cube.userData.grassLogo),
-        grassBladeCount: cube.userData.grassLogo?.count || 0,
         logoFillRatio: cube.userData.logoMesh
           ? Math.min(
-              (cube.userData.logoMesh.geometry?.parameters?.width || 0) /
-                (cube.userData.width || 1),
-              (cube.userData.logoMesh.geometry?.parameters?.height || 0) /
-                (cube.userData.height || 1),
-            )
+            (cube.userData.logoMesh.geometry?.parameters?.width || 0) /
+            (cube.userData.width || 1),
+            (cube.userData.logoMesh.geometry?.parameters?.height || 0) /
+            (cube.userData.height || 1),
+          )
           : 0,
         underlineScaleY: cube.userData.underline?.scale?.y || 0,
         pressure: cube.userData.touchField?.poke?.pressure || 0,
@@ -3982,47 +3317,6 @@ function exposeSocialMaterialTestState() {
       };
     });
   };
-}
-
-function stopSocialCubeExit(cube) {
-  if (cube.userData.exitTween) {
-    cube.userData.exitTween.kill();
-    cube.userData.exitTween = null;
-  }
-}
-
-function stopSocialCubeEntrance(cube) {
-  if (cube.userData.entranceTween) {
-    cube.userData.entranceTween.kill();
-    cube.userData.entranceTween = null;
-  }
-}
-
-function stopSocialCubeFloat(cube) {
-  if (cube.userData.floatTween) {
-    cube.userData.floatTween.kill();
-    cube.userData.floatTween = null;
-  }
-
-  cube.position.y = cube.userData.baseY;
-}
-
-function startSocialCubeFloat(cube, delay = 0) {
-  stopSocialCubeFloat(cube);
-  if (prefersReducedMotion.matches) return;
-
-  cube.userData.floatTween = gsap.to(cube.position, {
-    y: cube.userData.baseY + SOCIAL_CUBE_FLOAT_DISTANCE,
-    duration: SOCIAL_CUBE_FLOAT_DURATION + delay,
-    delay,
-    ease: "power2.out",
-    yoyo: true,
-    repeat: 1,
-    onComplete: () => {
-      cube.userData.floatTween = null;
-      cube.position.y = cube.userData.baseY;
-    },
-  });
 }
 
 function stopSocialCubeGrow(cube) {
@@ -4082,37 +3376,6 @@ function setSocialCubeHovered(cube, hovered) {
   cube.userData.hovered = hovered;
 }
 
-function startSocialCubeEntrance() {
-  document.body.dataset.socialMaterialsReady = "false";
-  socialCubes.forEach((cube, index) => {
-    stopSocialCubeEntrance(cube);
-    stopSocialCubeFloat(cube);
-
-    cube.position.y = cube.userData.baseY - SOCIAL_CUBE_ENTRANCE_OFFSET;
-
-    cube.userData.entranceTween = gsap.to(cube.position, {
-      y: cube.userData.baseY,
-      duration: SOCIAL_CUBE_ENTRANCE_DURATION,
-      ease: SOCIAL_CUBE_ENTRANCE_EASE,
-      onComplete: () => {
-        cube.userData.entranceTween = null;
-        startSocialCubeFloat(cube, index * 0.15);
-        markSocialMaterialsReady();
-      },
-    });
-  });
-}
-
-function markSocialMaterialsReady() {
-  if (
-    currentIndex === CONTACT_SECTION_INDEX &&
-    socialCubes.length > 0 &&
-    socialCubes.every((cube) => cube.visible)
-  ) {
-    document.body.dataset.socialMaterialsReady = "true";
-  }
-}
-
 function resetSocialCubeTransform(cube) {
   cube.position.set(
     cube.userData.baseX,
@@ -4122,24 +3385,21 @@ function resetSocialCubeTransform(cube) {
   cube.rotation.set(0, 0, 0);
 }
 
-function stopSocialCubeAnimations() {
+function setSocialCubesVisible(visible) {
   socialCubes.forEach((cube) => {
-    stopSocialCubeEntrance(cube);
-    stopSocialCubeExit(cube);
-    stopSocialCubeFloat(cube);
     stopSocialCubeGrow(cube);
-    cube.userData.hovered = false;
     resetSocialCubeTransform(cube);
-    cube.scale.set(
-      SOCIAL_CUBE_SCALE_MIN,
-      SOCIAL_CUBE_SCALE_MIN,
-      SOCIAL_CUBE_SCALE_MIN,
-    );
+    cube.scale.setScalar(SOCIAL_CUBE_SCALE_MIN);
+    cube.visible = visible;
   });
-  stopActiveSound(true);
-}
 
-function hideSocialCubes() {
+  pointerDirty = true;
+
+  if (visible) {
+    document.body.dataset.socialMaterialsReady = "true";
+    return;
+  }
+
   canvas.style.cursor = "default";
   document.body.dataset.socialMaterialsReady = "false";
   document.body.removeAttribute("data-content-hover");
@@ -4148,68 +3408,6 @@ function hideSocialCubes() {
   document.body.removeAttribute("data-interaction-state");
   document.body.removeAttribute("data-active-material");
   document.body.dataset.pokeState = "idle";
-  hoveredSocialCube = null;
-  socialHoverKey = "";
-  stopActiveSound(false);
-
-  const visibleCubes = socialCubes.filter((cube) => cube.visible);
-  if (visibleCubes.length === 0) {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve) => {
-    let completed = 0;
-
-    visibleCubes.forEach((cube) => {
-      stopSocialCubeEntrance(cube);
-      stopSocialCubeExit(cube);
-      stopSocialCubeFloat(cube);
-      stopSocialCubeGrow(cube);
-      cube.userData.hovered = false;
-      cube.scale.set(
-        SOCIAL_CUBE_SCALE_MIN,
-        SOCIAL_CUBE_SCALE_MIN,
-        SOCIAL_CUBE_SCALE_MIN,
-      );
-
-      cube.userData.exitTween = gsap.to(cube.position, {
-        x: cube.userData.baseX + SOCIAL_CUBE_EXIT_OFFSET,
-        duration: SOCIAL_CUBE_EXIT_DURATION,
-        ease: SOCIAL_CUBE_EXIT_EASE,
-        onComplete: () => {
-          cube.userData.exitTween = null;
-          cube.visible = false;
-          resetSocialCubeTransform(cube);
-          completed += 1;
-
-          if (completed === visibleCubes.length) {
-            resolve();
-          }
-        },
-      });
-    });
-  });
-}
-
-function setSocialCubesVisible(visible) {
-  socialCubes.forEach((cube) => {
-    cube.visible = visible;
-  });
-  pointerDirty = true;
-
-  if (visible) {
-    startSocialCubeEntrance();
-  } else {
-    document.body.dataset.socialMaterialsReady = "false";
-    stopSocialCubeAnimations();
-    canvas.style.cursor = "default";
-    document.body.removeAttribute("data-content-hover");
-    document.body.removeAttribute("data-material-type");
-    document.body.removeAttribute("data-pointer-active");
-    document.body.removeAttribute("data-interaction-state");
-    document.body.removeAttribute("data-active-material");
-    document.body.dataset.pokeState = "idle";
-  }
 }
 
 function resetSocialCubeHover(cube) {
@@ -4236,7 +3434,7 @@ function getSocialTouchUv(cube, hit) {
       0.08,
     );
   }
-  if (hit.object !== cube && !hit.object.userData?.isSocialGrass) return null;
+  if (hit.object !== cube) return null;
 
   const local = cube.worldToLocal(hit.point.clone());
   const width = cube.userData.width || 1;
@@ -4245,45 +3443,6 @@ function getSocialTouchUv(cube, hit) {
     THREE.MathUtils.clamp(local.x / width + 0.5, 0, 1),
     THREE.MathUtils.clamp(local.y / height + 0.5, 0, 1),
   );
-}
-
-function updateGrassLogoBlades(mesh) {
-  if (!mesh?.userData?.blades || !mesh.parent?.visible) return;
-
-  const field = mesh.userData.touchField;
-  const poke = field?.poke;
-  const velocity = poke ? getPokeVelocity(poke) : { x: 0, y: 0, length: 0 };
-  const time = performance.now() * 0.002;
-
-  mesh.userData.blades.forEach((blade, index) => {
-    const influence = poke
-      ? getPokeInfluence(poke, blade.uvx, blade.uvy, 0.22)
-      : 0;
-    const comb = influence * (0.22 + velocity.length * 1.4);
-    const dx = blade.uvx - (poke?.x ?? 0.5);
-    const dy = blade.uvy - (poke?.y ?? 0.5);
-    const wind = Math.sin(time + index * 0.37) * 0.025;
-
-    grassBladeDummy.position.set(
-      blade.x + dx * comb * 0.48,
-      blade.y + dy * comb * 0.32,
-      influence * -0.055,
-    );
-    grassBladeDummy.rotation.set(
-      influence * (0.85 + blade.stiffness) + wind,
-      0,
-      blade.angle + dx * influence * 1.8,
-    );
-    grassBladeDummy.scale.set(
-      1,
-      (blade.height / 0.18) * Math.max(0.28, 1 - influence * 0.68),
-      1,
-    );
-    grassBladeDummy.updateMatrix();
-    mesh.setMatrixAt(index, grassBladeDummy.matrix);
-  });
-
-  mesh.instanceMatrix.needsUpdate = true;
 }
 
 function updateSocialMaterialTouchFields() {
@@ -4296,7 +3455,6 @@ function updateSocialMaterialTouchFields() {
 
   socialCubes.forEach((cube) => {
     updateMaterialTouchField(cube.userData.touchField);
-    updateGrassLogoBlades(cube.userData.grassLogo);
 
     const pressure = cube.userData.touchField?.poke?.pressure || 0;
     if (cube.userData.caption) {
@@ -4361,9 +3519,6 @@ function updateSocialCubeHover() {
     hoveredHit = projectedHit;
   }
   let pointerActive = false;
-  const hoveredKey = hoveredCube
-    ? `social:${hoveredCube.userData.socialIndex}:${hoveredCube.userData.url}`
-    : "";
 
   visibleCubes.forEach((cube) => {
     if (cube === hoveredCube) {
@@ -4398,16 +3553,6 @@ function updateSocialCubeHover() {
     }
   });
 
-  if (hoveredCube && hoveredKey !== socialHoverKey) {
-    socialHoverKey = hoveredKey;
-    hoveredSocialCube = hoveredCube;
-    playMusicCue(hoveredCube.userData.music, hoveredKey);
-  } else if (!hoveredCube && hoveredSocialCube) {
-    hoveredSocialCube = null;
-    socialHoverKey = "";
-    stopActiveSound(false);
-  }
-
   if (!pointerActive) {
     document.body.removeAttribute("data-content-hover");
     document.body.removeAttribute("data-material-type");
@@ -4437,9 +3582,6 @@ function clearCanvasPointerHover() {
   socialCubes.forEach((cube) => {
     if (cube.userData.hovered) resetSocialCubeHover(cube);
   });
-  hoveredSocialCube = null;
-  socialHoverKey = "";
-  stopActiveSound(false);
   document.body.removeAttribute("data-content-hover");
   document.body.removeAttribute("data-material-type");
   document.body.removeAttribute("data-pointer-active");
@@ -4498,153 +3640,12 @@ function setupSocialCubeInteraction() {
       const cube = getSocialCubeFromObject(intersects[0].object);
       const url = cube?.userData.url;
       if (!url) return;
-      playMusicCue(
-        cube.userData.music,
-        `social:${cube.userData.socialIndex}:${url}`,
-      );
       if (url.startsWith("mailto:")) {
         window.location.href = url;
       } else {
         window.open(url, "_blank", "noopener,noreferrer");
       }
     }
-  });
-}
-
-async function transitionToSection(newIndex) {
-  if (!modelGroup || isAnimating || newIndex === currentIndex) return;
-  if (newIndex < 0 || newIndex >= MODEL_SECTIONS.length) return;
-
-  isAnimating = true;
-  const oldIndex = currentIndex;
-
-  await hideSectionContent(oldIndex);
-
-  let socialCubesExitPromise = Promise.resolve();
-  if (oldIndex === CONTACT_SECTION_INDEX) {
-    socialCubesExitPromise = hideSocialCubes();
-  }
-
-  if (oldIndex === 0) {
-    await hideRainbowBackdrop();
-  }
-
-  currentIndex = newIndex;
-  updateStatus();
-  setNavbarCondensed(false);
-  scheduleNavbarCondense(900);
-
-  const targetPos = getCurrentSectionPos();
-  animateStarsOnTransition();
-  const anim = {
-    x: modelGroup.position.x,
-    y: modelGroup.position.y,
-    z: modelGroup.position.z,
-  };
-
-  await Promise.all([
-    socialCubesExitPromise,
-    new Promise((resolve) => {
-      gsap.to(anim, {
-        x: targetPos.x,
-        y: targetPos.y,
-        z: targetPos.z,
-        duration: SCROLL_DURATION,
-        ease: "power2.inOut",
-        onUpdate: () => {
-          modelGroup.position.set(anim.x, anim.y, anim.z);
-          aimLightsAtModel();
-        },
-        onComplete: () => {
-          modelGroup.position.set(targetPos.x, targetPos.y, targetPos.z);
-          aimLightsAtModel();
-          resolve();
-        },
-      });
-    }),
-  ]);
-
-  await revealSectionContent(currentIndex);
-
-  if (currentIndex === CONTACT_SECTION_INDEX) {
-    setSocialCubesVisible(true);
-  }
-
-  if (currentIndex === 0) {
-    await showRainbowBackdrop();
-  }
-
-  isAnimating = false;
-  pointerDirty = true;
-  markSocialMaterialsReady();
-  flushQueuedSection();
-}
-
-function goToNextSection() {
-  if (
-    !modelGroup ||
-    isAnimating ||
-    !entranceComplete ||
-    currentIndex >= MODEL_SECTIONS.length - 1
-  ) {
-    return;
-  }
-
-  transitionToSection(currentIndex + 1);
-}
-
-function goToPrevSection() {
-  if (!modelGroup || isAnimating || !entranceComplete || currentIndex <= 0) {
-    return;
-  }
-
-  transitionToSection(currentIndex - 1);
-}
-
-function setupScrollControl() {
-  scrollObserver = Observer.create({
-    target: window,
-    type: "wheel,touch",
-    preventDefault: true,
-    ignore: ".member-popup, .member-popup *",
-    onDown: () => goToNextSection(),
-    onUp: () => goToPrevSection(),
-    tolerance: SCROLL_TOLERANCE,
-  });
-}
-
-function setupKeyboardNavigation() {
-  window.addEventListener("keydown", (event) => {
-    if (
-      event.defaultPrevented ||
-      event.altKey ||
-      event.ctrlKey ||
-      event.metaKey
-    ) {
-      return;
-    }
-
-    const tagName = event.target?.tagName;
-    if (tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT") {
-      return;
-    }
-
-    const actions = {
-      ArrowDown: goToNextSection,
-      ArrowRight: goToNextSection,
-      PageDown: goToNextSection,
-      ArrowUp: goToPrevSection,
-      ArrowLeft: goToPrevSection,
-      PageUp: goToPrevSection,
-      Home: () => goToSection(0),
-      End: () => goToSection(MODEL_SECTIONS.length - 1),
-    };
-    const action = actions[event.key];
-
-    if (!action) return;
-
-    event.preventDefault();
-    action();
   });
 }
 
@@ -4678,54 +3679,28 @@ function animateModelEntrance(modelSize) {
       isAnimating = false;
       entranceComplete = true;
       markSceneReady();
-      updateStatus();
-      await revealSectionContent(currentIndex);
-      if (currentIndex === CONTACT_SECTION_INDEX) {
-        setSocialCubesVisible(true);
-      }
-      if (currentIndex === 0) {
-        await showRainbowBackdrop();
-      }
+      setActiveStop(activeStop < 0 ? 0 : activeStop, true);
+      updateScrollPosition();
       pointerDirty = true;
-      flushQueuedSection();
       logModelPosition("Model (entrance complete)");
     },
   });
 }
 
-function restoreLogoBoxMaterials(root, logoTexture) {
-  const bakedTexture = bakeLogoTexture(logoTexture);
-  polishTexture(bakedTexture);
-
+function restoreModelMaterials(root) {
   root.traverse((child) => {
     if (!child.isMesh) return;
 
     child.geometry.computeVertexNormals();
-
-    if (child.name === "Body1") {
-      child.material.map = bakedTexture;
-      child.material.color.set(0xffffff);
-      child.material.transparent = false;
-      child.material.alphaTest = 0;
-      child.material.roughness = 0.14;
-      child.material.metalness = 0.18;
-      child.material.clearcoat = 0.94;
-      child.material.clearcoatRoughness = 0.04;
-      child.material.envMapIntensity = 1.24;
-      child.material.emissive.set(0x000000);
-      child.material.emissiveIntensity = 0.02;
-    } else {
-      child.material.map = null;
-      child.material.emissiveMap = null;
-      child.material.roughness = 0.18;
-      child.material.metalness = 0.58;
-      child.material.clearcoat = 0.86;
-      child.material.clearcoatRoughness = 0.08;
-      child.material.envMapIntensity = 1.1;
-      child.material.emissive.set(0x07090f);
-      child.material.emissiveIntensity = 0.12;
-    }
-
+    child.material.map = null;
+    child.material.emissiveMap = null;
+    child.material.roughness = 0.18;
+    child.material.metalness = 0.58;
+    child.material.clearcoat = 0.86;
+    child.material.clearcoatRoughness = 0.08;
+    child.material.envMapIntensity = 1.1;
+    child.material.emissive.set(0x07090f);
+    child.material.emissiveIntensity = 0.12;
     child.material.needsUpdate = true;
   });
 }
@@ -4733,18 +3708,10 @@ function restoreLogoBoxMaterials(root, logoTexture) {
 async function loadSceneModel() {
   try {
     const gltf = await loader.loadAsync(MODEL_PATH);
-    let logoTexture;
-
-    try {
-      logoTexture = await textureLoader.loadAsync(LABS_LOGO_PATH);
-    } catch (textureError) {
-      console.warn("Logo texture fallback:", textureError);
-      logoTexture = createLogoFallbackTexture();
-    }
 
     modelGroup = new THREE.Group();
 
-    restoreLogoBoxMaterials(gltf.scene, logoTexture);
+    restoreModelMaterials(gltf.scene);
     modelGroup.add(gltf.scene);
     modelGroup.scale.setScalar(MODEL_SCALE);
     scene.add(modelGroup);
@@ -4753,8 +3720,11 @@ async function loadSceneModel() {
 
     const box = new THREE.Box3().setFromObject(modelGroup);
     const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
     const maxSize = Math.max(size.x, size.y, size.z);
 
+    modelCenter.copy(center);
+    modelSizeMax = maxSize;
     modelLookHeight = size.y * 0.35;
     baseCamLeftOffset = maxSize * CAM_LEFT_FACTOR;
     baseCamHeightOffset = maxSize * CAM_HEIGHT_FACTOR;
@@ -4766,7 +3736,6 @@ async function loadSceneModel() {
     rainbowBackdrop = createRainbowBackdrop(maxSize);
 
     reportSceneProgress(0.94);
-    await warmupSectionTexts();
     setCameraOnModel(getCurrentSectionPos());
     animateModelEntrance(maxSize);
     aimLightsAtModel();
@@ -4784,6 +3753,7 @@ function onResize() {
   updateViewportSize();
   renderer.setPixelRatio(getRenderPixelRatio());
   renderer.setSize(viewportWidth, viewportHeight, false);
+  resizeScrollTrack();
   applyCameraLayout();
   applyResponsiveLayout();
   refreshMemberPopupPosition();
@@ -4814,9 +3784,9 @@ if ("ResizeObserver" in window) {
 function animate() {
   animationFrame = requestAnimationFrame(animate);
 
-  animateRainbowBackdrop();
+  updateScrollPosition();
   applyPointerMotion();
-  updateJoinCuriosityState();
+  animateRainbowBackdrop();
   updateSocialMaterialTouchFields();
   updateSocialCubeHover();
   updateAboutJoinHover();
@@ -4850,7 +3820,6 @@ function stopAnimationLoop() {
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     stopAnimationLoop();
-    stopActiveSound(true);
   } else {
     pointerDirty = true;
     startAnimationLoop();
@@ -4861,11 +3830,6 @@ window.addEventListener("pagehide", (event) => {
   if (event.persisted) return;
 
   stopAnimationLoop();
-  stopActiveSound(true);
-  clearJoinTimers();
-  window.clearTimeout(joinNavigationTimer);
-  stopJoinWink();
-  scrollObserver?.kill();
   resizeObserver?.disconnect();
   prefersReducedMotion.removeEventListener?.("change", syncReducedMotionState);
 
@@ -4880,29 +3844,30 @@ async function init() {
   await loadSiteContent();
   setupAccessibleContentLinks();
   reportSceneProgress(0.1);
-  COMMITTEE_ROWS = await loadCommitteeRows();
-  setupScrollControl();
-  setupKeyboardNavigation();
-  setupAudioUnlock();
+  const committeeYears = await loadCommitteeYears();
+  COMMITTEE_GROUPS = buildCommitteeGroups(committeeYears);
+  buildScrollStops();
+  resizeScrollTrack();
+  createSectionGroups();
   initSectionTexts();
   sponsorImage = createSponsorImage();
   aboutJoinImage = createAboutJoinImage();
   committeeMembers = createCommitteeMembers();
   setupNavbar();
+  buildYearRail();
   setupMemberPopup();
-  socialCubes = createSocialCubes();
-  if (currentIndex === CONTACT_SECTION_INDEX) {
-    setSocialCubesVisible(true);
-  }
   applyResponsiveLayout();
   exposeSocialMaterialTestState();
   setupJoinAccessibleInteraction();
   setupSocialCubeInteraction();
   setupAboutJoinInteraction();
   setupCommitteeInteraction();
-  scheduleJoinWink();
+  preloadCommitteeTextures();
+  window.scrollTo(0, 0);
+  setActiveStop(0, true);
   reportSceneProgress(0.18);
   await loadSceneModel();
+  scheduleSocialCubeWarmup();
 
   if (!document.hidden) {
     startAnimationLoop();

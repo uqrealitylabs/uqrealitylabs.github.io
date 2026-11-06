@@ -29,20 +29,24 @@
       "slugline": "Budget chaos audited."
     },
     "media": {
-      "role": "Media",
+      "role": "Media and Marketing Director",
       "slugline": "Makes pixels behave."
     },
     "events": {
-      "role": "Events",
+      "role": "Events Director",
       "slugline": "Chaos scheduler."
     },
     "workshop": {
-      "role": "Workshop",
+      "role": "Workshop Director",
       "slugline": "Demo duct-tape specialist."
     },
     "industry": {
-      "role": "Industry",
+      "role": "Industry Director",
       "slugline": "Handshake side quest."
+    },
+    "general": {
+      "role": "General Committee",
+      "slugline": "The wider crew."
     }
   }
 }

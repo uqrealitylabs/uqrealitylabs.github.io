@@ -1,9 +1,4 @@
-export type SocialMaterialKind =
-  | "cloth"
-  | "rubber"
-  | "glass"
-  | "grass"
-  | "mail";
+export type SocialMaterialKind = "cloth" | "rubber" | "glass" | "mail";
 export type SocialMaterialBehavior = "crease" | "squish" | "smudge" | "bend";
 
 export type SocialMaterialConfig = {
@@ -39,13 +34,6 @@ export const socialMaterialConfigs: Record<
     pressBoost: 1.15,
     decay: 0.94,
   },
-  grass: {
-    kind: "grass",
-    behavior: "bend",
-    pointerResponse: true,
-    pressBoost: 1.55,
-    decay: 0.82,
-  },
   mail: {
     kind: "mail",
     behavior: "bend",
@@ -62,7 +50,6 @@ export function getSocialMaterialKind(label = ""): SocialMaterialKind {
   if (name.includes("discord")) return "rubber";
   if (name.includes("linkedin")) return "glass";
   if (name.includes("email") || name.includes("mail")) return "mail";
-  if (name.includes("grass")) return "grass";
   return "cloth";
 }
 

@@ -17,37 +17,12 @@
   font: 700 clamp(0.72rem, 0.55rem + 1.4vw, 0.95rem) / 1 var(--font-display);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  clip-path: inset(0 0 0 0);
-  transition: clip-path 1s cubic-bezier(0.65, 0, 0.35, 1);
-  will-change: clip-path;
-}
-
-.loading-experience::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 100%;
-  block-size: 0.12rem;
-  background: #fff;
-  transform: translateY(-100%);
-  transition: top 1s cubic-bezier(0.65, 0, 0.35, 1);
-  pointer-events: none;
+  transform: translateY(0);
+  will-change: transform;
 }
 
 .loading-experience.is-exit {
-  clip-path: inset(0 0 100% 0);
   pointer-events: none;
-}
-
-.loading-experience.is-exit::after {
-  top: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .loading-experience,
-  .loading-experience::after {
-    transition: none;
-  }
 }
 
 .loading-experience__panel {
@@ -72,9 +47,15 @@
 .loading-experience__seg {
   flex: 1 1 0;
   block-size: clamp(1.05rem, 0.7rem + 1.6vw, 1.5rem);
-  background: transparent;
+  background: rgba(255, 255, 255, 0.12);
+  transform: scaleY(0.55);
+  transform-origin: center;
+  transition:
+    background-color 0.16s ease,
+    transform 0.16s ease;
 }
 
 .loading-experience__seg.is-on {
   background: #fff;
+  transform: scaleY(1);
 }
