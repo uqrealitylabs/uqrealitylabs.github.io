@@ -11,7 +11,8 @@
       "*.tsx",
       "*.json",
       "!src/features/legacy-three/legacy-main.ts",
-      "!src/shared/styles/legacy.css"
+      "!src/shared/styles/legacy.css",
+      "!out"
     ]
   },
   "formatter": {

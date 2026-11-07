@@ -13,6 +13,7 @@ const ignored = new Set([
   "cypress/videos",
   "dist",
   "node_modules",
+  "out",
 ]);
 
 function isIgnored(path: string) {
