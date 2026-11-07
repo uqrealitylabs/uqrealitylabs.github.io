@@ -39,7 +39,6 @@ const STAR_RADIUS = 0.16;
 const SECTION_Y_STEP = 200;
 const SECTION_Y_SPAN = 24;
 const SECTION_Z_SPAN = 12;
-const SECTION_X_SPAN = 70;
 const STAR_SCROLL_STEP = 80;
 const SECTION_SHRINK = 0.7;
 const TEXT_FONT_SIZE = 1.84;
@@ -282,22 +281,6 @@ const DESCRIPTION_LAYOUTS = [
 let TEXT_SECTIONS = [];
 let DESCRIPTION_SECTIONS = [];
 
-const COMPACT_TEXT_LAYOUTS = [
-  { x: 0, y: 9.2, z: -18, textAlign: "center", anchorX: "center" },
-  { x: 0, y: 8.6, z: -18, textAlign: "center", anchorX: "center" },
-  { x: 0, y: 8.6, z: -18, textAlign: "center", anchorX: "center" },
-  { x: 0, y: 8.6, z: -18, textAlign: "center", anchorX: "center" },
-  { x: 0, y: 8.6, z: -18, textAlign: "center", anchorX: "center" },
-];
-
-const COMPACT_DESCRIPTION_LAYOUTS = [
-  { x: 0, y: -3.6, z: -18, textAlign: "center", anchorX: "center" },
-  { x: 0, y: 5.8, z: -18, textAlign: "center", anchorX: "center" },
-  { x: 0, y: 5.4, z: -18, textAlign: "center", anchorX: "center" },
-  { x: 0, y: 5.6, z: -18, textAlign: "center", anchorX: "center" },
-  { x: 0, y: 5.6, z: -18, textAlign: "center", anchorX: "center" },
-];
-
 async function loadSiteContent() {
   TABS = await Promise.all(TAB_ORDER.map(loadTab));
   SECTION_INDEX = Object.fromEntries(
@@ -494,10 +477,45 @@ function markSceneReady() {
 }
 
 const loadManager = new THREE.LoadingManager();
+let pendingAssetLoads = 0;
+const assetIdleResolvers = [];
+
+function resolveAssetIdle() {
+  while (assetIdleResolvers.length > 0) {
+    assetIdleResolvers.shift()?.();
+  }
+}
+
+function waitForAssets(timeoutMs = 12000) {
+  if (pendingAssetLoads <= 0) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      window.clearTimeout(timer);
+      resolve();
+    };
+    const timer = window.setTimeout(finish, timeoutMs);
+
+    assetIdleResolvers.push(finish);
+  });
+}
+
+loadManager.onStart = () => {
+  pendingAssetLoads += 1;
+};
 loadManager.onProgress = (_url, loaded, total) => {
+  pendingAssetLoads = Math.max(total - loaded, 0);
   if (!total) return;
   // Asset fetches occupy most of the bar after boot scaffolding.
   reportSceneProgress(0.18 + (loaded / total) * 0.72);
+  if (pendingAssetLoads <= 0) resolveAssetIdle();
+};
+loadManager.onError = () => {
+  pendingAssetLoads = Math.max(pendingAssetLoads - 1, 0);
+  if (pendingAssetLoads <= 0) resolveAssetIdle();
 };
 
 const loader = new GLTFLoader(loadManager);
@@ -552,6 +570,7 @@ let animationFrame = 0;
 let resizeObserver = null;
 let scrollStops = [];
 let activeStop = -1;
+let activeStopFloat = 0;
 
 function syncReducedMotionState() {
   document.body.dataset.reducedMotion = prefersReducedMotion.matches
@@ -723,7 +742,7 @@ function applyPointerMotion() {
   }
 
   for (const member of committeeMembers) {
-    if (member.image.visible) {
+    if (member.image.visible && !member.image.userData.motionActive) {
       const profile = getCommitteeHoverProfile(member.roleSlug);
       const hoverBoost = member.image === hoveredCommitteeImage ? 1.35 : 1;
       const bob = member.image === hoveredCommitteeImage ? profile.bob : 0;
@@ -771,6 +790,40 @@ function getViewportLayout() {
   const short = isShortViewport();
   const landscape = viewportWidth > viewportHeight && viewportHeight <= 480;
   const wide = viewportWidth >= 1600;
+  const cameraScale = narrow
+    ? 1.18
+    : compact
+      ? 1.12
+      : short
+        ? 1.03
+        : wide
+          ? 0.82
+          : 0.94;
+  const cameraYOffset = narrow ? 0.7 : compact ? 0.4 : 0;
+  const fov = narrow ? 66 : compact ? 64 : CAM_FOV;
+  const cameraZ = baseCameraZ * cameraScale;
+  const cameraY = baseCamHeightOffset + cameraYOffset;
+  const anchorZ = -20;
+  const viewDz = cameraZ - anchorZ;
+  const viewDy = modelLookHeight - cameraY;
+
+  // Visible world size at a fixed z plane, so text/icons can be laid out in
+  // disjoint bands instead of guessing fixed coordinates.
+  const planeMetrics = (z) => {
+    const t = Math.abs(viewDz) > 1e-4 ? (cameraZ - z) / viewDz : 1;
+    const viewDist = Math.hypot(viewDz, viewDy) * Math.max(t, 0.05);
+    const halfHeight = Math.tan(THREE.MathUtils.degToRad(fov / 2)) * viewDist;
+
+    return {
+      centerY: cameraY + viewDy * t,
+      halfHeight,
+      halfWidth: halfHeight * (viewportWidth / viewportHeight),
+    };
+  };
+  const compactTextZ = compact ? -18 : -20;
+  const textPlane = planeMetrics(compactTextZ);
+  const committeePlane = planeMetrics(-25);
+  const socialPlane = planeMetrics(-20);
 
   cachedViewportLayout = {
     narrow,
@@ -778,16 +831,8 @@ function getViewportLayout() {
     tablet,
     landscape,
     wide,
-    cameraScale: narrow
-      ? 1.18
-      : compact
-        ? 1.12
-        : short
-          ? 1.03
-          : wide
-            ? 0.82
-            : 0.94,
-    cameraYOffset: narrow ? 0.7 : compact ? 0.4 : 0,
+    cameraScale,
+    cameraYOffset,
     titleFontSize: narrow
       ? 1.34
       : compact
@@ -804,16 +849,28 @@ function getViewportLayout() {
         : short
           ? 1
           : DESCRIPTION_FONT_SIZE,
-    textMaxWidth: narrow ? 12 : compact ? 18 : tablet ? 30 : wide ? 34 : 36,
+    textMaxWidth: narrow
+      ? Math.max(6, Math.min(14, textPlane.halfWidth * 1.72))
+      : compact
+        ? Math.max(10, Math.min(18, textPlane.halfWidth * 1.7))
+        : tablet
+          ? 30
+          : wide
+            ? 34
+            : 36,
+    compactTextZ,
+    compactTitleY: textPlane.centerY + textPlane.halfHeight * 0.665,
+    compactDescriptionY: textPlane.centerY + textPlane.halfHeight * 0.27,
+    compactHomeDescriptionY: textPlane.centerY - textPlane.halfHeight * 0.24,
     sponsorImageHeight: compact ? 3.5 : SPONSOR_IMAGE_HEIGHT,
     sponsorImageY: compact
       ? -0.8
       : SPONSOR_IMAGE_POS.y + SPONSOR_IMAGE_Y_OFFSET,
-    aboutImageHeight: narrow ? 3.2 : compact ? 3.65 : ABOUT_IMAGE_HEIGHT,
+    aboutImageHeight: narrow ? 2.7 : compact ? 3.2 : ABOUT_IMAGE_HEIGHT,
     aboutImageY: narrow
-      ? -2.15
+      ? -8.4
       : compact
-        ? -2.35
+        ? -6.9
         : ABOUT_IMAGE_POS.y + ABOUT_IMAGE_Y_OFFSET,
     socialCubeSpacing: narrow
       ? 2.7
@@ -822,11 +879,16 @@ function getViewportLayout() {
         : SOCIAL_CUBES.length > 4
           ? 4.35
           : SOCIAL_CUBE_SPACING,
-    socialCubeY: compact ? -0.15 : SOCIAL_CUBE_BASE.y,
-    socialCardWidth: narrow ? 2.75 : compact ? 3.05 : 3.25,
-    socialCardHeight: narrow ? 2.75 : compact ? 3.05 : 3.25,
+    socialCubeY: compact ? -4.7 : SOCIAL_CUBE_BASE.y,
+    socialDice: compact,
+    socialDiceSpacing: narrow
+      ? Math.min(3.4, socialPlane.halfWidth * 1.1)
+      : 3.8,
+    socialDiceRowStep: narrow ? 4 : 4.2,
+    socialCardWidth: narrow ? 2.7 : compact ? 3.05 : 3.25,
+    socialCardHeight: narrow ? 2.7 : compact ? 3.05 : 3.25,
     committeeImageHeight: narrow
-      ? 2.85
+      ? 2.4
       : compact
         ? 3.35
         : tablet
@@ -835,7 +897,7 @@ function getViewportLayout() {
             ? 6.3
             : COMMITTEE_IMAGE_HEIGHT,
     committeeImageSpacing: narrow
-      ? 3.65
+      ? 3.8
       : compact
         ? 5.1
         : tablet
@@ -844,7 +906,7 @@ function getViewportLayout() {
             ? 12.9
             : COMMITTEE_IMAGE_SPACING,
     committeeRowSpacing: narrow
-      ? 4.35
+      ? 4.4
       : compact
         ? 5
         : tablet
@@ -853,12 +915,15 @@ function getViewportLayout() {
             ? 9.8
             : COMMITTEE_ROW_SPACING,
     committeeCaptionFontSize: narrow
-      ? 0.65
+      ? 0.62
       : compact
         ? 0.7
         : COMMITTEE_CAPTION_FONT_SIZE,
-    committeeBaseY: narrow ? 2.35 : compact ? 3.55 : COMMITTEE_BASE_POSITION.y,
-    committeeMobileRows: narrow ? [1, 2, 4] : compact ? [1, 2, 4] : null,
+    committeeBaseY: narrow ? -1.5 : compact ? -1 : COMMITTEE_BASE_POSITION.y,
+    committeeMobileRows: narrow ? [3, 4] : compact ? [3, 4] : null,
+    committeeSlideSpan: compact
+      ? committeePlane.halfWidth * 1.8
+      : committeePlane.halfWidth * 1.4,
   };
 
   if (landscape) {
@@ -873,7 +938,8 @@ function getViewportLayout() {
     cachedViewportLayout.committeeImageSpacing = 5.35;
     cachedViewportLayout.committeeRowSpacing = 4.8;
     cachedViewportLayout.committeeCaptionFontSize = 0.62;
-    cachedViewportLayout.committeeMobileRows = [1, 2, 4];
+    cachedViewportLayout.committeeMobileRows = [3, 4];
+
   }
 
   return cachedViewportLayout;
@@ -1026,12 +1092,23 @@ function getSocialHoverProfile(label = "") {
   };
 }
 
-function getResponsiveSection(section, index, compactLayouts) {
+function getResponsiveSection(section, index, isDescription = false) {
   if (!isCompactViewport()) return section;
+
+  const layout = getViewportLayout();
+  const y = isDescription
+    ? index === 0
+      ? layout.compactHomeDescriptionY
+      : layout.compactDescriptionY
+    : layout.compactTitleY;
 
   return {
     ...section,
-    ...compactLayouts[index],
+    x: 0,
+    y,
+    z: layout.compactTextZ,
+    textAlign: "center",
+    anchorX: "center",
   };
 }
 
@@ -2100,24 +2177,11 @@ function updateYearRail() {
 function applyStopVisibility(stop) {
   const sectionIndex = stop.sectionIndex;
 
-  sectionTexts.forEach((textMesh, index) =>
-    setTextMeshVisible(textMesh, index === sectionIndex),
-  );
-  sectionDescriptionTexts.forEach((textMesh, index) =>
-    setTextMeshVisible(textMesh, index === sectionIndex),
-  );
-  setSponsorVisible(sectionIndex === SPONSOR_SECTION_INDEX);
-  setAboutJoinVisible(sectionIndex === ABOUT_SECTION_INDEX);
-
-  if (sectionIndex === CONTACT_SECTION_INDEX) {
-    ensureSocialCubes();
-  }
-
-  setSocialCubesVisible(sectionIndex === CONTACT_SECTION_INDEX);
-  setCommitteeGroupVisible(
-    sectionIndex === COMMITTEE_SECTION_INDEX ? stop.groupIndex : -1,
-  );
   setRainbowVisible(sectionIndex === 0);
+
+  if (sectionIndex !== COMMITTEE_SECTION_INDEX) {
+    setCommitteeImageHovered(null);
+  }
 
   document.body.dataset.onCommittee =
     sectionIndex === COMMITTEE_SECTION_INDEX ? "true" : "false";
@@ -2155,59 +2219,136 @@ function applyContentMotion(group, delta) {
   group.scale.setScalar(Math.max(0.2, 1 - distance * SECTION_SHRINK));
 }
 
-function applyCommitteeMotion(group, delta) {
-  if (!group) return;
+function applyTextMotion(textMesh, delta) {
+  if (!textMesh) return;
+
+  const base = textMesh.userData.basePosition;
+  if (!base) return;
 
   const distance = Math.abs(delta);
-  group.position.set(
-    -delta * SECTION_X_SPAN,
-    0,
-    -distance * SECTION_Z_SPAN,
+  const visible = distance < 1;
+
+  textMesh.visible = visible;
+  if (!visible) return;
+
+  textMesh.position.set(
+    base.x,
+    base.y + delta * SECTION_Y_SPAN,
+    base.z - distance * SECTION_Z_SPAN,
   );
-  group.scale.setScalar(Math.max(0.2, 1 - distance * SECTION_SHRINK));
+  textMesh.scale.setScalar(Math.max(0.2, 1 - distance * SECTION_SHRINK));
+  textMesh.fillOpacity = Math.max(0, 1 - distance);
+}
+
+function getCommitteeGroupStop(groupIndex) {
+  return scrollStops.findIndex(
+    (stop) =>
+      stop.sectionIndex === COMMITTEE_SECTION_INDEX &&
+      stop.groupIndex === groupIndex,
+  );
+}
+
+function applyCommitteeMemberMotion(member, delta, vertical = false) {
+  const image = member.image;
+  const caption = member.caption;
+  const distance = Math.abs(delta);
+  const visible = distance < 1;
+
+  image.visible = visible;
+  caption.visible = visible;
+
+  if (!visible) return;
+
+  const baseX = image.userData.baseX ?? 0;
+  const baseY = image.userData.baseY ?? 0;
+  const baseZ = COMMITTEE_BASE_POSITION.z;
+
+  // Settled: let hover tweens own the transform again.
+  if (distance < 0.001) {
+    if (!image.userData.settledApplied) {
+      image.position.set(baseX, baseY, baseZ);
+      image.scale.setScalar(1);
+      image.material.opacity = 1;
+      caption.position.set(baseX, caption.userData.baseY ?? baseY, baseZ);
+      caption.scale.setScalar(1);
+      caption.fillOpacity = 1;
+      image.userData.settledApplied = true;
+      image.userData.motionActive = false;
+    }
+    return;
+  }
+
+  image.userData.settledApplied = false;
+  const slide = getViewportLayout().committeeSlideSpan;
+  const z = baseZ - distance * SECTION_Z_SPAN;
+  const scale = Math.max(0.2, 1 - distance * SECTION_SHRINK);
+  const opacity = Math.max(0, 1 - distance * 1.35);
+  const x = vertical ? baseX : baseX - delta * slide;
+  const y = vertical ? baseY + delta * SECTION_Y_SPAN : baseY;
+  const captionY = vertical
+    ? (caption.userData.baseY ?? baseY) + delta * SECTION_Y_SPAN
+    : (caption.userData.baseY ?? baseY);
+
+  image.userData.motionActive = true;
+  image.position.set(x, y, z);
+  image.scale.setScalar(scale);
+  image.material.opacity = opacity;
+
+  caption.position.set(x, captionY, z);
+  caption.scale.setScalar(scale);
+  caption.fillOpacity = opacity;
+}
+
+const sectionContentVisible = new Map();
+
+function setSectionContentVisible(key, visible, apply) {
+  if (sectionContentVisible.get(key) === visible) return;
+
+  sectionContentVisible.set(key, visible);
+  apply(visible);
 }
 
 function updateSectionMotion(stopFloat) {
-  const stopIndex = Math.round(stopFloat);
-  const stop = scrollStops[stopIndex];
-  if (!stop) return;
+  TABS.forEach((_tab, sectionIndex) => {
+    const delta = getSectionDelta(stopFloat, sectionIndex);
 
-  const groupDelta = stopFloat - stopIndex;
-  const isCommittee = stop.sectionIndex === COMMITTEE_SECTION_INDEX;
-  const firstCommitteeStop =
-    isCommittee &&
-    scrollStops.findIndex(
-      (entry) => entry.sectionIndex === COMMITTEE_SECTION_INDEX,
-    ) === stopIndex;
-  const entersCommitteeVertically = firstCommitteeStop && groupDelta < 0;
+    if (sectionIndex !== COMMITTEE_SECTION_INDEX) {
+      applyContentMotion(sectionGroups[sectionIndex], delta);
+    }
 
-  if (isCommittee && !entersCommitteeVertically) {
-    applyCommitteeMotion(sectionGroups[stop.sectionIndex], groupDelta);
-  } else {
-    applyContentMotion(sectionGroups[stop.sectionIndex], groupDelta);
-  }
+    applyTextMotion(sectionTexts[sectionIndex], delta);
+    applyTextMotion(sectionDescriptionTexts[sectionIndex], delta);
+  });
 
-  const textIndex = stop.sectionIndex;
-  const textDelta = getSectionDelta(stopFloat, textIndex);
-  const textDistance = Math.abs(textDelta);
-  const textScale = Math.max(0.2, 1 - textDistance * SECTION_SHRINK);
+  setSectionContentVisible(
+    "sponsor",
+    Math.abs(getSectionDelta(stopFloat, SPONSOR_SECTION_INDEX)) < 1,
+    setSponsorVisible,
+  );
+  setSectionContentVisible(
+    "about",
+    Math.abs(getSectionDelta(stopFloat, ABOUT_SECTION_INDEX)) < 1,
+    setAboutJoinVisible,
+  );
+  setSectionContentVisible(
+    "social",
+    Math.abs(getSectionDelta(stopFloat, CONTACT_SECTION_INDEX)) < 1,
+    setSocialCubesVisible,
+  );
 
-  const applyText = (textMesh) => {
-    if (!textMesh) return;
-    const base = textMesh.userData.basePosition;
-    if (!base) return;
+  const firstCommitteeStop = getCommitteeGroupStop(0);
 
-    textMesh.position.set(
-      base.x,
-      base.y + textDelta * SECTION_Y_SPAN,
-      base.z - textDistance * SECTION_Z_SPAN,
-    );
-    textMesh.scale.setScalar(textScale);
-  };
+  committeeMembers.forEach((member) => {
+    const page = getCommitteeGroupStop(member.groupIndex);
 
-  applyText(sectionTexts[textIndex]);
-  applyText(sectionDescriptionTexts[textIndex]);
+    if (page < 0) return;
 
+    // Entering/leaving the committee section moves with the text; moving
+    // between committee groups slides sideways so the text stays put.
+    const vertical = page === firstCommitteeStop && stopFloat < page;
+
+    applyCommitteeMemberMotion(member, stopFloat - page, vertical);
+  });
 }
 
 function setActiveStop(index, force = false) {
@@ -2249,6 +2390,7 @@ function updateScrollPosition() {
     : 0;
   const progress = maxScroll > 0 ? clamp01(window.scrollY / maxScroll) : 0;
   const stopFloat = progress * (scrollStops.length - 1);
+  activeStopFloat = stopFloat;
 
   updateModelScroll(stopFloat);
   starField.position.y = stopFloat * STAR_SCROLL_STEP;
@@ -2292,27 +2434,6 @@ function setupNavbar() {
   updateNavbarActive();
 }
 
-function setTextMeshVisible(textMesh, visible) {
-  if (!textMesh) return;
-
-  const text = visible ? textMesh.userData.fullText : "";
-  const changed = textMesh.text !== text;
-
-  textMesh.visible = visible;
-  textMesh.scale.setScalar(1);
-
-  if (visible) {
-    const base = textMesh.userData.basePosition;
-    if (base) textMesh.position.set(base.x, base.y, base.z);
-    textMesh.fillOpacity = 1;
-  }
-
-  if (changed) {
-    textMesh.text = text;
-    textMesh.sync();
-  }
-}
-
 function createSectionGroups() {
   sectionGroups = TABS.map(() => {
     const group = new THREE.Group();
@@ -2345,7 +2466,7 @@ function createSectionText(section, options = {}, sectionIndex = 0) {
     y: section.y,
     z: section.z,
   };
-  outText.text = "";
+  outText.text = section.text;
   outText.font = font;
   outText.fontSize = fontSize;
   outText.color = 0xffffff;
@@ -2414,7 +2535,7 @@ function applySectionTextLayout() {
     textMesh.fontSize = layout.titleFontSize;
     applyTextMeshLayout(
       textMesh,
-      getResponsiveSection(TEXT_SECTIONS[index], index, COMPACT_TEXT_LAYOUTS),
+      getResponsiveSection(TEXT_SECTIONS[index], index, false),
     );
   });
 
@@ -2422,11 +2543,7 @@ function applySectionTextLayout() {
     textMesh.fontSize = layout.descriptionFontSize;
     applyTextMeshLayout(
       textMesh,
-      getResponsiveSection(
-        DESCRIPTION_SECTIONS[index],
-        index,
-        COMPACT_DESCRIPTION_LAYOUTS,
-      ),
+      getResponsiveSection(DESCRIPTION_SECTIONS[index], index, true),
     );
   });
 }
@@ -2738,7 +2855,7 @@ function getCommitteeMemberPosition(group, rowIndex, colIndex, indexInGroup) {
       (col - (rowLengthForIndex - 1) / 2) * layout.committeeImageSpacing;
     y = layout.committeeBaseY - row * layout.committeeRowSpacing;
   } else if (layout.compact && group.kind === "general") {
-    const perRow = 2;
+    const perRow = 3;
     const total = group.rows[0].length;
     const row = Math.floor(indexInGroup / perRow);
     const rowLengthForIndex = Math.min(perRow, total - row * perRow);
@@ -2763,7 +2880,7 @@ function createCommitteeCaption(title, position, imageHeight) {
   const caption = new Text();
   const layout = getViewportLayout();
 
-  caption.text = title;
+  caption.text = committeeCaptionLabel(title);
   caption.font = DESCRIPTION_FONT;
   caption.fontSize = layout.committeeCaptionFontSize;
   caption.maxWidth = layout.committeeImageSpacing * 0.92;
@@ -2772,11 +2889,9 @@ function createCommitteeCaption(title, position, imageHeight) {
   caption.anchorY = "top";
   caption.textAlign = "center";
   caption.fillOpacity = 0;
-  caption.position.set(
-    position.x,
-    position.y - imageHeight / 2 - COMMITTEE_CAPTION_GAP,
-    position.z,
-  );
+  caption.userData.baseY =
+    position.y - imageHeight / 2 - COMMITTEE_CAPTION_GAP;
+  caption.position.set(position.x, caption.userData.baseY, position.z);
   caption.visible = false;
   caption.sync();
 
@@ -2865,6 +2980,14 @@ function createCommitteeMembers() {
   return members;
 }
 
+function committeeCaptionLabel(title = "") {
+  const layout = getViewportLayout();
+
+  if (!layout.compact) return title;
+
+  return title.replace(/\s+Director$/i, "").trim() || title;
+}
+
 function applyCommitteeLayout() {
   const layout = getViewportLayout();
 
@@ -2879,18 +3002,36 @@ function applyCommitteeLayout() {
       member.indexInGroup,
     );
 
+    const captionY =
+      position.y - layout.committeeImageHeight / 2 - COMMITTEE_CAPTION_GAP;
+    const captionLabel = committeeCaptionLabel(member.title);
+    const layoutKey = [
+      position.x,
+      position.y,
+      position.z,
+      layout.committeeImageHeight,
+      layout.committeeImageSpacing,
+      layout.committeeCaptionFontSize,
+      layout.compact,
+    ].join("|");
+
+    if (member.image.userData.committeeLayoutKey === layoutKey) return;
+
+    member.image.userData.committeeLayoutKey = layoutKey;
     member.image.position.set(position.x, position.y, position.z);
     member.image.userData.baseX = position.x;
     member.image.userData.baseY = position.y;
     resizeAvatarPlane(member.image, layout.committeeImageHeight);
 
+    if (member.caption.text !== captionLabel) {
+      member.caption.text = captionLabel;
+      member.caption.sync();
+    }
+
     member.caption.fontSize = layout.committeeCaptionFontSize;
     member.caption.maxWidth = layout.committeeImageSpacing * 0.92;
-    member.caption.position.set(
-      position.x,
-      position.y - layout.committeeImageHeight / 2 - COMMITTEE_CAPTION_GAP,
-      position.z,
-    );
+    member.caption.userData.baseY = captionY;
+    member.caption.position.set(position.x, captionY, position.z);
     member.caption.sync();
   });
 }
@@ -2927,22 +3068,6 @@ function loadCommitteeMemberTexture(member) {
 
 function preloadCommitteeTextures() {
   return Promise.allSettled(committeeMembers.map(loadCommitteeMemberTexture));
-}
-
-function setCommitteeGroupVisible(groupIndex) {
-  setCommitteeImageHovered(null);
-
-  committeeMembers.forEach((member) => {
-    const active = member.groupIndex === groupIndex;
-
-    member.image.visible = active;
-    if (active) member.image.material.opacity = 1;
-    member.caption.visible = active;
-    member.caption.fillOpacity = active ? 1 : 0;
-    if (active) member.caption.sync();
-  });
-
-  pointerDirty = true;
 }
 
 function getVisibleCommitteeImages() {
@@ -3023,10 +3148,15 @@ function setCommitteeImageHovered(image) {
   }
 }
 
+function isBetweenStops() {
+  return Math.abs(activeStopFloat - Math.round(activeStopFloat)) > 0.02;
+}
+
 function updateCommitteeHover() {
   if (
     currentIndex !== COMMITTEE_SECTION_INDEX ||
     isAnimating ||
+    isBetweenStops() ||
     committeeMembers.length === 0
   ) {
     return;
@@ -3050,6 +3180,7 @@ function setupCommitteeInteraction() {
     if (
       currentIndex !== COMMITTEE_SECTION_INDEX ||
       isAnimating ||
+      isBetweenStops() ||
       getVisibleCommitteeImages().length === 0
     ) {
       return;
@@ -3072,6 +3203,28 @@ function setupCommitteeInteraction() {
 
 function getSocialCubeBasePosition(index) {
   const layout = getViewportLayout();
+
+  if (layout.socialDice) {
+    // Dice-5 arrangement on mobile: 2 corners, centre, 2 corners.
+    // ponytail: extra socials (index > 4) wrap onto the same slots.
+    const spread = layout.socialDiceSpacing / 2;
+    const step = layout.socialDiceRowStep;
+    const slots = [
+      { x: -spread, y: step },
+      { x: spread, y: step },
+      { x: 0, y: 0 },
+      { x: -spread, y: -step },
+      { x: spread, y: -step },
+    ];
+    const slot = slots[index % slots.length];
+
+    return {
+      x: SOCIAL_CUBE_BASE.x + slot.x,
+      y: layout.socialCubeY + slot.y,
+      z: SOCIAL_CUBE_BASE.z,
+    };
+  }
+
   const xOffset =
     (index - (SOCIAL_CUBES.length - 1) / 2) * layout.socialCubeSpacing;
 
@@ -3731,7 +3884,10 @@ async function loadSceneModel() {
     baseCameraZ = maxSize * CAM_DISTANCE_FACTOR;
     camera.near = Math.max(maxSize / 100, 0.01);
     camera.far = Math.max(maxSize * 100, CAM_FAR);
+    // Camera-dependent layout metrics are now known: rebuild in one pass.
+    cachedViewportLayout = null;
     applyCameraLayout();
+    applyResponsiveLayout();
 
     rainbowBackdrop = createRainbowBackdrop(maxSize);
 
@@ -3853,6 +4009,7 @@ async function init() {
   sponsorImage = createSponsorImage();
   aboutJoinImage = createAboutJoinImage();
   committeeMembers = createCommitteeMembers();
+  ensureSocialCubes();
   setupNavbar();
   buildYearRail();
   setupMemberPopup();
@@ -3862,7 +4019,8 @@ async function init() {
   setupSocialCubeInteraction();
   setupAboutJoinInteraction();
   setupCommitteeInteraction();
-  preloadCommitteeTextures();
+  await preloadCommitteeTextures();
+  await waitForAssets();
   window.scrollTo(0, 0);
   setActiveStop(0, true);
   reportSceneProgress(0.18);

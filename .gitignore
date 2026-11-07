@@ -10,7 +10,7 @@ node_modules/
 cypress/screenshots/
 cypress/videos/
 /test-results
-
+/out
 # production
 /build
 /dist
