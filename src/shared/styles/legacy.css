@@ -104,13 +104,13 @@ body[data-on-committee="true"] #year-rail {
 
 #year-rail button:hover,
 #year-rail button:focus-visible {
-  border-color: var(--content-accent, var(--marker));
+  border-color: var(--year-active);
   color: #fff3d2;
 }
 
 #year-rail button.is-active {
-  border-color: var(--content-accent, var(--marker));
-  background: var(--content-accent, var(--marker));
+  border-color: var(--year-active);
+  background: var(--year-active);
   color: #141620;
 }
 
@@ -427,6 +427,7 @@ body[data-on-committee="true"] #year-rail {
 
   .nav-logo {
     min-height: 2.4rem;
+    padding-left: 0.4rem;
   }
 
   .nav-logo img {
