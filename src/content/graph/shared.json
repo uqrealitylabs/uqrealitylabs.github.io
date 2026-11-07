@@ -133,7 +133,6 @@
       "label": "Instagram",
       "url": "https://www.instagram.com/uqrealitylabs/",
       "texture": "/Assets/images/instagram.jpg",
-      "material": "grass",
       "accent": "#E1306C",
       "music": {
         "label": "nyan cat sparkle",
@@ -186,6 +185,173 @@
       "events",
       "workshop",
       "industry"
+    ],
+    "generalRole": "general",
+    "years": [
+      {
+        "year": 2027,
+        "members": {
+          "president": {
+            "name": "Ryan Wang",
+            "photo": "/Assets/images/2027/ryan-uqrl.jpg",
+            "photoWidth": 843,
+            "photoHeight": 1264,
+            "photoFocus": "50% 35%",
+            "linkedin": "https://www.linkedin.com/in/ryan-wang-287909266/"
+          },
+          "secretary": {
+            "name": "Tyreece Paul",
+            "photo": "/Assets/images/2027/ty.jpg",
+            "photoWidth": 800,
+            "photoHeight": 800,
+            "photoFocus": "50% 35%",
+            "linkedin": "https://www.linkedin.com/in/tyreecepaul/"
+          },
+          "treasurer": {
+            "name": "Doris Wei",
+            "photo": "/Assets/images/2027/doris.jpg",
+            "photoWidth": 2160,
+            "photoHeight": 2878,
+            "photoFocus": "50% 35%",
+            "linkedin": "https://www.linkedin.com/in/doriswei/"
+          },
+          "media": {
+            "name": "Andrea Pham",
+            "photo": "/Assets/images/2027/andrea.jpg",
+            "photoWidth": 1447,
+            "photoHeight": 1600,
+            "photoFocus": "50% 35%",
+            "linkedin": "https://www.linkedin.com/in/ngoc-linh-pham-07a686313/"
+          },
+          "events": {
+            "name": "Jamie Williams",
+            "photo": "/Assets/images/2027/jamie.jpg",
+            "photoWidth": 2544,
+            "photoHeight": 2727,
+            "photoFocus": "50% 35%",
+            "linkedin": "https://www.linkedin.com/in/jamie-williams-6855302bb/"
+          },
+          "workshop": {
+            "name": "Radhesh Goel",
+            "photo": "/Assets/images/2026/Radhesh.webp",
+            "photoWidth": 900,
+            "photoHeight": 1034,
+            "photoFocus": "50% 35%",
+            "linkedin": "https://www.linkedin.com/in/radhesh-g/"
+          },
+          "industry": {
+            "name": "Ngoc (Annie) Quynh Vy Vo",
+            "photo": "/Assets/images/2027/annie.jpg",
+            "photoWidth": 1200,
+            "photoHeight": 1200,
+            "photoFocus": "50% 35%",
+            "linkedin": "https://www.linkedin.com/in/ngoc-quynh-vy-vo-851340378/"
+          }
+        },
+        "general": [
+          {
+            "name": "Augustus Chong",
+            "photo": "/Assets/images/2027/gus.jpg",
+            "photoWidth": 4608,
+            "photoHeight": 3456,
+            "photoFocus": "50% 40%",
+            "linkedin": "https://www.linkedin.com/in/augustus-chong-3793613b8/"
+          },
+          {
+            "name": "Eric Liswan",
+            "photo": "/Assets/images/2027/eric.png",
+            "photoWidth": 1029,
+            "photoHeight": 1029,
+            "photoFocus": "50% 35%",
+            "linkedin": "https://www.linkedin.com/in/eric-liswan-2b3114399/"
+          },
+          {
+            "name": "Aadit Shukla",
+            "photo": "/Assets/images/2027/aadit.jpg",
+            "photoWidth": 840,
+            "photoHeight": 1031,
+            "photoFocus": "50% 35%",
+            "linkedin": "https://www.linkedin.com/in/aadit-shukla-0185433b2/"
+          }
+        ]
+      },
+      {
+        "year": 2026,
+        "members": {
+          "president": {
+            "name": "Cyrus Forudi",
+            "photo": "/Assets/images/2026/Cyrus.webp",
+            "photoWidth": 900,
+            "photoHeight": 1351,
+            "photoFocus": "50% 34%",
+            "linkedin": "https://www.linkedin.com/in/cyrus-forudi/",
+            "music": {
+              "label": "OIIA OIIA",
+              "source": "youtube",
+              "url": "https://www.youtube.com/watch?v=90DC_ri0WEY",
+              "volume": 0.35,
+              "start": 0,
+              "duration": 5
+            },
+            "order": 1
+          },
+          "secretary": {
+            "name": "Navya",
+            "photo": "/Assets/images/2026/Navya.webp",
+            "photoWidth": 900,
+            "photoHeight": 1200,
+            "photoFocus": "50% 36%",
+            "linkedin": "https://www.linkedin.com/in/navpas/",
+            "order": 1
+          },
+          "treasurer": {
+            "name": "Amna",
+            "photo": "/Assets/images/2026/Amna.webp",
+            "photoWidth": 900,
+            "photoHeight": 1200,
+            "photoFocus": "50% 36%",
+            "linkedin": "https://www.linkedin.com/in/amna-ar/",
+            "order": 1
+          },
+          "media": {
+            "name": "Chloe Lim",
+            "photo": "/Assets/images/2026/Chloe.webp",
+            "photoWidth": 900,
+            "photoHeight": 1200,
+            "photoFocus": "50% 36%",
+            "linkedin": "https://www.linkedin.com/in/chloe-lim-10a840386/",
+            "order": 1
+          },
+          "events": {
+            "name": "Clare Johnston-Koto",
+            "photo": "/Assets/images/2026/Clare.webp",
+            "photoWidth": 900,
+            "photoHeight": 675,
+            "photoFocus": "50% 42%",
+            "linkedin": "https://www.linkedin.com/in/clare-johnston-koto/",
+            "order": 1
+          },
+          "workshop": {
+            "name": "Radhesh",
+            "photo": "/Assets/images/2026/Radhesh.webp",
+            "photoWidth": 900,
+            "photoHeight": 1034,
+            "photoFocus": "50% 35%",
+            "linkedin": "https://www.linkedin.com/in/radhesh-g/",
+            "order": 1
+          },
+          "industry": {
+            "name": "Doris Wei",
+            "photo": "/Assets/images/2026/doris.jpg",
+            "photoWidth": 1280,
+            "photoHeight": 853,
+            "photoFocus": "50% 42%",
+            "linkedin": "https://www.linkedin.com/in/doriswei/",
+            "order": 1
+          }
+        },
+        "general": []
+      }
     ]
   },
   "roleProfiles": {
@@ -203,26 +369,7 @@
         "volume": 0.3,
         "start": 0,
         "duration": 5
-      },
-      "members": [
-        {
-          "name": "Cyrus Forudi",
-          "photo": "/Assets/images/Cyrus.webp",
-          "photoWidth": 900,
-          "photoHeight": 1351,
-          "photoFocus": "50% 34%",
-          "linkedin": "https://www.linkedin.com/in/cyrus-forudi/",
-          "music": {
-            "label": "OIIA OIIA",
-            "source": "youtube",
-            "url": "https://www.youtube.com/watch?v=90DC_ri0WEY",
-            "volume": 0.35,
-            "start": 0,
-            "duration": 5
-          },
-          "order": 1
-        }
-      ]
+      }
     },
     "secretary": {
       "slug": "secretary",
@@ -238,18 +385,7 @@
         "volume": 0.3,
         "start": 0,
         "duration": 5
-      },
-      "members": [
-        {
-          "name": "Navya",
-          "photo": "/Assets/images/Navya.webp",
-          "photoWidth": 900,
-          "photoHeight": 1200,
-          "photoFocus": "50% 36%",
-          "linkedin": "https://www.linkedin.com/in/navpas/",
-          "order": 1
-        }
-      ]
+      }
     },
     "treasurer": {
       "slug": "treasurer",
@@ -265,18 +401,7 @@
         "volume": 0.3,
         "start": 0,
         "duration": 5
-      },
-      "members": [
-        {
-          "name": "Amna",
-          "photo": "/Assets/images/Amna.webp",
-          "photoWidth": 900,
-          "photoHeight": 1200,
-          "photoFocus": "50% 36%",
-          "linkedin": "https://www.linkedin.com/in/amna-ar/",
-          "order": 1
-        }
-      ]
+      }
     },
     "media": {
       "slug": "media",
@@ -292,18 +417,7 @@
         "volume": 0.3,
         "start": 0,
         "duration": 5
-      },
-      "members": [
-        {
-          "name": "Chloe Lim",
-          "photo": "/Assets/images/Chloe.webp",
-          "photoWidth": 900,
-          "photoHeight": 1200,
-          "photoFocus": "50% 36%",
-          "linkedin": "https://www.linkedin.com/in/chloe-lim-10a840386/",
-          "order": 1
-        }
-      ]
+      }
     },
     "events": {
       "slug": "events",
@@ -319,18 +433,7 @@
         "volume": 0.3,
         "start": 0,
         "duration": 5
-      },
-      "members": [
-        {
-          "name": "Clare Johnston-Koto",
-          "photo": "/Assets/images/Clare.webp",
-          "photoWidth": 900,
-          "photoHeight": 675,
-          "photoFocus": "50% 42%",
-          "linkedin": "https://www.linkedin.com/in/clare-johnston-koto/",
-          "order": 1
-        }
-      ]
+      }
     },
     "workshop": {
       "slug": "workshop",
@@ -346,18 +449,7 @@
         "volume": 0.3,
         "start": 0,
         "duration": 5
-      },
-      "members": [
-        {
-          "name": "Radhesh",
-          "photo": "/Assets/images/Radhesh.webp",
-          "photoWidth": 900,
-          "photoHeight": 1034,
-          "photoFocus": "50% 35%",
-          "linkedin": "https://www.linkedin.com/in/radhesh-g/",
-          "order": 1
-        }
-      ]
+      }
     },
     "industry": {
       "slug": "industry",
@@ -373,18 +465,15 @@
         "volume": 0.28,
         "start": 0,
         "duration": 5
-      },
-      "members": [
-        {
-          "name": "Doris Wei",
-          "photo": "/Assets/images/doris.jpg",
-          "photoWidth": 1280,
-          "photoHeight": 853,
-          "photoFocus": "50% 42%",
-          "linkedin": "https://www.linkedin.com/in/doriswei/",
-          "order": 1
-        }
-      ]
+      }
+    },
+    "general": {
+      "slug": "general",
+      "accentColor": "#22C55E",
+      "hoverColor": "#4ADE80",
+      "trailColor": "#22C55E",
+      "pathVariant": "underline-swoop",
+      "order": 8
     }
   }
 }

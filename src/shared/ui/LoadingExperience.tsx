@@ -1,12 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const SEGMENT_COUNT = 20;
 const SEGMENTS = Array.from({ length: SEGMENT_COUNT }, (_, i) => `seg-${i}`);
-const EXIT_MS = 1000;
-
-function prefersReducedMotion() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
+const EXIT_MS = 800;
+const EXIT_EASE = "cubic-bezier(0.65, 0, 0.35, 1)";
 
 export function LoadingExperience({
   hidden,
@@ -17,20 +14,38 @@ export function LoadingExperience({
   label: string;
   progress: number;
 }) {
+  const overlayRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(!hidden);
   const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
     if (!hidden || !mounted) return;
 
-    if (prefersReducedMotion()) {
+    const overlay = overlayRef.current;
+    if (!overlay?.animate) {
       setMounted(false);
       return;
     }
 
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const duration = reduced ? 350 : EXIT_MS;
+
     setExiting(true);
-    const timeout = window.setTimeout(() => setMounted(false), EXIT_MS);
-    return () => window.clearTimeout(timeout);
+
+    const animation = overlay.animate(
+      [{ transform: "translateY(0)" }, { transform: "translateY(-100%)" }],
+      { duration, easing: EXIT_EASE, fill: "forwards" },
+    );
+    const timeout = window.setTimeout(() => setMounted(false), duration + 400);
+    animation.onfinish = () => setMounted(false);
+
+    return () => {
+      window.clearTimeout(timeout);
+      animation.onfinish = null;
+      animation.cancel();
+    };
   }, [hidden, mounted]);
 
   if (!mounted) return null;
@@ -40,6 +55,7 @@ export function LoadingExperience({
 
   return (
     <div
+      ref={overlayRef}
       className={exiting ? "loading-experience is-exit" : "loading-experience"}
       role="progressbar"
       aria-valuemin={0}

@@ -26,13 +26,16 @@ export function App() {
 
   useEffect(() => {
     let cancelled = false;
+    let readyTimer = 0;
 
     const markReady = () => {
       if (cancelled) return;
-      startTransition(() => {
-        setProgress(100);
-        setSceneReady(true);
-      });
+
+      setProgress(100);
+      window.clearTimeout(readyTimer);
+      readyTimer = window.setTimeout(() => {
+        if (!cancelled) setSceneReady(true);
+      }, 280);
     };
 
     const onProgress = (event: Event) => {
@@ -53,6 +56,7 @@ export function App() {
       markReady();
       return () => {
         cancelled = true;
+        window.clearTimeout(readyTimer);
         window.removeEventListener(SCENE_PROGRESS_EVENT, onProgress);
         window.removeEventListener(SCENE_READY_EVENT, markReady);
       };
@@ -72,6 +76,7 @@ export function App() {
 
     return () => {
       cancelled = true;
+      window.clearTimeout(readyTimer);
       window.removeEventListener(SCENE_PROGRESS_EVENT, onProgress);
       window.removeEventListener(SCENE_READY_EVENT, markReady);
     };
@@ -89,6 +94,7 @@ export function App() {
             sceneLabel: t(locale, "scene.label"),
             closeProfile: t(locale, "profile.close"),
             linkedIn: t(locale, "profile.linkedin"),
+            years: t(locale, "committee.years"),
           }}
         />
       </div>

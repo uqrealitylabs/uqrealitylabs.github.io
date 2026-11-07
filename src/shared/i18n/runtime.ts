@@ -16,6 +16,7 @@ const messages: Record<Locale, Messages> = {
     "scene.label": "Interactive UQ Reality Labs 3D scene",
     "profile.close": "Close profile",
     "profile.linkedin": "View LinkedIn profile",
+    "committee.years": "Committee years",
     "loading.scene": "Loading...",
   },
   es: {
@@ -26,6 +27,7 @@ const messages: Record<Locale, Messages> = {
     "scene.label": "Escena 3D interactiva de UQ Reality Labs",
     "profile.close": "Cerrar perfil",
     "profile.linkedin": "Ver perfil de LinkedIn",
+    "committee.years": "Años del comité",
     "loading.scene": "Cargando...",
   },
 };

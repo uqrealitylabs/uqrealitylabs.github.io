@@ -68,9 +68,16 @@ describe("JSON content system", () => {
 
   it("keeps visible interaction image assets present", () => {
     const root = process.cwd();
+    const committeePhotos = getSiteContent("en").committee.years.flatMap(
+      (year) => [
+        ...Object.values(year.members).map((member) => member.photo),
+        ...(year.general ?? []).map((member) => member.photo),
+      ],
+    );
     const paths = [
       "/Assets/images/rubric.png",
       ...getSiteContent("en").socialLinks.map((social) => social.texture),
+      ...committeePhotos,
     ];
 
     for (const assetPath of paths) {

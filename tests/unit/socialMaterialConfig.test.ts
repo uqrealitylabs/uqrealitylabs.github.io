@@ -12,7 +12,6 @@ describe("social material configs", () => {
     ["LinkedIn", "glass", "smudge"],
     ["Email", "mail", "bend"],
     ["Mail", "mail", "bend"],
-    ["grass", "grass", "bend"],
   ] as const)("maps %s to %s material behavior", (label, kind, behavior) => {
     expect(getSocialMaterialKind(label)).toBe(kind);
     expect(socialMaterialConfigs[kind]).toMatchObject({
@@ -27,14 +26,19 @@ describe("social material configs", () => {
     );
 
     expect(new Set(socialMaterials)).toEqual(
-      new Set(["cloth", "rubber", "glass", "grass", "mail"]),
+      new Set(["cloth", "rubber", "glass", "mail"]),
     );
     expect(getSiteContent("en").socialLinks).toContainEqual(
       expect.objectContaining({ label: "Email" }),
     );
     expect(getSocialMaterialKind("Email")).toBe("mail");
     expect(getSiteContent("en").socialLinks).toContainEqual(
-      expect.objectContaining({ label: "Instagram", material: "grass" }),
+      expect.objectContaining({ label: "Instagram" }),
     );
+    expect(
+      getSiteContent("en").socialLinks.find(
+        (social) => social.label === "Instagram",
+      ),
+    ).not.toHaveProperty("material");
   });
 });
