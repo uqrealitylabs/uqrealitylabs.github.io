@@ -541,6 +541,9 @@ let aboutJoinImage = null;
 let committeeMembers = [];
 let hoveredCommitteeImage = null;
 let cachedViewportLayout = null;
+// Mobile address bars change innerHeight while scrolling; scroll geometry is
+// pinned to this value so progress does not jump mid-gesture.
+let stableViewportHeight = viewportHeight;
 let clothTexture = null;
 
 const raycaster = new THREE.Raycaster();
@@ -641,6 +644,12 @@ function isShortViewport() {
   return viewportHeight <= SHORT_VIEWPORT_HEIGHT;
 }
 
+function isMobileUserAgent() {
+  return /Android|iPhone|iPad|iPod|Mobile|IEMobile|Opera Mini/i.test(
+    navigator.userAgent,
+  );
+}
+
 function getRenderPixelRatio() {
   const canvasPixels = viewportWidth * viewportHeight;
   const maxRatio =
@@ -655,7 +664,6 @@ function updateViewportSize() {
 
   viewportWidth = Math.max(Math.round(rect.width || window.innerWidth), 320);
   viewportHeight = Math.max(Math.round(rect.height || window.innerHeight), 240);
-  cachedViewportLayout = null;
 }
 
 function applyCameraLayout() {
@@ -2108,7 +2116,7 @@ function scrollToStop(index, smooth = true) {
   if (!scrollStops.length) return;
 
   const top = Math.max(0, Math.min(index, scrollStops.length - 1)) *
-    window.innerHeight;
+    stableViewportHeight;
 
   window.scrollTo({
     top,
@@ -2135,7 +2143,7 @@ function buildScrollStops() {
 
 function resizeScrollTrack() {
   if (!scrollTrack) return;
-  scrollTrack.style.height = `${Math.max(scrollStops.length, 1) * window.innerHeight}px`;
+  scrollTrack.style.height = `${Math.max(scrollStops.length, 1) * stableViewportHeight}px`;
 }
 
 function buildYearRail() {
@@ -2386,7 +2394,7 @@ function updateScrollPosition() {
   if (!modelGroup || !entranceComplete) return;
 
   const maxScroll = scrollTrack
-    ? Math.max(scrollTrack.offsetHeight - window.innerHeight, 0)
+    ? Math.max(scrollTrack.offsetHeight - stableViewportHeight, 0)
     : 0;
   const progress = maxScroll > 0 ? clamp01(window.scrollY / maxScroll) : 0;
   const stopFloat = progress * (scrollStops.length - 1);
@@ -3906,9 +3914,23 @@ async function loadSceneModel() {
 let resizeFrame = 0;
 
 function onResize() {
+  const previousWidth = viewportWidth;
   updateViewportSize();
   renderer.setPixelRatio(getRenderPixelRatio());
   renderer.setSize(viewportWidth, viewportHeight, false);
+
+  // Mobile browsers animate the address bar while scrolling, firing resize
+  // events where only the height changes. Re-deriving the responsive layout on
+  // each of those is what makes text shift, so ignore height-only resizes on
+  // mobile. A width change (orientation) still relayouts; desktop is unchanged.
+  if (isMobileUserAgent() && viewportWidth === previousWidth) {
+    camera.aspect = viewportWidth / viewportHeight;
+    camera.updateProjectionMatrix();
+    return;
+  }
+
+  stableViewportHeight = viewportHeight;
+  cachedViewportLayout = null;
   resizeScrollTrack();
   applyCameraLayout();
   applyResponsiveLayout();
