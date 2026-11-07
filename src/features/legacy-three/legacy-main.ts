@@ -3912,22 +3912,13 @@ async function loadSceneModel() {
 }
 
 let resizeFrame = 0;
+let lastResizeWidth = window.innerWidth;
 
 function onResize() {
   const previousWidth = viewportWidth;
   updateViewportSize();
   renderer.setPixelRatio(getRenderPixelRatio());
   renderer.setSize(viewportWidth, viewportHeight, false);
-
-  // Mobile browsers animate the address bar while scrolling, firing resize
-  // events where only the height changes. Re-deriving the responsive layout on
-  // each of those is what makes text shift, so ignore height-only resizes on
-  // mobile. A width change (orientation) still relayouts; desktop is unchanged.
-  if (isMobileUserAgent() && viewportWidth === previousWidth) {
-    camera.aspect = viewportWidth / viewportHeight;
-    camera.updateProjectionMatrix();
-    return;
-  }
 
   stableViewportHeight = viewportHeight;
   cachedViewportLayout = null;
@@ -3939,6 +3930,15 @@ function onResize() {
 
 function queueResize() {
   if (resizeFrame) return;
+
+  // Mobile browsers animate the address bar while scrolling, firing resize
+  // events that only change the viewport height. Re-sizing the canvas buffer
+  // and re-deriving the responsive layout on each of those is what flashes and
+  // jitters text mid-scroll. Keep the boot-time height on mobile and only
+  // relayout when the width changes (orientation change). Desktop is unchanged.
+  const nextWidth = window.innerWidth;
+  if (isMobileUserAgent() && nextWidth === lastResizeWidth) return;
+  lastResizeWidth = nextWidth;
 
   resizeFrame = requestAnimationFrame(() => {
     resizeFrame = 0;
