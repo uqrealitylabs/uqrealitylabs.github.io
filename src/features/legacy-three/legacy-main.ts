@@ -3915,6 +3915,7 @@ let resizeFrame = 0;
 let lastResizeWidth = window.innerWidth;
 
 function onResize() {
+  const previousWidth = viewportWidth;
   updateViewportSize();
   renderer.setPixelRatio(getRenderPixelRatio());
   renderer.setSize(viewportWidth, viewportHeight, false);
