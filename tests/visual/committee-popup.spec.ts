@@ -4,6 +4,8 @@ type CommitteeMemberDebug = {
   index: number;
   name: string;
   groupIndex: number;
+  hovered: boolean;
+  scale: number;
   center: { x: number; y: number };
   bounds: { left: number; right: number; top: number; bottom: number };
 };
@@ -113,6 +115,52 @@ test("opens a committee profile when settled on a stop", async ({
   await clickMember(page, member, testInfo.project.name === "mobile");
 
   await expectProfileOpen(page, member);
+});
+
+test("keeps the committee hover animation stable at the icon edge", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Hover is pointer-only");
+
+  await openScene(page);
+  const firstCommitteeStop = await findFirstCommitteeStop(page);
+  await scrollToStop(page, firstCommitteeStop);
+  await expect(page.locator("body")).toHaveAttribute(
+    "data-on-committee",
+    "true",
+  );
+
+  const member = await findClickableMember(page);
+  const width = member.bounds.right - member.bounds.left;
+  await page.mouse.move(member.bounds.right - width * 0.08, member.center.y);
+
+  await expect
+    .poll(async () => {
+      const current = (await readVisibleMembers(page)).find(
+        (entry) => entry.name === member.name,
+      );
+      return current?.hovered;
+    })
+    .toBe(true);
+
+  const scales: number[] = [];
+  for (let frame = 0; frame < 20; frame += 1) {
+    await page.waitForTimeout(50);
+    const current = (await readVisibleMembers(page)).find(
+      (entry) => entry.name === member.name,
+    );
+    expect(current?.hovered, "hover must not flicker").toBe(true);
+    scales.push(current?.scale ?? 1);
+  }
+  expect(Math.max(...scales)).toBeGreaterThan(1.02);
+
+  await page.mouse.move(12, 300);
+  await page.waitForTimeout(400);
+  const after = (await readVisibleMembers(page)).find(
+    (entry) => entry.name === member.name,
+  );
+  expect(after?.hovered).toBe(false);
+  expect(after?.scale ?? 1).toBeLessThan(1.01);
 });
 
 test("opens a committee profile while between scroll stops", async ({
