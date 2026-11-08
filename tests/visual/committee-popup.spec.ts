@@ -163,6 +163,41 @@ test("keeps the committee hover animation stable at the icon edge", async ({
   expect(after?.scale ?? 1).toBeLessThan(1.01);
 });
 
+test("scales every visible committee icon on hover", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Hover is pointer-only");
+
+  await openScene(page);
+  const firstCommitteeStop = await findFirstCommitteeStop(page);
+  await scrollToStop(page, firstCommitteeStop);
+
+  const members = await readVisibleMembers(page);
+  expect(members.length).toBeGreaterThan(0);
+
+  for (const member of members) {
+    const width = member.bounds.right - member.bounds.left;
+    await page.mouse.move(member.bounds.left + width * 0.85, member.center.y);
+
+    await expect
+      .poll(async () => {
+        const current = (await readVisibleMembers(page)).find(
+          (entry) => entry.name === member.name,
+        );
+        return current ? current.hovered && current.scale > 1.02 : false;
+      })
+      .toBe(true);
+  }
+
+  await page.mouse.move(12, 300);
+  await expect
+    .poll(async () => {
+      const current = await readVisibleMembers(page);
+      return current.every((entry) => !entry.hovered);
+    })
+    .toBe(true);
+});
+
 test("opens a committee profile while between scroll stops", async ({
   page,
 }, testInfo) => {

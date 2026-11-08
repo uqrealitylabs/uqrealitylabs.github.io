@@ -238,6 +238,7 @@ const COMMITTEE_IMAGE_SPACING = 11.4;
 const COMMITTEE_ROW_SPACING = 8.9;
 const COMMITTEE_CAPTION_GAP = 0.5;
 const COMMITTEE_CAPTION_FONT_SIZE = 0.85;
+const COMMITTEE_HOVER_LIFT = 0.16;
 let COMMITTEE_GROUPS = [];
 
 const INSTAGRAM_LINK = "https://www.instagram.com/uqrealitylabs/";
@@ -764,18 +765,24 @@ function applyPointerMotion() {
   for (const member of committeeMembers) {
     if (member.image.visible && !member.image.userData.motionActive) {
       const profile = getCommitteeHoverProfile(member.roleSlug);
+      const hoverAmount = member.image.userData.hoverAmount ?? 0;
       const baseX = member.image.userData.baseX ?? member.image.position.x;
       const baseY = member.image.userData.baseY ?? member.image.position.y;
       const driftX = reduced ? 0 : pointerCurrent.x * profile.driftX * 0.28;
       const driftY = reduced ? 0 : pointerCurrent.y * profile.driftY * 0.18;
+      const hoverScale = 1 + (profile.scale - 1) * hoverAmount;
+      const hoverLift = reduced ? 0 : COMMITTEE_HOVER_LIFT * hoverAmount;
+      const hoverDepth = reduced ? 0 : profile.z * hoverAmount;
+
       member.image.rotation.set(
         tiltX * (0.65 + profile.driftY),
         tiltY * (0.65 + profile.driftX),
-        0,
+        profile.rotate * hoverAmount,
       );
       member.image.position.x = baseX + driftX;
-      member.image.position.y = baseY + driftY;
-      member.image.position.z = COMMITTEE_BASE_POSITION.z;
+      member.image.position.y = baseY + driftY + hoverLift;
+      member.image.position.z = COMMITTEE_BASE_POSITION.z + hoverDepth;
+      member.image.scale.setScalar(hoverScale);
       if (member.caption.visible) {
         member.caption.position.x = member.image.position.x;
       }
@@ -2281,13 +2288,12 @@ function applyCommitteeMemberMotion(member, delta, vertical = false) {
   const baseY = image.userData.baseY ?? 0;
   const baseZ = COMMITTEE_BASE_POSITION.z;
 
-  // Settled: let hover tweens own the transform again.
+  // Settled: hoverAmount takes over the transform again.
   if (distance < 0.001) {
     if (!image.userData.settledApplied) {
+      const hoverAmount = image.userData.hoverAmount ?? 0;
       const settledScale =
-        image === hoveredCommitteeImage
-          ? getCommitteeHoverProfile(member.roleSlug).scale
-          : 1;
+        1 + (getCommitteeHoverProfile(member.roleSlug).scale - 1) * hoverAmount;
       image.position.set(baseX, baseY, baseZ);
       image.scale.setScalar(settledScale);
       image.material.opacity = 1;
@@ -3066,6 +3072,7 @@ function createCommitteeMembers() {
           memberIndex,
         };
         image.userData.baseY = position.y;
+        image.userData.hoverAmount = 0;
         image.visible = false;
         addToSection(COMMITTEE_SECTION_INDEX, image);
 
@@ -3206,20 +3213,22 @@ function getVisibleCommitteeImages() {
     .filter((image) => image.visible);
 }
 
+function tweenCommitteeHover(image, target) {
+  gsap.to(image.userData, {
+    hoverAmount: target,
+    duration: motionDuration(target ? 0.18 : 0.14),
+    ease: target ? "back.out(1.8)" : "power2.out",
+    overwrite: true,
+  });
+}
+
 function setCommitteeImageHovered(image) {
   if (hoveredCommitteeImage === image) return;
 
   if (hoveredCommitteeImage) {
-    gsap.killTweensOf(hoveredCommitteeImage.scale);
+    tweenCommitteeHover(hoveredCommitteeImage, 0);
     hoveredCommitteeImage.userData.caption.color = 0xffffff;
     hoveredCommitteeImage.userData.caption.sync();
-    gsap.to(hoveredCommitteeImage.scale, {
-      x: 1,
-      y: 1,
-      z: 1,
-      duration: motionDuration(0.12),
-      ease: "power2.out",
-    });
   }
 
   hoveredCommitteeImage = image;
@@ -3229,9 +3238,6 @@ function setCommitteeImageHovered(image) {
   document.body.removeAttribute("data-content-hover");
 
   if (hoveredCommitteeImage) {
-    const profile = getCommitteeHoverProfile(
-      hoveredCommitteeImage.userData.roleSlug,
-    );
     const accent = hoveredCommitteeImage.userData.accentColor || "#FF5757";
     document.body.style.setProperty("--committee-accent", accent);
     document.body.dataset.contentHover = "committee";
@@ -3241,15 +3247,46 @@ function setCommitteeImageHovered(image) {
       hoveredCommitteeImage.userData.pathVariant || "underline-swoop";
     hoveredCommitteeImage.userData.caption.color = accent;
     hoveredCommitteeImage.userData.caption.sync();
-    gsap.killTweensOf(hoveredCommitteeImage.scale);
-    gsap.to(hoveredCommitteeImage.scale, {
-      x: profile.scale,
-      y: profile.scale,
-      z: profile.scale,
-      duration: motionDuration(0.12),
-      ease: "back.out(2)",
-    });
+    tweenCommitteeHover(hoveredCommitteeImage, 1);
   }
+}
+
+function findProjectedCommitteeHit(visibleImages, useSticky = true) {
+  if (!Number.isFinite(lastPointerClientX)) return null;
+
+  let nearestInside = null;
+  let nearestInsideDistance = Number.POSITIVE_INFINITY;
+  let nearest = null;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+
+  for (const image of visibleImages) {
+    const bounds = getObjectScreenBounds(image);
+    const sticky = useSticky && image === hoveredCommitteeImage;
+    const margin = sticky ? 28 : 8;
+    const distance = Math.hypot(
+      bounds.center.x - lastPointerClientX,
+      bounds.center.y - lastPointerClientY,
+    );
+    const inside =
+      lastPointerClientX >= bounds.left - margin &&
+      lastPointerClientX <= bounds.right + margin &&
+      lastPointerClientY >= bounds.top - margin &&
+      lastPointerClientY <= bounds.bottom + margin;
+
+    if (inside && distance < nearestInsideDistance) {
+      nearestInside = image;
+      nearestInsideDistance = distance;
+    }
+
+    if (distance < nearestDistance) {
+      nearest = image;
+      nearestDistance = distance;
+    }
+  }
+
+  if (nearestInside) return nearestInside;
+  const threshold = useSticky && hoveredCommitteeImage ? 110 : 90;
+  return nearestDistance <= threshold ? nearest : null;
 }
 
 function updateCommitteeHover() {
@@ -3263,28 +3300,35 @@ function updateCommitteeHover() {
     return;
   }
 
+  visibleImages.forEach((image) => image.updateWorldMatrix(true, false));
+
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects(visibleImages);
+  const hovered =
+    intersects[0]?.object ?? findProjectedCommitteeHit(visibleImages);
 
-  setCommitteeImageHovered(intersects[0]?.object ?? null);
-  canvas.style.cursor = intersects.length > 0 ? "pointer" : "default";
+  setCommitteeImageHovered(hovered);
+  canvas.style.cursor = hovered ? "pointer" : "default";
 }
 
 function setupCommitteeInteraction() {
   canvas.addEventListener("click", (event) => {
-    if (isAnimating || getVisibleCommitteeImages().length === 0) return;
+    const visibleImages = getVisibleCommitteeImages();
+    if (isAnimating || visibleImages.length === 0) return;
 
     updatePointerFromEvent(event);
 
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(getVisibleCommitteeImages());
+    visibleImages.forEach((image) => image.updateWorldMatrix(true, false));
 
-    if (intersects.length > 0) {
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(visibleImages);
+    const hitImage =
+      intersects[0]?.object ??
+      findProjectedCommitteeHit(visibleImages, false);
+
+    if (hitImage) {
       lastMemberTrigger = canvas;
-      openMemberPopup(
-        intersects[0].object.userData.memberIndex,
-        intersects[0].object,
-      );
+      openMemberPopup(hitImage.userData.memberIndex, hitImage);
     }
   });
 }
