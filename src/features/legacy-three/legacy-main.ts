@@ -582,7 +582,6 @@ let animationFrame = 0;
 let resizeObserver = null;
 let scrollStops = [];
 let activeStop = -1;
-let activeStopFloat = 0;
 
 function syncReducedMotionState() {
   document.body.dataset.reducedMotion = prefersReducedMotion.matches
@@ -2423,7 +2422,6 @@ function updateScrollPosition() {
     : 0;
   const progress = maxScroll > 0 ? clamp01(window.scrollY / maxScroll) : 0;
   const stopFloat = progress * (scrollStops.length - 1);
-  activeStopFloat = stopFloat;
 
   updateModelScroll(stopFloat);
   starField.position.y = stopFloat * STAR_SCROLL_STEP;
@@ -3284,23 +3282,14 @@ function setCommitteeImageHovered(image) {
   }
 }
 
-function isBetweenStops() {
-  return Math.abs(activeStopFloat - Math.round(activeStopFloat)) > 0.02;
-}
-
 function updateCommitteeHover() {
-  if (
-    currentIndex !== COMMITTEE_SECTION_INDEX ||
-    isAnimating ||
-    isBetweenStops() ||
-    committeeMembers.length === 0
-  ) {
-    return;
-  }
+  if (isAnimating || committeeMembers.length === 0) return;
 
   const visibleImages = getVisibleCommitteeImages();
   if (visibleImages.length === 0) {
-    setCommitteeImageHovered(null);
+    if (currentIndex === COMMITTEE_SECTION_INDEX) {
+      setCommitteeImageHovered(null);
+    }
     return;
   }
 
@@ -3313,14 +3302,7 @@ function updateCommitteeHover() {
 
 function setupCommitteeInteraction() {
   canvas.addEventListener("click", (event) => {
-    if (
-      currentIndex !== COMMITTEE_SECTION_INDEX ||
-      isAnimating ||
-      isBetweenStops() ||
-      getVisibleCommitteeImages().length === 0
-    ) {
-      return;
-    }
+    if (isAnimating || getVisibleCommitteeImages().length === 0) return;
 
     updatePointerFromEvent(event);
 
@@ -3574,6 +3556,29 @@ function createSocialCubes() {
     addToSection(CONTACT_SECTION_INDEX, cube);
     return cube;
   });
+}
+
+function exposeCommitteeTestState() {
+  if (!window.Cypress) return;
+
+  window.__uqrlCommitteeMembers = () =>
+    committeeMembers
+      .filter((member) => member.image.visible)
+      .map((member) => {
+        const bounds = getObjectScreenBounds(member.image);
+        return {
+          index: member.memberIndex,
+          name: member.name,
+          groupIndex: member.groupIndex,
+          center: bounds.center,
+          bounds: {
+            left: bounds.left,
+            right: bounds.right,
+            top: bounds.top,
+            bottom: bounds.bottom,
+          },
+        };
+      });
 }
 
 function exposeSocialMaterialTestState() {
@@ -4167,6 +4172,7 @@ async function init() {
   setupMemberPopup();
   applyResponsiveLayout();
   exposeSocialMaterialTestState();
+  exposeCommitteeTestState();
   setupJoinAccessibleInteraction();
   setupSocialCubeInteraction();
   setupAboutJoinInteraction();
