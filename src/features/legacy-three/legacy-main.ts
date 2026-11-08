@@ -837,6 +837,10 @@ function getViewportLayout() {
   };
   const compactTextZ = compact ? -18 : -20;
   const textPlane = planeMetrics(compactTextZ);
+  const textShiftY =
+    viewportHeight <= 600
+      ? (32 / viewportHeight) * textPlane.halfHeight * 2
+      : 0;
   const committeePlane = planeMetrics(-25);
   const socialPlane = planeMetrics(-20);
   const aboutPlane = planeMetrics(ABOUT_IMAGE_POS.z);
@@ -874,6 +878,8 @@ function getViewportLayout() {
           : wide
             ? 34
             : 36,
+    textHalfWidth: textPlane.halfWidth,
+    textShiftY,
     compactTextZ,
     compactTitleY: textPlane.centerY + textPlane.halfHeight * 0.665,
     compactDescriptionY: textPlane.centerY + textPlane.halfHeight * 0.5,
@@ -1112,9 +1118,29 @@ function getSocialHoverProfile(label = "") {
 }
 
 function getResponsiveSection(section, index, isDescription = false) {
-  if (!isCompactViewport()) return section;
-
   const layout = getViewportLayout();
+
+  if (!isCompactViewport()) {
+    const halfWidth = layout.textHalfWidth;
+    const margin = halfWidth * 0.06;
+
+    if ((section.anchorX ?? "left") === "center") {
+      return {
+        ...section,
+        y: section.y - layout.textShiftY,
+        maxWidth: Math.min(layout.textMaxWidth, halfWidth * 1.88),
+      };
+    }
+
+    const x = Math.max(section.x, -halfWidth + margin);
+    return {
+      ...section,
+      x,
+      y: section.y - layout.textShiftY,
+      maxWidth: Math.min(layout.textMaxWidth, halfWidth - margin - x),
+    };
+  }
+
   const y = isDescription
     ? index === 0
       ? layout.compactHomeDescriptionY
@@ -1124,7 +1150,7 @@ function getResponsiveSection(section, index, isDescription = false) {
   return {
     ...section,
     x: 0,
-    y,
+    y: y - layout.textShiftY,
     z: layout.compactTextZ,
     textAlign: "center",
     anchorX: "center",
@@ -2307,6 +2333,11 @@ function applyCommitteeMemberMotion(member, delta, vertical = false) {
   }
 
   image.userData.settledApplied = false;
+  const profile = getCommitteeHoverProfile(member.roleSlug);
+  const hoverAmount = image.userData.hoverAmount ?? 0;
+  const hoverScale = 1 + (profile.scale - 1) * hoverAmount;
+  const hoverLift = COMMITTEE_HOVER_LIFT * hoverAmount;
+  const hoverDepth = profile.z * hoverAmount;
   const slide = getViewportLayout().committeeSlideSpan;
   const z = baseZ - distance * SECTION_Z_SPAN;
   const scale = Math.max(0.2, 1 - distance * SECTION_SHRINK);
@@ -2318,8 +2349,8 @@ function applyCommitteeMemberMotion(member, delta, vertical = false) {
     : (caption.userData.baseY ?? baseY);
 
   image.userData.motionActive = true;
-  image.position.set(x, y, z);
-  image.scale.setScalar(scale);
+  image.position.set(x, y + hoverLift, z + hoverDepth);
+  image.scale.setScalar(scale * hoverScale);
   image.material.opacity = opacity;
 
   caption.position.set(x, captionY, z);
@@ -2508,6 +2539,7 @@ function createSectionText(section, options = {}, sectionIndex = 0) {
   outText.textAlign = textAlign;
   outText.anchorX = anchorX;
   outText.anchorY = anchorY;
+  outText.frustumCulled = false;
   outText.visible = false;
   outText.sync();
 
@@ -2536,12 +2568,13 @@ function applyTextMeshLayout(textMesh, section) {
   if (!textMesh) return;
 
   const layout = getViewportLayout();
+  const maxWidth = section.maxWidth ?? layout.textMaxWidth;
   const layoutKey = [
     section.x,
     section.y,
     section.z,
     textMesh.fontSize,
-    layout.textMaxWidth,
+    maxWidth,
     section.textAlign ?? "left",
     section.anchorX ?? "left",
   ].join("|");
@@ -2556,7 +2589,7 @@ function applyTextMeshLayout(textMesh, section) {
   textMesh.position.set(section.x, section.y, section.z);
   textMesh.textAlign = section.textAlign ?? "left";
   textMesh.anchorX = section.anchorX ?? "left";
-  textMesh.maxWidth = layout.textMaxWidth;
+  textMesh.maxWidth = maxWidth;
   textMesh.userData.layoutKey = layoutKey;
   textMesh.sync();
 }
@@ -2717,6 +2750,7 @@ function createAboutCaption(label) {
   caption.textAlign = "center";
   caption.renderOrder = 102;
   caption.raycast = () => { };
+  caption.frustumCulled = false;
   caption.sync();
   caption.material.depthTest = false;
   caption.material.depthWrite = false;
@@ -3028,6 +3062,7 @@ function createCommitteeCaption(title, position, imageHeight) {
   caption.userData.baseY =
     position.y - imageHeight / 2 - COMMITTEE_CAPTION_GAP;
   caption.position.set(position.x, caption.userData.baseY, position.z);
+  caption.frustumCulled = false;
   caption.visible = false;
   caption.sync();
 
@@ -3454,6 +3489,7 @@ function createSocialCaption(label) {
     SOCIAL_CARD_DEPTH / 2 + 0.04,
   );
   caption.raycast = () => { };
+  caption.frustumCulled = false;
   caption.sync();
 
   return caption;
@@ -3595,6 +3631,22 @@ function exposeCommitteeTestState() {
           },
         };
       });
+}
+
+function exposeSectionTextTestState() {
+  if (!window.Cypress) return;
+
+  window.__uqrlSectionTextBounds = () =>
+    sectionTexts.map((mesh, index) => ({
+      index,
+      title: mesh.text,
+      titleVisible: mesh.visible,
+      titleBounds: getObjectScreenBounds(mesh),
+      description: sectionDescriptionTexts[index]?.text ?? "",
+      descriptionBounds: sectionDescriptionTexts[index]
+        ? getObjectScreenBounds(sectionDescriptionTexts[index])
+        : null,
+    }));
 }
 
 function exposeSocialMaterialTestState() {
@@ -4189,6 +4241,7 @@ async function init() {
   applyResponsiveLayout();
   exposeSocialMaterialTestState();
   exposeCommitteeTestState();
+  exposeSectionTextTestState();
   setupJoinAccessibleInteraction();
   setupSocialCubeInteraction();
   setupAboutJoinInteraction();

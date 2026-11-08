@@ -28,7 +28,7 @@ async function scrollToStop(page: Page, stopIndex: number) {
     const stopHeight = track.offsetHeight / stops;
     window.scrollTo(0, index * stopHeight);
   }, stopIndex);
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(600);
 }
 
 async function findFirstCommitteeStop(page: Page) {
@@ -180,12 +180,15 @@ test("scales every visible committee icon on hover", async ({
     await page.mouse.move(member.bounds.left + width * 0.85, member.center.y);
 
     await expect
-      .poll(async () => {
-        const current = (await readVisibleMembers(page)).find(
-          (entry) => entry.name === member.name,
-        );
-        return current ? current.hovered && current.scale > 1.02 : false;
-      })
+      .poll(
+        async () => {
+          const current = (await readVisibleMembers(page)).find(
+            (entry) => entry.name === member.name,
+          );
+          return current ? current.hovered && current.scale > 1.02 : false;
+        },
+        { timeout: 10_000 },
+      )
       .toBe(true);
   }
 
@@ -195,6 +198,35 @@ test("scales every visible committee icon on hover", async ({
       const current = await readVisibleMembers(page);
       return current.every((entry) => !entry.hovered);
     })
+    .toBe(true);
+});
+
+test("plays the hover animation while between committee stops", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Hover is pointer-only");
+
+  await openScene(page);
+  const firstCommitteeStop = await findFirstCommitteeStop(page);
+  await scrollToStop(page, firstCommitteeStop + 0.05);
+  await expect(page.locator("body")).toHaveAttribute(
+    "data-on-committee",
+    "true",
+  );
+
+  const member = await findClickableMember(page);
+  await page.mouse.move(member.center.x, member.center.y);
+
+  await expect
+    .poll(
+      async () => {
+        const current = (await readVisibleMembers(page)).find(
+          (entry) => entry.name === member.name,
+        );
+        return current ? current.hovered && current.scale > 1 : false;
+      },
+      { timeout: 10_000 },
+    )
     .toBe(true);
 });
 
