@@ -11,7 +11,6 @@ type LegacyLabels = {
   sceneLabel: string;
   closeProfile: string;
   linkedIn: string;
-  years: string;
 };
 
 export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
@@ -48,7 +47,6 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
         aria-label={labels.socialLinks}
       />
       <div id="scroll-track" aria-hidden="true" />
-      <nav id="year-rail" aria-label={labels.years} />
       <div id="member-popup" className="member-popup" hidden>
         <div className="member-popup__backdrop" data-popup-close />
         <article

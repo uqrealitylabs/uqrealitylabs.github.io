@@ -232,13 +232,18 @@ const SPONSOR_IMAGE_Y_OFFSET = -5;
 const SPONSOR_IMAGE_HEIGHT = 6.3;
 
 let COMMITTEE_SECTION_INDEX = 0;
-const COMMITTEE_BASE_POSITION = { x: 0, y: 4, z: -25 };
+const COMMITTEE_BASE_POSITION = { x: 0, z: -25 };
 const COMMITTEE_IMAGE_HEIGHT = 5.6;
-const COMMITTEE_IMAGE_SPACING = 11.4;
-const COMMITTEE_ROW_SPACING = 8.9;
 const COMMITTEE_CAPTION_GAP = 0.5;
 const COMMITTEE_CAPTION_FONT_SIZE = 0.85;
 const COMMITTEE_HOVER_LIFT = 0.16;
+const COMMITTEE_GRID_COLUMNS = 3;
+const COMMITTEE_GRID_TOP_RATIO = 0.44;
+const COMMITTEE_GRID_BOTTOM_RATIO = 0.94;
+const COMMITTEE_GRID_MARGIN_RATIO = 0.04;
+const COMMITTEE_ICON_SPACING_RATIO = 2.03;
+const COMMITTEE_CAPTION_LINE_RESERVE = 3.2;
+const COMMITTEE_CAPTION_WIDTH_PER_EM = 7.6;
 let COMMITTEE_GROUPS = [];
 
 const INSTAGRAM_LINK = "https://www.instagram.com/uqrealitylabs/";
@@ -367,8 +372,6 @@ const navLinks = document.querySelector("#nav-links");
 const joinUsAccessibleLink = document.querySelector("#join-us-accessible-link");
 const socialAccessibleLinks = document.querySelector("#social-accessible-links");
 const scrollTrack = document.querySelector("#scroll-track");
-const yearRail = document.querySelector("#year-rail");
-let yearRailButtons = [];
 let navSectionButtons = [];
 const memberPopup = document.querySelector("#member-popup");
 const memberPopupCard = document.querySelector(".member-popup__card");
@@ -796,6 +799,69 @@ function applyPointerMotion() {
   }
 }
 
+function getCommitteeLayout({ committeePlane, narrow, compact, tablet, wide }) {
+  const configuredCaptionFontSize = narrow
+    ? 0.62
+    : compact
+      ? 0.7
+      : COMMITTEE_CAPTION_FONT_SIZE;
+  const maxRows = Math.max(
+    1,
+    ...COMMITTEE_GROUPS.map((group) =>
+      Math.ceil(group.rows.flat().length / COMMITTEE_GRID_COLUMNS),
+    ),
+  );
+  const margin = Math.max(
+    0.3,
+    committeePlane.halfWidth * COMMITTEE_GRID_MARGIN_RATIO,
+  );
+  const gridTop =
+    committeePlane.centerY +
+    (0.5 - COMMITTEE_GRID_TOP_RATIO) * committeePlane.halfHeight * 2;
+  const gridBottom =
+    committeePlane.centerY +
+    (0.5 - COMMITTEE_GRID_BOTTOM_RATIO) * committeePlane.halfHeight * 2;
+  const rowSpacing = Math.max(2.4, (gridTop - gridBottom) / maxRows);
+  const configuredHeight = narrow
+    ? 2.4 * COMPACT_ICON_SCALE
+    : compact
+      ? 3.35 * COMPACT_ICON_SCALE
+      : tablet
+        ? 4.8
+        : wide
+          ? 6.3
+          : COMMITTEE_IMAGE_HEIGHT;
+  const maxHeightFromWidth =
+    (committeePlane.halfWidth - margin) /
+    (COMMITTEE_ICON_SPACING_RATIO + 0.5);
+  const heightForCaption = (captionFontSize) =>
+    Math.min(
+      configuredHeight,
+      maxHeightFromWidth,
+      rowSpacing -
+        (COMMITTEE_CAPTION_GAP +
+          captionFontSize * COMMITTEE_CAPTION_LINE_RESERVE),
+    );
+  const initialHeight = Math.max(
+    1.15,
+    heightForCaption(configuredCaptionFontSize),
+  );
+  const captionFontSize = Math.min(
+    configuredCaptionFontSize,
+    (initialHeight * COMMITTEE_ICON_SPACING_RATIO * 0.9) /
+      COMMITTEE_CAPTION_WIDTH_PER_EM,
+  );
+  const imageHeight = Math.max(1.15, heightForCaption(captionFontSize));
+
+  return {
+    committeeImageHeight: imageHeight,
+    committeeImageSpacing: imageHeight * COMMITTEE_ICON_SPACING_RATIO,
+    committeeRowSpacing: rowSpacing,
+    committeeCaptionFontSize: captionFontSize,
+    committeeBaseY: gridTop - imageHeight / 2,
+  };
+}
+
 function getViewportLayout() {
   if (cachedViewportLayout) return cachedViewportLayout;
 
@@ -844,6 +910,13 @@ function getViewportLayout() {
   const committeePlane = planeMetrics(-25);
   const socialPlane = planeMetrics(-20);
   const aboutPlane = planeMetrics(ABOUT_IMAGE_POS.z);
+  const committeeLayout = getCommitteeLayout({
+    committeePlane,
+    narrow,
+    compact,
+    tablet,
+    wide,
+  });
 
   cachedViewportLayout = {
     narrow,
@@ -912,43 +985,7 @@ function getViewportLayout() {
     socialDiceRowStep: narrow ? 4 : 4.2,
     socialCardWidth: narrow ? 2.7 : compact ? 3.05 : 3.25,
     socialCardHeight: narrow ? 2.7 : compact ? 3.05 : 3.25,
-    committeeImageHeight: narrow
-      ? 2.4 * COMPACT_ICON_SCALE
-      : compact
-        ? 3.35 * COMPACT_ICON_SCALE
-        : tablet
-          ? 4.8
-          : wide
-            ? 6.3
-            : COMMITTEE_IMAGE_HEIGHT,
-    committeeImageSpacing: narrow
-      ? 3.8
-      : compact
-        ? 5.1
-        : tablet
-          ? 8.1
-          : wide
-            ? 12.9
-            : COMMITTEE_IMAGE_SPACING,
-    committeeRowSpacing: narrow
-      ? 4.4
-      : compact
-        ? 5
-        : tablet
-          ? 6.9
-          : wide
-            ? 9.8
-            : COMMITTEE_ROW_SPACING,
-    committeeCaptionFontSize: narrow
-      ? 0.62
-      : compact
-        ? 0.7
-        : COMMITTEE_CAPTION_FONT_SIZE,
-    committeeBaseY: narrow ? 2.5 : compact ? 3 : COMMITTEE_BASE_POSITION.y,
-    committeeMobileRows: narrow ? [3, 4] : compact ? [3, 4] : null,
-    committeeSlideSpan: compact
-      ? committeePlane.halfWidth * 1.8
-      : committeePlane.halfWidth * 1.4,
+    ...committeeLayout,
   };
 
   if (landscape) {
@@ -959,12 +996,6 @@ function getViewportLayout() {
     cachedViewportLayout.sponsorImageHeight = 4.5 * COMPACT_ICON_SCALE;
     cachedViewportLayout.socialCardWidth = 3;
     cachedViewportLayout.socialCardHeight = 3;
-    cachedViewportLayout.committeeImageHeight = 3.7 * COMPACT_ICON_SCALE;
-    cachedViewportLayout.committeeImageSpacing = 5.35;
-    cachedViewportLayout.committeeRowSpacing = 4.8;
-    cachedViewportLayout.committeeCaptionFontSize = 0.62;
-    cachedViewportLayout.committeeMobileRows = [3, 4];
-
   }
 
   return cachedViewportLayout;
@@ -2189,40 +2220,26 @@ function resizeScrollTrack() {
   scrollTrack.style.height = `${Math.max(scrollStops.length, 1) * stableViewportHeight}px`;
 }
 
-function buildYearRail() {
-  if (!yearRail) return;
-
-  const years = [...new Set(COMMITTEE_GROUPS.map((group) => group.year))];
-  yearRail.replaceChildren(
-    ...years.map((year) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.dataset.year = String(year);
-      button.textContent = String(year);
-      button.addEventListener("click", () => {
-        const index = scrollStops.findIndex(
-          (stop) => COMMITTEE_GROUPS[stop.groupIndex]?.year === year,
-        );
-        if (index !== -1) scrollToStop(index);
-      });
-      return button;
-    }),
-  );
-  yearRailButtons = [...yearRail.querySelectorAll("button")];
-}
-
-function updateYearRail() {
+function updateCommitteeHeading() {
   const stop = scrollStops[activeStop];
   const group =
     stop?.groupIndex !== null && stop?.groupIndex !== undefined
       ? COMMITTEE_GROUPS[stop.groupIndex]
       : null;
   const year = group?.year ?? null;
+  const title = sectionTexts[COMMITTEE_SECTION_INDEX];
 
   document.body.dataset.committeeYear = year ? String(year) : "";
-  yearRailButtons.forEach((button) => {
-    button.classList.toggle("is-active", Number(button.dataset.year) === year);
-  });
+
+  if (!title) return;
+
+  const baseTitle = TEXT_SECTIONS[COMMITTEE_SECTION_INDEX]?.text || "Committee";
+  const nextTitle = year ? `${year} ${baseTitle}` : baseTitle;
+
+  if (title.text === nextTitle) return;
+
+  title.text = nextTitle;
+  title.sync();
 }
 
 function applyStopVisibility(stop) {
@@ -2299,7 +2316,7 @@ function getCommitteeGroupStop(groupIndex) {
   );
 }
 
-function applyCommitteeMemberMotion(member, delta, vertical = false) {
+function applyCommitteeMemberMotion(member, delta) {
   const image = member.image;
   const caption = member.caption;
   const distance = Math.abs(delta);
@@ -2338,22 +2355,18 @@ function applyCommitteeMemberMotion(member, delta, vertical = false) {
   const hoverScale = 1 + (profile.scale - 1) * hoverAmount;
   const hoverLift = COMMITTEE_HOVER_LIFT * hoverAmount;
   const hoverDepth = profile.z * hoverAmount;
-  const slide = getViewportLayout().committeeSlideSpan;
   const z = baseZ - distance * SECTION_Z_SPAN;
   const scale = Math.max(0.2, 1 - distance * SECTION_SHRINK);
   const opacity = Math.max(0, 1 - distance * 1.35);
-  const x = vertical ? baseX : baseX - delta * slide;
-  const y = vertical ? baseY + delta * SECTION_Y_SPAN : baseY;
-  const captionY = vertical
-    ? (caption.userData.baseY ?? baseY) + delta * SECTION_Y_SPAN
-    : (caption.userData.baseY ?? baseY);
+  const y = baseY + delta * SECTION_Y_SPAN;
+  const captionY = (caption.userData.baseY ?? baseY) + delta * SECTION_Y_SPAN;
 
   image.userData.motionActive = true;
-  image.position.set(x, y + hoverLift, z + hoverDepth);
+  image.position.set(baseX, y + hoverLift, z + hoverDepth);
   image.scale.setScalar(scale * hoverScale);
   image.material.opacity = opacity;
 
-  caption.position.set(x, captionY, z);
+  caption.position.set(baseX, captionY, z);
   caption.scale.setScalar(scale);
   caption.fillOpacity = opacity;
 }
@@ -2395,18 +2408,14 @@ function updateSectionMotion(stopFloat) {
     setSocialCubesVisible,
   );
 
-  const firstCommitteeStop = getCommitteeGroupStop(0);
-
   committeeMembers.forEach((member) => {
     const page = getCommitteeGroupStop(member.groupIndex);
 
     if (page < 0) return;
 
-    // Entering/leaving the committee section moves with the text; moving
-    // between committee groups slides sideways so the text stays put.
-    const vertical = page === firstCommitteeStop && stopFloat < page;
-
-    applyCommitteeMemberMotion(member, stopFloat - page, vertical);
+    // Committee years scroll vertically like every other section; crossing a
+    // stop lifts the current group away while the next comes up from below.
+    applyCommitteeMemberMotion(member, stopFloat - page);
   });
 }
 
@@ -2422,7 +2431,7 @@ function setActiveStop(index, force = false) {
   currentIndex = stop.sectionIndex;
   updateStatus();
   applyStopVisibility(stop);
-  updateYearRail();
+  updateCommitteeHeading();
 }
 
 function updateModelScroll(stopFloat) {
@@ -2596,9 +2605,13 @@ function applyTextMeshLayout(textMesh, section) {
 
 function applySectionTextLayout() {
   const layout = getViewportLayout();
+  const committeeTitleScale = layout.narrow ? 0.8 : layout.tablet ? 0.9 : 1;
 
   sectionTexts.forEach((textMesh, index) => {
-    textMesh.fontSize = layout.titleFontSize;
+    textMesh.fontSize =
+      index === COMMITTEE_SECTION_INDEX
+        ? layout.titleFontSize * committeeTitleScale
+        : layout.titleFontSize;
     applyTextMeshLayout(
       textMesh,
       getResponsiveSection(TEXT_SECTIONS[index], index, false),
@@ -3000,48 +3013,23 @@ function setupJoinAccessibleInteraction() {
   });
 }
 
-function getCommitteeMemberPosition(group, rowIndex, colIndex, indexInGroup) {
+function getCommitteeGridCell(indexInGroup) {
+  return {
+    rowIndex: Math.floor(indexInGroup / COMMITTEE_GRID_COLUMNS),
+    colIndex: indexInGroup % COMMITTEE_GRID_COLUMNS,
+  };
+}
+
+function getCommitteeMemberPosition(indexInGroup) {
   const layout = getViewportLayout();
-  const rowLength = group.rows[rowIndex].length;
-  let xOffset;
-  let y;
-
-  if (layout.committeeMobileRows && group.kind === "exec") {
-    let row = 0;
-    let firstIndex = 0;
-
-    while (
-      row < layout.committeeMobileRows.length - 1 &&
-      indexInGroup >= firstIndex + layout.committeeMobileRows[row]
-    ) {
-      firstIndex += layout.committeeMobileRows[row];
-      row += 1;
-    }
-
-    const rowLengthForIndex = layout.committeeMobileRows[row];
-    const col = indexInGroup - firstIndex;
-
-    xOffset =
-      (col - (rowLengthForIndex - 1) / 2) * layout.committeeImageSpacing;
-    y = layout.committeeBaseY - row * layout.committeeRowSpacing;
-  } else if (layout.compact && group.kind === "general") {
-    const perRow = 3;
-    const total = group.rows[0].length;
-    const row = Math.floor(indexInGroup / perRow);
-    const rowLengthForIndex = Math.min(perRow, total - row * perRow);
-    const col = indexInGroup - row * perRow;
-
-    xOffset =
-      (col - (rowLengthForIndex - 1) / 2) * layout.committeeImageSpacing;
-    y = layout.committeeBaseY - row * layout.committeeRowSpacing;
-  } else {
-    xOffset = (colIndex - (rowLength - 1) / 2) * layout.committeeImageSpacing;
-    y = layout.committeeBaseY - rowIndex * layout.committeeRowSpacing;
-  }
+  const { rowIndex, colIndex } = getCommitteeGridCell(indexInGroup);
 
   return {
-    x: COMMITTEE_BASE_POSITION.x + xOffset,
-    y,
+    x:
+      COMMITTEE_BASE_POSITION.x +
+      (colIndex - (COMMITTEE_GRID_COLUMNS - 1) / 2) *
+        layout.committeeImageSpacing,
+    y: layout.committeeBaseY - rowIndex * layout.committeeRowSpacing,
     z: COMMITTEE_BASE_POSITION.z,
   };
 }
@@ -3053,7 +3041,7 @@ function createCommitteeCaption(title, position, imageHeight) {
   caption.text = committeeCaptionLabel(title);
   caption.font = DESCRIPTION_FONT;
   caption.fontSize = layout.committeeCaptionFontSize;
-  caption.maxWidth = layout.committeeImageSpacing * 0.92;
+  caption.maxWidth = layout.committeeImageSpacing * 0.95;
   caption.color = 0xffffff;
   caption.anchorX = "center";
   caption.anchorY = "top";
@@ -3075,77 +3063,74 @@ function createCommitteeMembers() {
   let memberIndex = 0;
 
   COMMITTEE_GROUPS.forEach((group, groupIndex) => {
-    let indexInGroup = 0;
+    const groupMembers = group.rows.flat();
 
-    group.rows.forEach((row, rowIndex) => {
-      row.forEach((config, colIndex) => {
-        const position = getCommitteeMemberPosition(
-          group,
-          rowIndex,
-          colIndex,
-          indexInGroup,
-        );
-        const material = createRoundedImageMaterial();
-        const image = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+    groupMembers.forEach((config, indexInGroup) => {
+      const { rowIndex, colIndex } = getCommitteeGridCell(indexInGroup);
+      const rowLength = Math.min(
+        COMMITTEE_GRID_COLUMNS,
+        groupMembers.length - rowIndex * COMMITTEE_GRID_COLUMNS,
+      );
+      const position = getCommitteeMemberPosition(indexInGroup);
+      const material = createRoundedImageMaterial();
+      const image = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
 
-        image.position.set(position.x, position.y, position.z);
-        image.userData.baseX = position.x;
-        image.userData.url = config.url;
-        image.userData.name = config.name;
-        image.userData.title = config.title;
-        image.userData.image = config.image;
-        image.userData.accentColor = config.accentColor;
-        image.userData.pathVariant = config.pathVariant;
-        image.userData.roleSlug = config.roleSlug;
-        image.userData.memberIndex = memberIndex;
-        image.userData.texturePath = config.image;
-        image.userData.groupIndex = groupIndex;
-        image.userData.layout = {
-          rowIndex,
-          colIndex,
-          rowLength: row.length,
-          memberIndex,
-        };
-        image.userData.baseY = position.y;
-        image.userData.hoverAmount = 0;
-        image.visible = false;
-        addToSection(COMMITTEE_SECTION_INDEX, image);
+      image.position.set(position.x, position.y, position.z);
+      image.userData.baseX = position.x;
+      image.userData.url = config.url;
+      image.userData.name = config.name;
+      image.userData.title = config.title;
+      image.userData.image = config.image;
+      image.userData.accentColor = config.accentColor;
+      image.userData.pathVariant = config.pathVariant;
+      image.userData.roleSlug = config.roleSlug;
+      image.userData.memberIndex = memberIndex;
+      image.userData.texturePath = config.image;
+      image.userData.groupIndex = groupIndex;
+      image.userData.layout = {
+        rowIndex,
+        colIndex,
+        rowLength,
+        memberIndex,
+      };
+      image.userData.baseY = position.y;
+      image.userData.hoverAmount = 0;
+      image.visible = false;
+      addToSection(COMMITTEE_SECTION_INDEX, image);
 
-        const caption = createCommitteeCaption(
-          config.title,
-          position,
-          getViewportLayout().committeeImageHeight,
-        );
-        caption.userData.layout = image.userData.layout;
-        caption.userData.baseColor = 0xffffff;
-        image.userData.caption = caption;
+      const caption = createCommitteeCaption(
+        config.title,
+        position,
+        getViewportLayout().committeeImageHeight,
+      );
+      caption.userData.layout = image.userData.layout;
+      caption.userData.baseColor = 0xffffff;
+      image.userData.caption = caption;
 
-        members.push({
-          image,
-          caption,
-          url: config.url,
-          name: config.name,
-          title: config.title,
-          slugline: config.slugline,
-          shortBio: config.shortBio,
-          body: config.body,
-          accentColor: config.accentColor,
-          pathVariant: config.pathVariant,
-          roleSlug: config.roleSlug,
-          sourceImage: config.image,
-          photoFocus: config.photoFocus,
-          photoWidth: config.photoWidth,
-          photoHeight: config.photoHeight,
-          groupIndex,
-          indexInGroup,
-          rowIndex,
-          colIndex,
-          rowLength: row.length,
-          memberIndex,
-        });
-        memberIndex += 1;
-        indexInGroup += 1;
+      members.push({
+        image,
+        caption,
+        url: config.url,
+        name: config.name,
+        title: config.title,
+        slugline: config.slugline,
+        shortBio: config.shortBio,
+        body: config.body,
+        accentColor: config.accentColor,
+        pathVariant: config.pathVariant,
+        roleSlug: config.roleSlug,
+        sourceImage: config.image,
+        photoFocus: config.photoFocus,
+        photoWidth: config.photoWidth,
+        photoHeight: config.photoHeight,
+        groupIndex,
+        indexInGroup,
+        rowIndex,
+        colIndex,
+        rowLength,
+        memberIndex,
       });
+      memberIndex += 1;
     });
   });
 
@@ -3153,26 +3138,16 @@ function createCommitteeMembers() {
 }
 
 function committeeCaptionLabel(title = "") {
-  const layout = getViewportLayout();
+  const label = title.replace(/\s+Director$/i, "").trim();
 
-  if (!layout.compact) return title;
-
-  return title.replace(/\s+Director$/i, "").trim() || title;
+  return label || title;
 }
 
 function applyCommitteeLayout() {
   const layout = getViewportLayout();
 
   committeeMembers.forEach((member) => {
-    const group = COMMITTEE_GROUPS[member.groupIndex];
-    if (!group) return;
-
-    const position = getCommitteeMemberPosition(
-      group,
-      member.rowIndex,
-      member.colIndex,
-      member.indexInGroup,
-    );
+    const position = getCommitteeMemberPosition(member.indexInGroup);
 
     const captionY =
       position.y - layout.committeeImageHeight / 2 - COMMITTEE_CAPTION_GAP;
@@ -3184,7 +3159,7 @@ function applyCommitteeLayout() {
       layout.committeeImageHeight,
       layout.committeeImageSpacing,
       layout.committeeCaptionFontSize,
-      layout.compact,
+      layout.committeeRowSpacing,
     ].join("|");
 
     if (member.image.userData.committeeLayoutKey === layoutKey) return;
@@ -3201,7 +3176,7 @@ function applyCommitteeLayout() {
     }
 
     member.caption.fontSize = layout.committeeCaptionFontSize;
-    member.caption.maxWidth = layout.committeeImageSpacing * 0.92;
+    member.caption.maxWidth = layout.committeeImageSpacing * 0.95;
     member.caption.userData.baseY = captionY;
     member.caption.position.set(position.x, captionY, position.z);
     member.caption.sync();
@@ -3611,15 +3586,29 @@ function createSocialCubes() {
 function exposeCommitteeTestState() {
   if (!window.Cypress) return;
 
+  window.__uqrlCommitteeGroups = () =>
+    COMMITTEE_GROUPS.map((group, index) => ({
+      index,
+      year: group.year,
+      kind: group.kind,
+      count: group.rows.flat().length,
+    }));
+
   window.__uqrlCommitteeMembers = () =>
     committeeMembers
       .filter((member) => member.image.visible)
       .map((member) => {
         const bounds = getObjectScreenBounds(member.image);
+        const captionBounds = getObjectScreenBounds(member.caption);
         return {
           index: member.memberIndex,
           name: member.name,
           groupIndex: member.groupIndex,
+          indexInGroup: member.indexInGroup,
+          rowIndex: member.rowIndex,
+          colIndex: member.colIndex,
+          rowLength: member.rowLength,
+          caption: member.caption.text,
           hovered: member.image === hoveredCommitteeImage,
           scale: member.image.scale.x,
           center: bounds.center,
@@ -3628,6 +3617,12 @@ function exposeCommitteeTestState() {
             right: bounds.right,
             top: bounds.top,
             bottom: bounds.bottom,
+          },
+          captionBounds: {
+            left: captionBounds.left,
+            right: captionBounds.right,
+            top: captionBounds.top,
+            bottom: captionBounds.bottom,
           },
         };
       });
@@ -4236,7 +4231,6 @@ async function init() {
   committeeMembers = createCommitteeMembers();
   ensureSocialCubes();
   setupNavbar();
-  buildYearRail();
   setupMemberPopup();
   applyResponsiveLayout();
   exposeSocialMaterialTestState();

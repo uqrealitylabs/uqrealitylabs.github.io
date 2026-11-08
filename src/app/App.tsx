@@ -97,7 +97,6 @@ export function App() {
             sceneLabel: t(locale, "scene.label"),
             closeProfile: t(locale, "profile.close"),
             linkedIn: t(locale, "profile.linkedin"),
-            years: t(locale, "committee.years"),
           }}
         />
       </div>

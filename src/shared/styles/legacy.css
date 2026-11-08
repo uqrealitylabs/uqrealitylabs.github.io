@@ -65,56 +65,6 @@ body {
   pointer-events: none;
 }
 
-#year-rail {
-  position: fixed;
-  top: 50%;
-  right: calc(var(--safe-right) + clamp(0.35rem, 1.6vw, 0.9rem));
-  z-index: 30;
-  display: none;
-  flex-direction: column;
-  gap: 0.28rem;
-  padding: 0.32rem;
-  border: 2px solid rgba(255, 243, 210, 0.44);
-  border-radius: 999px;
-  background: rgba(15, 17, 24, 0.74);
-  box-shadow: 0 0.7rem 1.5rem rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(9px) saturate(122%);
-  -webkit-backdrop-filter: blur(9px) saturate(122%);
-  transform: translateY(-50%);
-  transition: opacity 0.15s ease;
-}
-
-body[data-on-committee="true"] #year-rail {
-  display: flex;
-}
-
-#year-rail button {
-  min-width: 2.35rem;
-  padding: 0.32rem 0.4rem;
-  border: 1px solid rgba(255, 243, 210, 0.22);
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(255, 243, 210, 0.72);
-  font: 700 0.78rem / 1 "Pixelify Sans", system-ui, sans-serif;
-  cursor: pointer;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease;
-}
-
-#year-rail button:hover,
-#year-rail button:focus-visible {
-  border-color: var(--year-active);
-  color: #fff3d2;
-}
-
-#year-rail button.is-active {
-  border-color: var(--year-active);
-  background: var(--year-active);
-  color: #141620;
-}
-
 #navbar {
   position: fixed;
   top: calc(var(--safe-top) + 0.65rem);
@@ -474,11 +424,6 @@ body[data-on-committee="true"] #year-rail {
 }
 
 @media (max-width: 480px) {
-  /* Sit the year rail in the gap between the description and the grid. */
-  #year-rail {
-    top: 40%;
-  }
-
   .nav-logo img {
     height: 1.46rem;
   }

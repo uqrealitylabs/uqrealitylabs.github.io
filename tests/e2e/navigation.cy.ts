@@ -77,13 +77,28 @@ describe("navigation shell", () => {
     cy.get("body").should("have.attr", "data-on-committee", "true");
   });
 
-  it("navigates committee years from the side rail", () => {
-    cy.get("#year-rail button").should("have.length", years.length);
-    cy.get("#year-rail button").contains(String(years[0])).click();
+  it("titles the committee heading with the active year", () => {
+    cy.contains("#nav-links button", committee.nav.label).click();
     cy.get("body").should("have.attr", "data-committee-year", String(years[0]));
+    cy.window().should((win) => {
+      const readTitles = (
+        win as unknown as {
+          __uqrlSectionTextBounds?: () => { title: string }[];
+        }
+      ).__uqrlSectionTextBounds;
+      expect(readTitles?.()[4].title).to.eq(`${years[0]} Committee`);
+    });
 
-    cy.get("#year-rail button").contains(String(years[1])).click();
-    cy.get("body").should("have.attr", "data-committee-year", String(years[1]));
+    cy.window().then((win) => {
+      const track = win.document.querySelector<HTMLElement>("#scroll-track");
+      const stops = Math.round((track?.offsetHeight ?? 0) / win.innerHeight);
+      win.scrollTo(0, (stops - 1) * win.innerHeight);
+    });
+    cy.get("body").should(
+      "have.attr",
+      "data-committee-year",
+      String(years[years.length - 1]),
+    );
   });
 
   it("scrolls natively between sections", () => {
