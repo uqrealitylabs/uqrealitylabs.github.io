@@ -73,13 +73,13 @@ jobs:
       - name: Start preview server
         run: |
           set -euo pipefail
-          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/rsbuild-preview.log 2>&1 &
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/preview.log 2>&1 &
           preview_pid=$!
           echo "PREVIEW_PID=$preview_pid" >> "$GITHUB_ENV"
 
           for attempt in {1..30}; do
             if ! kill -0 "$preview_pid" 2>/dev/null; then
-              cat /tmp/rsbuild-preview.log
+              cat /tmp/preview.log
               exit 1
             fi
             if curl --fail --silent http://127.0.0.1:4173/ > /dev/null 2>&1; then
@@ -88,7 +88,7 @@ jobs:
             sleep 1
           done
 
-          cat /tmp/rsbuild-preview.log
+          cat /tmp/preview.log
           exit 1
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@3e7e23fb74242897f95c0ba9cabad3d0227b9b18 # 12.6.2

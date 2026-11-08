@@ -1,6 +1,6 @@
 @font-face {
   font-family: "Pixelify Sans";
-  src: url("../../../public/Assets/fonts/PixelifySans/PixelifySans-VariableFont_wght.ttf")
+  src: url("/Assets/fonts/PixelifySans/PixelifySans-VariableFont_wght.ttf")
     format("truetype");
   font-weight: 400;
   font-style: normal;
@@ -81,10 +81,16 @@ body {
   backdrop-filter: blur(9px) saturate(122%);
   -webkit-backdrop-filter: blur(9px) saturate(122%);
   transform: translateY(-50%);
+  transition: opacity 0.15s ease;
 }
 
 body[data-on-committee="true"] #year-rail {
   display: flex;
+}
+
+body[data-on-committee="true"][data-committee-transition="true"] #year-rail {
+  opacity: 0;
+  pointer-events: none;
 }
 
 #year-rail button {
@@ -504,7 +510,7 @@ body[data-on-committee="true"] #year-rail {
   }
 
   .nav-links button.is-active span {
-    max-width: 3.7rem;
+    max-width: 4.2rem;
   }
 }
 

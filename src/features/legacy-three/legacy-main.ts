@@ -6,6 +6,7 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Text } from "troika-three-text";
 import { getPageContent, getSiteContent } from "../../content/contentRegistry";
+import { BLOG_LINK, PROSPECTUS_LINK } from "../../shared/links";
 import {
   getSocialMaterialConfig,
   getSocialMaterialKind,
@@ -46,6 +47,10 @@ const DESCRIPTION_Y_OFFSET = -5;
 const DESCRIPTION_FONT_SIZE = 1.12;
 const COMPACT_VIEWPORT_WIDTH = 860;
 const SHORT_VIEWPORT_HEIGHT = 680;
+// Mobile-only tightening: descriptions sit closer to their titles and render
+// smaller, along with the committee avatars and sponsor logo.
+const COMPACT_DESCRIPTION_SCALE = 0.75;
+const COMPACT_ICON_SCALE = 0.75;
 const POINTER_IDLE_MS = 1200;
 const POINTER_DAMPING = 0.12;
 const REDUCED_POINTER_DAMPING = 0.025;
@@ -214,8 +219,11 @@ let TABS = [];
 let SECTION_INDEX = {};
 let ABOUT_SECTION_INDEX = 0;
 const RUBRIC_IMAGE_PATH = `${ASSET_BASE}Assets/images/rubric.png`;
-const ABOUT_IMAGE_Y_OFFSET = -5;
+const PROSPECTUS_IMAGE_PATH = `${ASSET_BASE}Assets/images/prospectus.jpg`;
+const BLOG_IMAGE_PATH = `${ASSET_BASE}Assets/images/blog.png`;
+const ABOUT_IMAGE_Y_OFFSET = -2;
 const ABOUT_IMAGE_HEIGHT = 5.2;
+const ABOUT_ICON_GAP = 0.7;
 let JOIN_LINK = "";
 let JOIN_LABEL = "";
 const NUAXION_LOGO_PATH = `${ASSET_BASE}Assets/images/nuaxion_logo.avif`;
@@ -538,6 +546,7 @@ let sectionGroups = [];
 let socialCubes = [];
 let sponsorImage = null;
 let aboutJoinImage = null;
+let aboutActionIcons = [];
 let committeeMembers = [];
 let hoveredCommitteeImage = null;
 let cachedViewportLayout = null;
@@ -782,7 +791,7 @@ function applyPointerMotion() {
     }
   }
 
-  for (const mesh of [aboutJoinImage]) {
+  for (const mesh of aboutActionIcons) {
     if (mesh?.visible) {
       mesh.rotation.set(tiltX * 0.5, tiltY * 0.5, mesh.userData.tiltZ || 0);
     }
@@ -832,6 +841,7 @@ function getViewportLayout() {
   const textPlane = planeMetrics(compactTextZ);
   const committeePlane = planeMetrics(-25);
   const socialPlane = planeMetrics(-20);
+  const aboutPlane = planeMetrics(ABOUT_IMAGE_POS.z);
 
   cachedViewportLayout = {
     narrow,
@@ -851,9 +861,9 @@ function getViewportLayout() {
             ? 1.9
             : TEXT_FONT_SIZE,
     descriptionFontSize: narrow
-      ? 0.98
+      ? 0.98 * COMPACT_DESCRIPTION_SCALE
       : compact
-        ? 1.04
+        ? 1.04 * COMPACT_DESCRIPTION_SCALE
         : short
           ? 1
           : DESCRIPTION_FONT_SIZE,
@@ -868,17 +878,20 @@ function getViewportLayout() {
             : 36,
     compactTextZ,
     compactTitleY: textPlane.centerY + textPlane.halfHeight * 0.665,
-    compactDescriptionY: textPlane.centerY + textPlane.halfHeight * 0.27,
+    compactDescriptionY: textPlane.centerY + textPlane.halfHeight * 0.5,
     compactHomeDescriptionY: textPlane.centerY - textPlane.halfHeight * 0.24,
-    sponsorImageHeight: compact ? 3.5 : SPONSOR_IMAGE_HEIGHT,
+    sponsorImageHeight: compact
+      ? 3.5 * COMPACT_ICON_SCALE
+      : SPONSOR_IMAGE_HEIGHT,
     sponsorImageY: compact
-      ? -0.8
+      ? 1.5
       : SPONSOR_IMAGE_POS.y + SPONSOR_IMAGE_Y_OFFSET,
     aboutImageHeight: narrow ? 2.7 : compact ? 3.2 : ABOUT_IMAGE_HEIGHT,
+    aboutRowMaxWidth: aboutPlane.halfWidth * 1.8,
     aboutImageY: narrow
-      ? -8.4
+      ? -0.5
       : compact
-        ? -6.9
+        ? -3
         : ABOUT_IMAGE_POS.y + ABOUT_IMAGE_Y_OFFSET,
     socialCubeSpacing: narrow
       ? 2.7
@@ -896,9 +909,9 @@ function getViewportLayout() {
     socialCardWidth: narrow ? 2.7 : compact ? 3.05 : 3.25,
     socialCardHeight: narrow ? 2.7 : compact ? 3.05 : 3.25,
     committeeImageHeight: narrow
-      ? 2.4
+      ? 2.4 * COMPACT_ICON_SCALE
       : compact
-        ? 3.35
+        ? 3.35 * COMPACT_ICON_SCALE
         : tablet
           ? 4.8
           : wide
@@ -927,7 +940,7 @@ function getViewportLayout() {
       : compact
         ? 0.7
         : COMMITTEE_CAPTION_FONT_SIZE,
-    committeeBaseY: narrow ? -1.5 : compact ? -1 : COMMITTEE_BASE_POSITION.y,
+    committeeBaseY: narrow ? 2.5 : compact ? 3 : COMMITTEE_BASE_POSITION.y,
     committeeMobileRows: narrow ? [3, 4] : compact ? [3, 4] : null,
     committeeSlideSpan: compact
       ? committeePlane.halfWidth * 1.8
@@ -936,13 +949,13 @@ function getViewportLayout() {
 
   if (landscape) {
     cachedViewportLayout.titleFontSize = 1.08;
-    cachedViewportLayout.descriptionFontSize = 0.78;
+    cachedViewportLayout.descriptionFontSize = 0.78 * COMPACT_DESCRIPTION_SCALE;
     cachedViewportLayout.textMaxWidth = 16;
     cachedViewportLayout.aboutImageHeight = 3.8;
-    cachedViewportLayout.sponsorImageHeight = 3;
+    cachedViewportLayout.sponsorImageHeight = 3 * COMPACT_ICON_SCALE;
     cachedViewportLayout.socialCardWidth = 3;
     cachedViewportLayout.socialCardHeight = 3;
-    cachedViewportLayout.committeeImageHeight = 3.7;
+    cachedViewportLayout.committeeImageHeight = 3.7 * COMPACT_ICON_SCALE;
     cachedViewportLayout.committeeImageSpacing = 5.35;
     cachedViewportLayout.committeeRowSpacing = 4.8;
     cachedViewportLayout.committeeCaptionFontSize = 0.62;
@@ -2408,6 +2421,12 @@ function updateScrollPosition() {
     setActiveStop(stopIndex);
   }
 
+  const committeeTransition =
+    Math.abs(stopFloat - stopIndex) > 0.01 ? "true" : "false";
+  if (document.body.dataset.committeeTransition !== committeeTransition) {
+    document.body.dataset.committeeTransition = committeeTransition;
+  }
+
   updateSectionMotion(stopFloat);
 }
 
@@ -2600,17 +2619,43 @@ function applySponsorImageLayout() {
 }
 
 function applyAboutJoinImageLayout() {
-  if (!aboutJoinImage) return;
+  if (aboutActionIcons.length === 0) return;
 
   const layout = getViewportLayout();
-  aboutJoinImage.position.set(
-    ABOUT_IMAGE_POS.x,
-    layout.aboutImageY,
-    ABOUT_IMAGE_POS.z,
-  );
-  aboutJoinImage.userData.baseX = ABOUT_IMAGE_POS.x;
-  aboutJoinImage.userData.baseY = layout.aboutImageY;
-  resizePlane(aboutJoinImage, layout.aboutImageHeight);
+  const aspects = aboutActionIcons.map((icon) => icon.userData.aspect ?? 1);
+  const gap = ABOUT_ICON_GAP;
+  const unitWidth = aspects.reduce((total, aspect) => total + aspect, 0);
+  const maxHeight =
+    (layout.aboutRowMaxWidth - gap * (aspects.length - 1)) / unitWidth;
+  const height = Math.max(1.2, Math.min(layout.aboutImageHeight, maxHeight));
+  const totalWidth = unitWidth * height + gap * (aspects.length - 1);
+  let cursor = -totalWidth / 2;
+
+  aboutActionIcons.forEach((icon, index) => {
+    const width = aspects[index] * height;
+    const x = cursor + width / 2;
+    cursor += width + gap;
+
+    icon.position.set(x, layout.aboutImageY, ABOUT_IMAGE_POS.z);
+    icon.userData.baseX = x;
+    icon.userData.baseY = layout.aboutImageY;
+    resizePlane(icon, height);
+
+    const underline = icon.userData.underline;
+    const caption = icon.userData.caption;
+
+    if (underline) {
+      underline.geometry.dispose();
+      underline.geometry = new THREE.PlaneGeometry(width * 0.56, 0.055);
+      underline.position.set(0, -height / 2 - 0.28, 0.02);
+    }
+
+    if (caption) {
+      caption.fontSize = layout.narrow ? 0.5 : layout.compact ? 0.56 : 0.64;
+      caption.position.set(0, -height / 2 - 0.42, 0.03);
+      caption.sync();
+    }
+  });
 }
 
 function applyResponsiveLayout() {
@@ -2654,11 +2699,41 @@ function setSponsorVisible(visible) {
   sponsorImage.material.opacity = visible ? 1 : 0;
 }
 
-function createAboutJoinImage() {
+function createAboutCaption(label) {
+  const caption = new Text();
+
+  caption.text = label;
+  caption.font = DESCRIPTION_FONT;
+  caption.fontSize = 0.56;
+  caption.color = 0xffffff;
+  caption.anchorX = "center";
+  caption.anchorY = "top";
+  caption.textAlign = "center";
+  caption.renderOrder = 102;
+  caption.raycast = () => { };
+  caption.sync();
+  caption.material.depthTest = false;
+  caption.material.depthWrite = false;
+
+  return caption;
+}
+
+function createAboutActionIcon(path, url, label, accent) {
   const material = createRoundedImageMaterial();
   material.depthTest = false;
   material.depthWrite = false;
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+  const caption = createAboutCaption(label);
+  const underline = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 0.055),
+    new THREE.MeshBasicMaterial({
+      color: new THREE.Color(accent),
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+      depthTest: false,
+    }),
+  );
 
   mesh.position.set(
     ABOUT_IMAGE_POS.x,
@@ -2666,11 +2741,17 @@ function createAboutJoinImage() {
     ABOUT_IMAGE_POS.z,
   );
   mesh.renderOrder = 100;
-  mesh.userData.url = JOIN_LINK;
+  mesh.userData.url = url;
+  mesh.userData.aspect = 1;
+  mesh.userData.caption = caption;
+  mesh.userData.underline = underline;
   mesh.visible = false;
+  underline.renderOrder = 101;
+  mesh.add(underline);
+  mesh.add(caption);
   addToSection(ABOUT_SECTION_INDEX, mesh);
 
-  textureLoader.load(RUBRIC_IMAGE_PATH, (texture) => {
+  textureLoader.load(path, (texture) => {
     material.map = polishTexture(texture);
     material.needsUpdate = true;
 
@@ -2679,6 +2760,26 @@ function createAboutJoinImage() {
   });
 
   return mesh;
+}
+
+function createAboutActionIcons() {
+  aboutJoinImage = createAboutActionIcon(
+    RUBRIC_IMAGE_PATH,
+    JOIN_LINK,
+    "Join",
+    "#FF5757",
+  );
+  aboutActionIcons = [
+    aboutJoinImage,
+    createAboutActionIcon(
+      PROSPECTUS_IMAGE_PATH,
+      PROSPECTUS_LINK,
+      "Sponsor",
+      "#4EA8FF",
+    ),
+    createAboutActionIcon(BLOG_IMAGE_PATH, BLOG_LINK, "Blog", "#FFF3D2"),
+  ];
+  applyAboutJoinImageLayout();
 }
 
 function stopRubricsDance() {
@@ -2718,27 +2819,51 @@ function stopAboutJoinHover() {
 }
 
 function setAboutJoinVisible(visible) {
-  if (!aboutJoinImage) return;
+  if (aboutActionIcons.length === 0) return;
 
-  if (!visible) stopAboutJoinHover();
-  aboutJoinImage.visible = visible;
-  aboutJoinImage.material.opacity = visible ? 1 : 0;
+  if (!visible) {
+    aboutActionIcons.forEach((icon) => setAboutIconHovered(icon, false));
+    stopAboutJoinHover();
+  }
+  aboutActionIcons.forEach((icon) => {
+    icon.visible = visible;
+    icon.material.opacity = visible ? 1 : 0;
+  });
+}
+
+function setAboutIconHovered(icon, hovered) {
+  if (!icon || icon.userData.hovered === hovered) return;
+
+  icon.userData.hovered = hovered;
+  gsap.killTweensOf(icon.scale);
+  gsap.to(icon.scale, {
+    x: hovered ? 1.035 : 1,
+    y: hovered ? 1.035 : 1,
+    z: hovered ? 1.035 : 1,
+    duration: motionDuration(0.12),
+    ease: hovered ? "back.out(2)" : "power2.out",
+  });
 }
 
 function updateAboutJoinHover() {
   if (
     currentIndex !== ABOUT_SECTION_INDEX ||
     isAnimating ||
-    !aboutJoinImage?.visible
+    !aboutActionIcons.some((icon) => icon.visible)
   ) {
     return;
   }
 
   raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObject(aboutJoinImage);
-  setAboutJoinImageHovered(intersects.length > 0);
+  const visibleIcons = aboutActionIcons.filter((icon) => icon.visible);
+  const hit = raycaster.intersectObjects(visibleIcons)[0]?.object ?? null;
 
-  canvas.style.cursor = intersects.length > 0 ? "pointer" : "default";
+  setAboutJoinImageHovered(hit === aboutJoinImage);
+  aboutActionIcons.forEach((icon) => {
+    if (icon !== aboutJoinImage) setAboutIconHovered(icon, icon === hit);
+  });
+
+  canvas.style.cursor = hit ? "pointer" : "default";
 }
 
 function setAboutJoinImageHovered(hovered) {
@@ -2795,22 +2920,19 @@ function celebrateAndNavigateJoin(url) {
 
 function setupAboutJoinInteraction() {
   canvas.addEventListener("click", (event) => {
-    if (
-      currentIndex !== ABOUT_SECTION_INDEX ||
-      isAnimating ||
-      !aboutJoinImage?.visible
-    ) {
-      return;
-    }
+    if (currentIndex !== ABOUT_SECTION_INDEX || isAnimating) return;
 
     updatePointerFromEvent(event);
 
     raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObject(aboutJoinImage);
+    const hit = raycaster.intersectObjects(
+      aboutActionIcons.filter((icon) => icon.visible),
+    )[0]?.object;
 
-    if (intersects.length > 0) {
-      celebrateAndNavigateJoin(aboutJoinImage.userData.url);
-    }
+    if (!hit) return;
+
+    if (hit === aboutJoinImage) celebrateAndNavigateJoin(hit.userData.url);
+    else navigateJoinTarget(hit.userData.url);
   });
 }
 
@@ -2841,6 +2963,8 @@ function setupJoinAccessibleInteraction() {
 function getCommitteeMemberPosition(group, rowIndex, colIndex, indexInGroup) {
   const layout = getViewportLayout();
   const rowLength = group.rows[rowIndex].length;
+  // Keep the 3-up rows clear of the fixed year rail on phones.
+  const railClearance = layout.narrow && rowLength <= 3 ? -0.8 : 0;
   let xOffset;
   let y;
 
@@ -2876,6 +3000,8 @@ function getCommitteeMemberPosition(group, rowIndex, colIndex, indexInGroup) {
     xOffset = (colIndex - (rowLength - 1) / 2) * layout.committeeImageSpacing;
     y = layout.committeeBaseY - rowIndex * layout.committeeRowSpacing;
   }
+
+  xOffset += railClearance;
 
   return {
     x: COMMITTEE_BASE_POSITION.x + xOffset,
@@ -3739,6 +3865,9 @@ function clearCanvasPointerHover() {
   if (aboutJoinImage?.userData.hovered) {
     setAboutJoinImageHovered(false);
   }
+  aboutActionIcons.forEach((icon) => {
+    if (icon !== aboutJoinImage) setAboutIconHovered(icon, false);
+  });
 
   socialCubes.forEach((cube) => {
     if (cube.userData.hovered) resetSocialCubeHover(cube);
@@ -4028,7 +4157,7 @@ async function init() {
   createSectionGroups();
   initSectionTexts();
   sponsorImage = createSponsorImage();
-  aboutJoinImage = createAboutJoinImage();
+  createAboutActionIcons();
   committeeMembers = createCommitteeMembers();
   ensureSocialCubes();
   setupNavbar();

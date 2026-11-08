@@ -17,6 +17,9 @@ const messages: Record<Locale, Messages> = {
     "profile.close": "Close profile",
     "profile.linkedin": "View LinkedIn profile",
     "committee.years": "Committee years",
+    "about.links": "About links",
+    "about.prospectus": "Prospectus",
+    "about.blog": "Blog",
     "loading.scene": "Loading...",
   },
   es: {
@@ -28,6 +31,9 @@ const messages: Record<Locale, Messages> = {
     "profile.close": "Cerrar perfil",
     "profile.linkedin": "Ver perfil de LinkedIn",
     "committee.years": "Años del comité",
+    "about.links": "Enlaces de información",
+    "about.prospectus": "Prospecto",
+    "about.blog": "Blog",
     "loading.scene": "Cargando...",
   },
 };
