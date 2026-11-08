@@ -479,6 +479,11 @@ body[data-on-committee="true"][data-committee-transition="true"] #year-rail {
 }
 
 @media (max-width: 480px) {
+  /* Sit the year rail in the gap between the description and the grid. */
+  #year-rail {
+    top: 40%;
+  }
+
   .nav-logo img {
     height: 1.46rem;
   }
