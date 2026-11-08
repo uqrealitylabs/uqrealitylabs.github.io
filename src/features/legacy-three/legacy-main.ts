@@ -2128,8 +2128,14 @@ function firstStopForSection(sectionIndex) {
 function scrollToStop(index, smooth = true) {
   if (!scrollStops.length) return;
 
-  const top = Math.max(0, Math.min(index, scrollStops.length - 1)) *
+  const requestedTop =
+    Math.max(0, Math.min(index, scrollStops.length - 1)) *
     stableViewportHeight;
+  const maxTop = Math.max(
+    document.documentElement.scrollHeight - window.innerHeight,
+    0,
+  );
+  const top = Math.min(requestedTop, maxTop);
 
   window.scrollTo({
     top,
@@ -2406,8 +2412,14 @@ function updateModelScroll(stopFloat) {
 function updateScrollPosition() {
   if (!modelGroup || !entranceComplete) return;
 
+  // A hidden mobile address bar grows innerHeight past the pinned height. Use
+  // the larger value so the last stop is still reachable at the page bottom.
+  const scrollViewportHeight = Math.max(
+    stableViewportHeight,
+    window.innerHeight,
+  );
   const maxScroll = scrollTrack
-    ? Math.max(scrollTrack.offsetHeight - stableViewportHeight, 0)
+    ? Math.max(scrollTrack.offsetHeight - scrollViewportHeight, 0)
     : 0;
   const progress = maxScroll > 0 ? clamp01(window.scrollY / maxScroll) : 0;
   const stopFloat = progress * (scrollStops.length - 1);
