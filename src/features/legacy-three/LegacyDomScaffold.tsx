@@ -1,8 +1,13 @@
+import { BLOG_LINK, PROSPECTUS_LINK } from "../../shared/links";
+
 type LegacyLabels = {
   mainNav: string;
   joinFallback: string;
   logoAlt: string;
   socialLinks: string;
+  aboutLinks: string;
+  prospectus: string;
+  blog: string;
   sceneLabel: string;
   closeProfile: string;
   linkedIn: string;
@@ -14,7 +19,7 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
     <>
       <nav id="navbar" aria-label={labels.mainNav}>
         <a href="/" className="nav-logo" data-section="0">
-          <img id="nav-logo-img" src="" alt={labels.logoAlt} />
+          <img id="nav-logo-img" alt={labels.logoAlt} />
         </a>
         <div id="nav-links" className="nav-links" />
       </nav>
@@ -27,6 +32,16 @@ export function LegacyDomScaffold({ labels }: { labels: LegacyLabels }) {
       >
         {labels.joinFallback}
       </a>
+      <nav
+        id="about-accessible-links"
+        className="sr-only focus-within:not-sr-only"
+        aria-label={labels.aboutLinks}
+      >
+        <a href={PROSPECTUS_LINK} target="_blank" rel="noopener noreferrer">
+          {labels.prospectus}
+        </a>{" "}
+        <a href={BLOG_LINK}>{labels.blog}</a>
+      </nav>
       <nav
         id="social-accessible-links"
         className="sr-only focus-within:not-sr-only"

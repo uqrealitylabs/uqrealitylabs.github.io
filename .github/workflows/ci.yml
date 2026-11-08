@@ -89,13 +89,13 @@ jobs:
       - name: Run Cypress E2E against preview
         run: |
           set -euo pipefail
-          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/rsbuild-preview.log 2>&1 &
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/preview.log 2>&1 &
           preview_pid=$!
           trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
 
           for attempt in {1..30}; do
             if ! kill -0 "$preview_pid" 2>/dev/null; then
-              cat /tmp/rsbuild-preview.log
+              cat /tmp/preview.log
               exit 1
             fi
             if curl --fail --silent http://127.0.0.1:4173/ > /dev/null 2>&1; then
@@ -105,7 +105,7 @@ jobs:
             sleep 1
           done
 
-          cat /tmp/rsbuild-preview.log
+          cat /tmp/preview.log
           exit 1
       - name: Upload Cypress failure artifacts
         if: failure()

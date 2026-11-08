@@ -4,7 +4,6 @@ import { extname, join, relative } from "node:path";
 const forbidden = new Set([".js", ".jsx", ".mjs", ".cjs"]);
 const ignored = new Set([
   ".git",
-  ".rsbuild",
   ".turbo",
   ".vite",
   "build",
@@ -14,6 +13,8 @@ const ignored = new Set([
   "dist",
   "node_modules",
   "out",
+  "playwright-report",
+  "test-results",
 ]);
 
 function isIgnored(path: string) {

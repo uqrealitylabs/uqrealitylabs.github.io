@@ -10,6 +10,7 @@ node_modules/
 cypress/screenshots/
 cypress/videos/
 /test-results
+/playwright-report
 /out
 # production
 /build

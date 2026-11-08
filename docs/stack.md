@@ -7,7 +7,7 @@ Live page content moved from markdown files to locale-scoped JSON. First-party s
 ## Current stack
 
 - Runtime: React 19, TypeScript, Zustand for coarse UI state, Motion for the loader, Tailwind CSS v4.
-- Build: Rsbuild/Rspack/SWC and Lightning CSS through Rsbuild. Rsdoctor is installed, but the current plugin invocation holds the process open locally, so CI uses deterministic bundle metrics instead.
+- Build: Vite 8 (Rolldown) with the React and Tailwind v4 plugins. CI uses deterministic bundle metrics for budgets.
 - 3D: the existing vanilla Three scene is lazy-loaded. R3F/Drei/postprocessing remain target-stack dependencies but are not imported by the initial shell.
 - Tests: Vitest unit/data tests and Cypress specs. No Playwright.
 - Package manager: npm with `package-lock.json`. `pnpm`/Corepack are unavailable in this environment.
@@ -16,8 +16,8 @@ Live page content moved from markdown files to locale-scoped JSON. First-party s
 
 - No visual framework, Redux, Anime.js, Rapier, MDX, markdown parser, CMS, or runtime sanitizer.
 - Runtime deps are feature-owned: React shell, Zustand coarse state, Motion loader, Three/GSAP/Troika lazy legacy scene, R3F/Drei/postprocessing target visual stack.
-- Dev deps are build/test/analysis only: Rsbuild, TypeScript, Tailwind, Biome, Vitest, Cypress, Vite for Cypress component bundling only, Rsdoctor, glTF tooling.
-- CI follow-up dependency: Vite is explicit because Cypress component testing uses its Vite dev server; it is not the app build tool. LHCI was not added because its CLI currently pulls vulnerable transitive dependencies.
+- Dev deps are build/test/analysis only: Vite, the React and Tailwind Vite plugins, TypeScript, Biome, Vitest, Cypress, glTF tooling.
+- Vite is the app build tool and also backs Cypress component testing and Vitest. LHCI was not added because its CLI currently pulls vulnerable transitive dependencies.
 
 ## No-JS policy
 
@@ -127,7 +127,7 @@ GitHub Actions policy:
 ## Known limitations
 
 - The main visual scene is still legacy vanilla Three, not fully rewritten to R3F.
-- Cypress component config is present, but no extra Vite/Rsbuild component adapter dependency was added.
+- Cypress component config is present, but no extra component adapter dependency was added.
 - JSON content is statically imported into the lazy legacy chunk because current content size is small; split locale/page imports when content grows.
 - Lighthouse CI is configured but local execution needs network access to download the pinned LHCI CLI package unless it is added to devDependencies later.
 - `pnpm` is unavailable in this repo; CI intentionally uses npm with the checked-in `package-lock.json`.
