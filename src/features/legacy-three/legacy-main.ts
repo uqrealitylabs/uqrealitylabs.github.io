@@ -2421,12 +2421,6 @@ function updateScrollPosition() {
     setActiveStop(stopIndex);
   }
 
-  const committeeTransition =
-    Math.abs(stopFloat - stopIndex) > 0.01 ? "true" : "false";
-  if (document.body.dataset.committeeTransition !== committeeTransition) {
-    document.body.dataset.committeeTransition = committeeTransition;
-  }
-
   updateSectionMotion(stopFloat);
 }
 
@@ -2963,8 +2957,6 @@ function setupJoinAccessibleInteraction() {
 function getCommitteeMemberPosition(group, rowIndex, colIndex, indexInGroup) {
   const layout = getViewportLayout();
   const rowLength = group.rows[rowIndex].length;
-  // Keep the 3-up rows clear of the fixed year rail on phones.
-  const railClearance = layout.narrow && rowLength <= 3 ? -0.8 : 0;
   let xOffset;
   let y;
 
@@ -3000,8 +2992,6 @@ function getCommitteeMemberPosition(group, rowIndex, colIndex, indexInGroup) {
     xOffset = (colIndex - (rowLength - 1) / 2) * layout.committeeImageSpacing;
     y = layout.committeeBaseY - rowIndex * layout.committeeRowSpacing;
   }
-
-  xOffset += railClearance;
 
   return {
     x: COMMITTEE_BASE_POSITION.x + xOffset,
