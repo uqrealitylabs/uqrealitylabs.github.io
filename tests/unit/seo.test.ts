@@ -43,6 +43,7 @@ describe("SEO signals", () => {
       "Content-Signal: search=yes, ai-input=yes, ai-train=no",
     );
     expect(buildRobots(site)).toContain("Allow: /");
+    expect(buildRobots(site)).toContain("Disallow: /cdn-cgi/");
     expect(buildRobots(site)).toContain(`Sitemap: ${sitemapUrl}`);
     expect(buildRobots(site, "preview")).toBe("User-agent: *\nDisallow: /\n");
   });
