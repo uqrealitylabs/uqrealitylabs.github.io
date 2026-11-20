@@ -187,6 +187,8 @@ export function buildRobots(
     "",
     "User-agent: *",
     "Allow: /",
+    // Cloudflare email obfuscation links to /cdn-cgi/l/email-protection, which 404s for crawlers.
+    "Disallow: /cdn-cgi/",
     "",
     `Sitemap: ${buildLocaleUrl(
       site.locale,
